@@ -59,61 +59,64 @@ module private Helpers  =
         "https://www.betfair.com/exchange/football"
         #endif 
 
-    let getCouponId = createTodayAtom <| fun () -> async{             
-        let! x = downloadUrl couponIdUrl (Parsing.firstPageId)
-        Logging.debug "Купон id - %A" x
-        return rightSome x }
+    let CouponId = 
+        let f() = async{             
+            let! x = downloadUrl couponIdUrl (Parsing.firstPageId)
+            Logging.debug "Купон id - %A" x
+            return rightSome x }
+        Atoms.TodayValue("COUPON-ID", f)
 
 module Coupon = 
     
-    module Inplay = let get, set, _ = createAtom []
-    module Today1 = let get, set, _ = createAtom []
-    module Today2 = let get, set, _ = createAtom []
-    module NextPage = let get, set, _ = createAtom None
+    let Inplay = Atoms.Atom( "INPLAY", [])
+    let Today1 = Atoms.Atom( "TODAY-1", [])
+    let Today2 = Atoms.Atom( "TODAY-2", [])
+    let NextPage = Atoms.Atom( "NEXT-PAGE", None)
+    
     
     let set1 (games,nextPage) = 
-        let inplay,today1 = 
+        let inplays,todays1 = 
             games |> List.partition( function 
                 |_, {playMinute = Some _} -> true 
                 | _ -> false)
-        Inplay.set inplay
-        Today1.set today1
-        NextPage.set nextPage 
+        Inplay.Set inplays
+        Today1.Set todays1
+        NextPage.Set nextPage 
 
     let set2 =
         List.filter( function 
             | _, {playMinute = None} -> true 
             | _ -> false)
-        >> Today2.set 
+        >> Today2.Set 
+
+
         
     let updateInplay() = async {
-        let! couponId = getCouponId() 
+        let! couponId = CouponId.Get() 
         match couponId with 
-        | None -> 
-            Logging.warn "update inplay : waiting for coupon id" 
-            do! Async.Sleep 5000
+        | None -> return Left "coupon id not recived"
         | Some couponId -> 
             let! gs = readGamesList couponId false 1
             match gs with
-            | Right ((games, _) as x) -> set1 x
-            | Left error -> Logging.error "update inplay error : %s" error }
+            | Right ((games, nextPageId) as x) ->                 
+                set1 x
+                return Right (games.Length,nextPageId)
+            | Left error -> return Left error }
 
     let updateToday() = async{
-        let! couponId = getCouponId() 
+        let! couponId = CouponId.Get() 
         match couponId with 
-        | None -> 
-            Logging.warn "update today : waiting for coupon id" 
-            do! Async.Sleep 5000
+        | None -> return Left "coupon id was not recived"
         | Some couponId -> 
-            let! nextPage = NextPage.get()
+            let! nextPage = NextPage.Get()
             match nextPage with 
-            | None -> 
-                Logging.warn "update today : waiting for next page value" 
-                do! Async.Sleep 5000
+            | None -> return Left "next page was not recived"
             | Some nextPage ->
                 let! gs = readGamesList couponId true nextPage 
                 match gs with
-                | Right (today2,_) -> set2 today2  
-                | Left error -> Logging.error "update today error : %s" error  }
+                | Right (today2,n) -> 
+                    set2 today2  
+                    return Right (today2.Length, n)
+                | Left error -> return Left error  }
         
         

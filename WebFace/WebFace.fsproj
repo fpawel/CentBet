@@ -41,12 +41,12 @@
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Admin.fs" />
-    <Compile Include="ProcessCoupon.fs" />
-    <Compile Include="WebClient\ClientUtils.fs" />
-    <Compile Include="WebClient\CouponPage.fs" />
-    <Compile Include="WebClient\AdminPage.fs" />
+    <Compile Include="Remote.fs" />
+    <Compile Include="ClientUtils.fs" />
+    <Compile Include="CouponPage.fs" />
+    <Compile Include="AdminPage.fs" />
     <Compile Include="Main.fs" />
+    <Content Include="PromptPassword.html" />
     <Content Include="Main.html" />
     <Content Include="Main.js" />
     <Content Include="Main.css" />

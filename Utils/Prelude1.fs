@@ -63,6 +63,10 @@ module Either =
         | Left x -> return Left x
         | Right x -> return! f x }
 
+    let mapAsync f x = async{
+        let! x' = x
+        return f x'}
+
 
     type AsyncBuilder() =
         let bind f v' = async{        

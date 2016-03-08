@@ -90,63 +90,7 @@ module List =
     let inline ids<'T,'a when 'a:comparison> (x : 'T list)  (getid : 'T -> 'a)  =
         Seq.ids<'T,'a> x getid
 
-[<AutoOpen>]
-module AsyncHelpers = 
 
-    type private M1<'T> = 
-        | Get of AsyncReplyChannel<'T> 
-        | Set of 'T
-        | Upd of ('T -> 'T)
-
-    let createAtom<'T> (init:'T) = 
-        let mbox = MailboxProcessor.Start(fun agent ->  
-            let rec loop value = async {
-                let! msg = agent.Receive()
-                return! 
-                    match msg with 
-                    | Get (r : AsyncReplyChannel<'T>) -> 
-                        r.Reply value
-                        value
-                    | Set (newValue : 'T) -> 
-                        newValue 
-                    | Upd f -> 
-                        f value 
-                    |> loop }
-            loop init )
-        let get() = mbox.PostAndAsyncReply Get
-        let set = Set >> mbox.Post  
-        let upd = Upd >> mbox.Post  
-        get,set,upd
-
-    let createTodayAtom<'T> (request: unit -> Async< 'T option> ) = 
-        let get',set,_ = createAtom None
-
-        let update() = async {
-            let! x = request()
-            match x with
-            | Some x -> Some (DateTime.Now, x)
-            | _ -> None
-            |> set 
-            return x }
-
-        fun () -> async{
-            let! x = get'()
-            match x with
-            | None  -> return! update()
-            | Some (d,_) when not (d.DateEquals DateTime.Now) -> return! update()
-            | Some(_,x) -> return Some x }
-
-    let createTodayAtom1<'T> (init:'T) = 
-        let get',set',_ = createAtom None
-
-        let get() = async {
-            let! x = get'()
-            match x with
-            | None  -> return init
-            | Some (d,_) when not ( DateTime.dateEquals (d,DateTime.Now) ) -> return init
-            | Some(_,x) -> return x }
-        let set x = set' (Some (DateTime.Now,init))
-        get,set
 
 type OptionBuilder() =
     let bind f v = 

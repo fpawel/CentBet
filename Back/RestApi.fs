@@ -74,7 +74,7 @@ let private callUntyped auth service requestArgsJson =
         use stream = response.GetResponseStream()
         use reader = new StreamReader(stream, Encoding.UTF8)
         let! responseString = Async.AwaitTask ( reader.ReadToEndAsync() )
-        let! canDebugLogging = AppConfig.EnableBetfairApiNGDebugLogs.get()
+        let! canDebugLogging = Config.enableApiNgDebugLogs.Get()
 
         let xresp = Json.parse responseString
         match xresp with 

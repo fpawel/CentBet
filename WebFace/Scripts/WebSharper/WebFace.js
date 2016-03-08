@@ -1,187 +1,78 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Var,List,Doc,T,View,CentBet,Client,Admin,Var1,Concurrency,PrintfHelpers,console,Remoting,AjaxRemotingProvider,AttrModule,Coupon,View1,Seq,Meetup,AttrProxy,ListModel,Utils,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,List,T,UI,Next,Doc,Var,CentBet,Client,Utils,Level,Concurrency,Var1,Remoting,AjaxRemotingProvider,Admin,View,Seq,AttrProxy,PrintfHelpers,Coupon,View1,Meetup,AttrModule,ListModel,console,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
     Admin:{
+     Br:Runtime.Field(function()
+     {
+      var arg20;
+      arg20=Runtime.New(T,{
+       $:0
+      });
+      return Doc.Element("br",[],arg20);
+     }),
      Config:function()
      {
-      var varSessionToken,varAppKey,varOn,varError,mapping,list,arg20,arg201,arg202,arg203,arg204,_arg10_,_arg20_,arg00;
-      varSessionToken=Var.Create("");
-      varAppKey=Var.Create("");
+      var varUser,varPass,varOn,varMsg,login;
+      varUser=Var.Create("");
+      varPass=Var.Create("");
       varOn=Var.Create(false);
-      varError=Var.Create({
-       $:0
-      });
-      mapping=function(x)
+      varMsg=Var.Create([Runtime.New(Level,{
+       $:1
+      }),""]);
+      login=function()
       {
-       return x;
-      };
-      arg20=List.ofArray([Doc.TextNode("session token")]);
-      arg201=List.ofArray([Doc.Input(Runtime.New(T,{
-       $:0
-      }),varSessionToken)]);
-      arg202=List.ofArray([Doc.TextNode("developers app key")]);
-      arg203=List.ofArray([Doc.Input(Runtime.New(T,{
-       $:0
-      }),varAppKey)]);
-      _arg10_=Runtime.New(T,{
-       $:0
-      });
-      _arg20_=function()
-      {
-       return null;
-      };
-      arg204=List.ofArray([Doc.Button("Send",_arg10_,_arg20_)]);
-      list=List.ofArray([Doc.Element("p",[],arg20),Doc.Element("p",[],arg201),Doc.Element("p",[],arg202),Doc.Element("p",[],arg203),Doc.Element("p",[],arg204)]);
-      arg00=List.map(mapping,list);
-      return Doc.Concat(arg00);
-     },
-     Main:function(isAdmin)
-     {
-      var varIsAdmin;
-      varIsAdmin=Var.Create(isAdmin);
-      return Doc.EmbedView(View.Map(function(_arg1)
-      {
-       return _arg1?Admin.Config():Admin.PromptEnterKey(function()
+       return Concurrency.Start(Concurrency.Delay(function()
        {
-        return Var1.Set(varIsAdmin,true);
-       });
-      },varIsAdmin.get_View()));
-     },
-     PromptEnterKey:function(onSuccess)
-     {
-      var varAdminKey,varOn,varError,varSubmit,authorize,arg00,arg103,x1,arg104,vAuth,arg002,arg20,arg201,_arg10_,_arg20_,arg003,_arg00_,arg004,arg105,_arg00_1,x2,arg005,_arg00_2;
-      varAdminKey=Var.Create("");
-      varOn=Var.Create(false);
-      varError=Var.Create({
-       $:0
-      });
-      varSubmit=Var.Create(null);
-      authorize=function()
-      {
-       return Concurrency.Delay(function()
-       {
-        var clo1,arg10,arg101,x;
-        clo1=function(_)
-        {
-         var s;
-         s="authorize with "+PrintfHelpers.prettyPrint(_);
-         return console?console.log(s):undefined;
-        };
-        arg10=Var1.Get(varAdminKey);
-        clo1(arg10);
         Var1.Set(varOn,true);
-        arg101={
-         $:0
-        };
-        Var1.Set(varError,arg101);
-        x=AjaxRemotingProvider.Async("WebFace:2",[Var1.Get(varAdminKey)]);
-        return Concurrency.Bind(x,function(_arg1)
+        Var1.Set(varMsg,[Runtime.New(Level,{
+         $:1
+        }),"logining betfair..."]);
+        return Concurrency.Bind(AjaxRemotingProvider.Async("WebFace:0",[Var1.Get(varUser),Var1.Get(varPass)]),function(_arg1)
         {
-         var _,error,clo11,arg102;
-         Var1.Set(varOn,false);
+         var _,error;
+         Var1.Set(varOn,true);
          if(_arg1.$==1)
           {
            error=_arg1.$0;
-           clo11=function(_1)
-           {
-            var s;
-            s="authorization error "+PrintfHelpers.prettyPrint(_1);
-            return console?console.log(s):undefined;
-           };
-           clo11(error);
-           arg102={
-            $:1,
-            $0:error
-           };
-           Var1.Set(varError,arg102);
-           _=Concurrency.Return(null);
+           _=[Runtime.New(Level,{
+            $:3
+           }),error];
           }
          else
           {
-           if(console)
-            {
-             console.log("authorized");
-            }
-           onSuccess(null);
-           _=Concurrency.Return(null);
+           _=[Runtime.New(Level,{
+            $:1
+           }),"successed!"];
           }
-         return _;
+         Var1.Set(varMsg,_);
+         return Concurrency.Return(null);
         });
+       }),{
+        $:0
        });
       };
-      arg00=function(x)
-      {
-       var _,arg001;
-       if(x==="")
-        {
-         _=null;
-        }
-       else
-        {
-         arg001=authorize(null);
-         _=Concurrency.Start(arg001,{
-          $:0
-         });
-        }
-       return _;
-      };
-      arg103=varAdminKey.get_View();
-      x1=View.Map(arg00,arg103);
-      arg104=varSubmit.get_View();
-      vAuth=View.SnapshotOn(null,arg104,x1);
-      arg20=List.ofArray([Doc.InputArea(Runtime.New(T,{
+      return Doc.Concat(List.ofArray([Doc.TextNode("User"),Admin.Br(),Doc.PasswordBox(Runtime.New(T,{
        $:0
-      }),varAdminKey)]);
-      _arg10_=Runtime.New(T,{
+      }),varUser),Admin.Br(),Doc.TextNode("Pass"),Admin.Br(),Doc.PasswordBox(Runtime.New(T,{
        $:0
-      });
-      _arg20_=function()
+      }),varPass),Admin.Br(),Admin.Br(),Doc.EmbedView(View.Map(function(isOn)
       {
-       return Var1.Set(varSubmit,null);
-      };
-      arg201=List.ofArray([Doc.Button("submit",_arg10_,_arg20_)]);
-      arg003=function()
+       return Doc.Button("Login",Seq.toList(Seq.delay(function()
+       {
+        return isOn?[AttrProxy.Create("class","hide")]:Seq.empty();
+       })),login);
+      },varOn.get_View())),Doc.EmbedView(View.Map(function(tupledArg)
       {
-       return Doc.get_Empty();
-      };
-      _arg00_=View.Map(arg003,vAuth);
-      arg004=function(_arg2)
-      {
-       var _,arg202;
-       if(_arg2)
-        {
-         arg202=List.ofArray([Doc.TextNode("\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd \ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd...")]);
-         _=Doc.Element("p",[],arg202);
-        }
-       else
-        {
-         _=Doc.get_Empty();
-        }
-       return _;
-      };
-      arg105=varOn.get_View();
-      _arg00_1=View.Map(arg004,arg105);
-      x2=varError.get_View();
-      arg005=function(_arg3)
-      {
-       var _,error;
-       if(_arg3.$==1)
-        {
-         error=_arg3.$0;
-         _=Doc.Element("p",List.ofArray([AttrModule.Style("color","red")]),List.ofArray([Doc.TextNode(error)]));
-        }
-       else
-        {
-         _=Doc.get_Empty();
-        }
-       return _;
-      };
-      _arg00_2=View.Map(arg005,x2);
-      arg002=List.ofArray([Doc.Element("p",[],arg20),Doc.Element("p",[],arg201),Doc.EmbedView(_arg00_),Doc.EmbedView(_arg00_1),Doc.EmbedView(_arg00_2)]);
-      return Doc.Concat(arg002);
+       var level,text,patternInput,_;
+       level=tupledArg[0];
+       text=tupledArg[1];
+       patternInput=(Level.get_color())(level);
+       _=patternInput[1];
+       return Doc.Element("p",List.ofArray([AttrProxy.Create("style","background-color : "+PrintfHelpers.toSafe(patternInput[0])+"; color : "+PrintfHelpers.toSafe(_)+";")]),List.ofArray([Doc.TextNode(text)]));
+      },varMsg.get_View()))]));
      }
     },
     Coupon:{
@@ -382,7 +273,7 @@
      },
      downloadCoupon:function(inplayOnly,requst)
      {
-      return AjaxRemotingProvider.Async("WebFace:0",[requst,inplayOnly]);
+      return AjaxRemotingProvider.Async("WebFace:1",[requst,inplayOnly]);
      },
      meetups:Runtime.Field(function()
      {
@@ -584,6 +475,15 @@
      })
     },
     Utils:{
+     Level:Runtime.Class({},{
+      get_color:function()
+      {
+       return function(_arg1)
+       {
+        return _arg1.$==3?["lightgrey","red"]:_arg1.$==2?["white","green"]:_arg1.$==4?["black","yellow"]:_arg1.$==0?["lightgrey","gray"]:["white","navy"];
+       };
+      }
+     }),
      dateTimeToString:function($s)
      {
       var $0=this,$this=this;
@@ -664,7 +564,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\WebClient\\ClientUtils.fs",9,22));
+              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,22));
              }
             _4=_5;
            }
@@ -685,30 +585,31 @@
  });
  Runtime.OnInit(function()
  {
+  List=Runtime.Safe(Global.WebSharper.List);
+  T=Runtime.Safe(List.T);
   UI=Runtime.Safe(Global.WebSharper.UI);
   Next=Runtime.Safe(UI.Next);
-  Var=Runtime.Safe(Next.Var);
-  List=Runtime.Safe(Global.WebSharper.List);
   Doc=Runtime.Safe(Next.Doc);
-  T=Runtime.Safe(List.T);
-  View=Runtime.Safe(Next.View);
+  Var=Runtime.Safe(Next.Var);
   CentBet=Runtime.Safe(Global.CentBet);
   Client=Runtime.Safe(CentBet.Client);
-  Admin=Runtime.Safe(Client.Admin);
-  Var1=Runtime.Safe(Next.Var1);
+  Utils=Runtime.Safe(Client.Utils);
+  Level=Runtime.Safe(Utils.Level);
   Concurrency=Runtime.Safe(Global.WebSharper.Concurrency);
-  PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
-  console=Runtime.Safe(Global.console);
+  Var1=Runtime.Safe(Next.Var1);
   Remoting=Runtime.Safe(Global.WebSharper.Remoting);
   AjaxRemotingProvider=Runtime.Safe(Remoting.AjaxRemotingProvider);
-  AttrModule=Runtime.Safe(Next.AttrModule);
+  Admin=Runtime.Safe(Client.Admin);
+  View=Runtime.Safe(Next.View);
+  Seq=Runtime.Safe(Global.WebSharper.Seq);
+  AttrProxy=Runtime.Safe(Next.AttrProxy);
+  PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
   Coupon=Runtime.Safe(Client.Coupon);
   View1=Runtime.Safe(Next.View1);
-  Seq=Runtime.Safe(Global.WebSharper.Seq);
   Meetup=Runtime.Safe(Coupon.Meetup);
-  AttrProxy=Runtime.Safe(Next.AttrProxy);
+  AttrModule=Runtime.Safe(Next.AttrModule);
   ListModel=Runtime.Safe(Next.ListModel);
-  Utils=Runtime.Safe(Client.Utils);
+  console=Runtime.Safe(Global.console);
   Date=Runtime.Safe(Global.Date);
   Collections=Runtime.Safe(Global.WebSharper.Collections);
   MapModule=Runtime.Safe(Collections.MapModule);
@@ -722,6 +623,7 @@
  {
   Coupon.varInplayOnly();
   Coupon.meetups();
+  Admin.Br();
   return;
  });
 }());

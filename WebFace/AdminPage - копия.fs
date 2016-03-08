@@ -1,4 +1,4 @@
-[<WebSharper.Pervasives.JavaScript>]
+ï»¿[<WebSharper.Pervasives.JavaScript>]
 module CentBet.Client.Admin 
 
 open WebSharper
@@ -47,7 +47,7 @@ let PromptEnterKey onSuccess =
 
         varOn.View |> View.Map( function
             | false -> Doc.Empty
-            | _ -> p[ text "Âûïîëíÿåòñÿ àâòîðèçàöèÿ..." ] :> Doc )
+            | _ -> p[ text "Ð’Ñ‹Ð¿Ð¾Ð»Ð½ÑÐµÑ‚ÑÑ Ð°Ð²Ñ‚Ð¾Ñ€Ð¸Ð·Ð°Ñ†Ð¸Ñ..." ] :> Doc )
         |> Doc.EmbedView
 
         varError.View |> View.Map( function

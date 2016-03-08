@@ -27,7 +27,7 @@ type Meetups = ListModel<GameId,Meetup>
 
 let meetups = ListModel.Create Meetup.id []
 
-let downloadCoupon inplayOnly requst  = CentBet.ProcessCoupon.get (requst, inplayOnly)
+let downloadCoupon inplayOnly requst  = CentBet.Remote.getCoupon (requst, inplayOnly)
 
 
 let addNewGames newGames = 

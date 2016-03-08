@@ -37,3 +37,17 @@ module Utils =
     [<Inline "createBlobFromString($arg)">]
     let createBlobFromString (arg : string) : Blob = failwith "n/a"
 
+    type Level =
+        | Debug 
+        | Info
+        | Warn
+        | Error
+        | Fatal  
+
+        static member color = function
+            | Info -> "white", "navy"
+            | Error -> "lightgrey", "red"
+            | Warn -> "white", "green"
+            | Fatal -> "black", "yellow"
+            | Debug -> "lightgrey", "gray"
+
