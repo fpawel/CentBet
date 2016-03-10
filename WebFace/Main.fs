@@ -5,12 +5,7 @@ open WebSharper.Sitelets
 open WebSharper.UI.Next
 open WebSharper.UI.Next.Server
 
-type UserPass = {
-    [<FormData "user">]  user : string
-    [<FormData "pass">]  pass : string }
 type EndPoint =
-    | [<EndPoint "/auth"; Method "POST"; FormData("user", "pass") >] Auth of user : string * pass : string
-    | [<EndPoint "/login">] Login
     | [<EndPoint "/">] Coupon    
     | [<EndPoint "/admin">] Admin
     
@@ -49,10 +44,16 @@ module Site =
         Templating.Main ctx EndPoint.Coupon "Купон" [
             client <@ CentBet.Client.Coupon.Main() @> ]
 
-    let AdminPage ctx = 
-        Templating.Main ctx Admin "Adminig" [
-            client <@ CentBet.Client.Admin.Config() @>             
-            ]
+    let AdminPage ctx = async{ 
+        let! isAdminCtx = CentBet.Remote.isAdminCtx ctx
+        return!
+            Templating.Main ctx Admin "Adminig" [
+                client <@ CentBet.Client.Admin.Page isAdminCtx @>             
+                ]
+        }
+
+
+        
 
     [<Website>]
     let Main =
@@ -60,24 +61,5 @@ module Site =
 
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
-            | Auth (user,pass) -> async{
-                if user <> "admin" then                    
-                    return!                         
-                        Content.Text ("wrong user name", encoding = System.Text.UTF32Encoding())
-                        |> Content.SetStatus Http.Status.Unauthorized
-                elif md5hash pass <> passwordKey then
-                    return!                         
-                        Content.Text ("wrong password", encoding = System.Text.UTF32Encoding())
-                        |> Content.SetStatus Http.Status.Unauthorized
-                else 
-                    do! ctx.UserSession.LoginUser("admin",false)
-                    return! Content.RedirectPermanent Admin
-                }
-            | Login -> Content.File("PromptPassword.html", ContentType="text/HTML")
             | Coupon -> CouponPage ctx 
-            | Admin -> async { 
-                let! user = ctx.UserSession.GetLoggedInUser()
-                return!
-                    match user with 
-                    | Some "admin" -> AdminPage ctx  
-                    | _ -> Content.RedirectTemporary Login  } )
+            | Admin -> AdminPage ctx )

@@ -7,17 +7,24 @@ open Betfair
 open Betfair.Football
 open Betfair.Football.Services
 
+let isAdminCtx (ctx : Web.IContext) = async{
+    let! user = ctx.UserSession.GetLoggedInUser()
+    return 
+        match user with 
+        | Some "admin" -> true
+        | _ -> false }
+    
+
 [<Rpc>]
 let loginBetfair (buser,bpass) = 
 
     let ctx = Web.Remoting.GetContext()
     async{
-        let! user = ctx.UserSession.GetLoggedInUser()
-        match user with 
-        | Some "admin" -> 
+        let! isAdminCtx = isAdminCtx ctx
+        if isAdminCtx then
             let! r = Betfair.Login.login buser bpass
             return leftSome r
-        | _ -> return Some "access denied" }
+        else return Some "access denied" }
 
 [<Rpc>]
 let getCoupon ( (reqGames,inplayOnly) as request)  = async{
@@ -47,3 +54,27 @@ let getCoupon ( (reqGames,inplayOnly) as request)  = async{
             hash <> reqHash  )
         |> Seq.toList
     return newGames, update, outIds }
+
+let passwordKey = "E018CB561EE1DB0EF3892AE22FCCDD5C" 
+
+[<Rpc>]
+let authorizeAdmin reqPass = 
+    let ctx = Web.Remoting.GetContext()
+    async {
+        if md5hash reqPass = passwordKey then
+            do! ctx.UserSession.LoginUser("admin")
+            Logging.warn "authorize admin : success"
+            return true
+        else
+            Logging.warn "authorize admin : access denied for %A" passwordKey
+            return false }
+
+[<Rpc>]
+let isAdminAuthorized () = 
+    let ctx = Web.Remoting.GetContext()
+    async {
+        let! user = ctx.UserSession.GetLoggedInUser()
+        return
+            match user with
+            | Some "admin" -> true
+            | _ -> false }

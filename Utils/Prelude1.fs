@@ -3,9 +3,13 @@ module Prelude1
 
 open System
 
-type Either<'a, 'b> =
-    | Left of 'a
-    | Right of 'b
+type Either<'a,'b> = Choice<'a,'b>
+let (|Left|Right|) = function
+    | Choice1Of2 a -> Left a
+    | Choice2Of2 b -> Right b
+
+let Left = Choice1Of2
+let Right = Choice2Of2
 
 [<AutoOpen>]
 module Either =

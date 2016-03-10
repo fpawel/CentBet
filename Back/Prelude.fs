@@ -176,11 +176,6 @@ module Logging =
 
     [<AutoOpen>]
     module private Helpers = 
-//        let consoleTracer = new ConsoleTraceListener(false)
-//
-//        do
-//            Trace.Listeners.Add(consoleTracer) |> ignore         
-
         let write' level text = 
             Level.trace level text
            

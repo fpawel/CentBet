@@ -53,9 +53,9 @@ module private Helpers =
         | JAppKey y ->  Some y
         | _ ->  None 
 
-    let ``bad format`` : Either<_,_> = Left "bad format"
-    let ``no instruction report`` : Either<_,_> = Left "no instruction report"
-    let ``missing id`` : Either<_,_>  = Left "missing id"
+    let ``bad format``<'a> : Either<string,'a> = Left "bad format"
+    let ``no instruction report``<'a> : Either<string,'a> = Left "no instruction report"
+    let ``missing id``<'a> : Either<string,'a> = Left "missing id"
 
     
 let requestDevelopersAppKey sessionToken =
@@ -107,7 +107,7 @@ let placeOrder auth (marketId,selectionId,side,price,size) =
     
      
 
-let cancelOrder auth (marketId,betId,sizeReduction) =
+let cancelOrder auth (marketId,betId,sizeReduction) : Async< Either<string, decimal option> > =
     let instruction = { betId = betId; sizeReduction = sizeReduction }
     {   CancelationRequest.marketId = { marketId = marketId }
         instructions = [ instruction ] }         
