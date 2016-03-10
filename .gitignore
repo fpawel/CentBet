@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+LocalHost/
 password.txt
 
 # User-specific files (MonoDevelop/Xamarin Studio)
