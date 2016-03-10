@@ -77,13 +77,12 @@ let private callUntyped auth service requestArgsJson =
         let! canDebugLogging = Config.enableApiNgDebugLogs.Get()
 
         let xresp = Json.parse responseString
-        match xresp with 
-        | Left error -> Some(Logging.Error, "no answer")
-        | Right json -> Some( Logging.Debug, formatPrety json)
-        |> function 
-            | None -> ()
-            | Some (level, s) -> 
-                Logging.write level "rest api - %A, %A, %s -> %s" auth service (formatPrety requestJson) s
+        if canDebugLogging then
+            let level,s = 
+                match xresp with 
+                | Left error -> Logging.Error, "no answer"
+                | Right json -> Logging.Debug, formatPrety json
+            Logging.write level "rest api - %A, %A, %s -> %s" auth service (formatPrety requestJson) s
 
         return 
             xresp 

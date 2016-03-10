@@ -9,7 +9,7 @@ type UserPass = {
     [<FormData "user">]  user : string
     [<FormData "pass">]  pass : string }
 type EndPoint =
-    | [<EndPoint "/auth"; Method "POST"; FormData("user", "pass") >] Auth of user:string * pass:string
+    | [<EndPoint "/auth"; Method "POST"; FormData("user", "pass") >] Auth of user : string * pass : string
     | [<EndPoint "/login">] Login
     | [<EndPoint "/">] Coupon    
     | [<EndPoint "/admin">] Admin

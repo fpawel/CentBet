@@ -7,64 +7,71 @@ open Betfair
 open Betfair.Football
 open Betfair.Football.Services
 
-let Events = Atoms.TodayValueRef ("COUPON-EVENTS",Map.empty)
+let ApiNgEvents = Atom.todayValueRef "COUPON-EVENTS" Map.empty  Atom.Logs.none
 
-let getEvents ids = async{
-    let! events = Events.Get()
-    let existedIds, missingIds = ids |> List.partition( fun k -> events.ContainsKey k )
-    let existed = existedIds |> List.map(fun id -> id, events.[id]) |> Map.ofList
-    return existed, missingIds }
+[<AutoOpen>]
+module private Helpers = 
 
+    let readApiNgEvents ids = async{
+        let! events = ApiNgEvents.Get()
+        let existedIds, missingIds = ids |> List.partition( fun k -> events.ContainsKey k )
+        let existed = existedIds |> List.map(fun id -> id, events.[id]) |> Map.ofList
+        return existed, missingIds }
 
-module Status =
-    open Status
-    let Inplay = Status("INPLAY-GAMES", "not recived")
-    let Today = Status( "TODAY-GAMES" , "not recived")
-    let Events = Status( "TODAY-APING-EVENTS" , "not recived")
+    let ``initialized`` = "initialized"
+    let ``started`` = "started"
+    let ``stoped`` = "stoped"
+    let ``ok`` = "Ok"
+    let (~%%) = Async.Start
+    
+    let initStatus what = Atom.status what ``initialized``
+    let start' (status : Atom.Status) work =         
+        %% async{
+            do! status.Set Logging.Info ``started``
+            while true do     
+                let! (x : _) = work()
+                do! x |> status.Set1( fun _ -> ``ok``)
+                match x with
+                | Left _ -> do! Async.Sleep 5000
+                | _ -> ()
+
+            do! status.Set Logging.Error ``stoped`` }
+        
+
+let private processEvents() = async{
+    let! auth = Login.auth.Get()
+    match auth with
+    | None ->         
+        do! Async.Sleep 5000
+        return Left "waiting for auth to read"
+    | Some auth ->
+        let! xs = Coupon.Inplay.Get()
+        let! _, missingIds =
+            xs 
+            |> List.map(fun ({gameId = eventId,_},_) -> eventId )
+            |> readApiNgEvents
+        let! newEvents' = ApiNG.Services.listEvents auth missingIds                     
+        match newEvents' with
+        | Left _ -> ()
+        | Right newEvents ->
+            let! existedEvents = ApiNgEvents.Get()
+            do!
+                newEvents |> List.map(fun r -> r.event.id,r)
+                |> Map.ofList
+                |> Map.union existedEvents 
+                |> ApiNgEvents.Set 
+        return newEvents' }
+
+let Inplay = initStatus "INPLAY-GAMES"
+let Today = initStatus "TODAY-GAMES" 
+let Events = initStatus "TODAY-APING-EVENTS" 
+
+let start = 
+    start' Inplay Coupon.updateInplay
+    start' Today Coupon.updateToday
+    start' Events processEvents
 
     
 
-
-let start =
-    let (~%%) = Async.Start
-    %% async{
-        Status.Inplay.Set Logging.Info "started"
-        while true do     
-            let! x = Coupon.updateInplay()
-            x |> Status.Inplay.Set1( fun (count, next) -> sprintf "%d games, next is %A" count next) 
-        Status.Inplay.Set Logging.Error "stoped" }
-
-    %% async{            
-        Status.Today.Set Logging.Info "started"
-        while true do        
-            let! x = Coupon.updateToday()
-            x |> Status.Inplay.Set1 ( fun (count, next) -> sprintf "%d games, next is %A" count next)
-        Status.Today.Set Logging.Error "stoped" }
-
-    %% async{            
-        Status.Events.Set Logging.Info "started"
-        while true do 
-            let! auth = Login.auth.Get()
-            match auth with
-            | None -> Status.Events.Set Logging.Warn "waiting for auth to read"
-            | Some auth ->
-                let! xs = Coupon.Inplay.Get()
-                let! _, missingIds =
-                    xs 
-                    |> List.map(fun ({gameId = eventId,_},_) -> eventId )
-                    |> getEvents
-                let! newEvents' = ApiNG.Services.listEvents auth missingIds                
-                newEvents' 
-                |> Status.Events.Set1 ( fun xs -> sprintf "%d readed" xs.Length)
-                     
-                match newEvents' with
-                | Left _ -> ()
-                | Right newEvents ->
-                    let! existedEvents = Events.Get()
-                    newEvents |> List.map(fun r -> r.event.id,r)
-                    |> Map.ofList
-                    |> Map.union existedEvents 
-                    |> Events.Set 
-        Status.Events.Set Logging.Error "stoped" }
     fun () -> ()
 

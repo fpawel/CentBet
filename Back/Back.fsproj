@@ -52,9 +52,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Prelude.fs" />
-    <Compile Include="Atoms.fs" />
-    <Compile Include="Logging.fs" />
-    <Compile Include="Status.fs" />
+    <Compile Include="Atom.fs" />
     <Compile Include="Config.fs" />
     <Compile Include="WebUtils.fs" />
     <Compile Include="RestApi.fs" />

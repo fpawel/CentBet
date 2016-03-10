@@ -9,7 +9,7 @@ open System.Text.RegularExpressions
 open System.IO
 
 
-let auth = Status.createLoggableAtom  "BETFAIR-SESSION-TOKEN-APP-KEY"  None  (sprintf "%A")
+let auth = Atom.withLogsByValue "BETFAIR-SESSION-TOKEN-APP-KEY" None 
 
 let login user pass = 
     let uri = 
@@ -41,12 +41,11 @@ let login user pass =
         | x::_ -> return  Right x  }
     |> Either.bindRightAsyncR ( fun sessionToken -> async{ 
         let! appKey = ApiNG.Services.requestDevelopersAppKey sessionToken
-        return 
-            appKey 
-            |> Either.mapRight( fun appKey -> 
-                let x = { RestApi.Auth.SessionToken = sessionToken; RestApi.Auth.AppKey = appKey }
-                auth.Set (Some x)                
-                x)
-            |> Either.mapLeft( sprintf "error reciving app key : %s") } )
+        match appKey with
+        | Left error -> return Left <| sprintf "error reciving app key : %s" error
+        | Right appKey -> 
+            let x = { RestApi.Auth.SessionToken = sessionToken; RestApi.Auth.AppKey = appKey }
+            do! auth.Set (Some x)
+            return Right x } )
     
 

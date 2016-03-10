@@ -156,5 +156,40 @@ let caseDescr<'T> (x:'T) =
     | Some d -> d.Description
 
 
+module Logging =
+
+    open System.Diagnostics
+
+    type Level =
+        | Debug 
+        | Info
+        | Warn
+        | Error
+        | Fatal    
+        static member trace  (l : Level) (s : string)  = 
+            (match l with
+             | Debug -> Trace.WriteLine
+             | Info -> Trace.TraceInformation
+             | Warn -> Trace.TraceWarning
+             | Error 
+             | Fatal -> Trace.TraceError) (sprintf "%A %A %s" DateTime.Now l s)
+
+    [<AutoOpen>]
+    module private Helpers = 
+//        let consoleTracer = new ConsoleTraceListener(false)
+//
+//        do
+//            Trace.Listeners.Add(consoleTracer) |> ignore         
+
+        let write' level text = 
+            Level.trace level text
+           
+    let write level format = Printf.kprintf (write' level) format
+    let error format = Printf.kprintf (write' Error) format
+    let info format = Printf.kprintf (write' Info) format
+    let warn format = Printf.kprintf (write' Warn) format
+    let debug format = Printf.kprintf (write' Debug) format
+
+
 
 

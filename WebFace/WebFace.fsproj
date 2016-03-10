@@ -47,10 +47,18 @@
     <Compile Include="AdminPage.fs" />
     <Compile Include="Main.fs" />
     <Content Include="PromptPassword.html" />
-    <Content Include="Main.html" />
-    <Content Include="Main.js" />
-    <Content Include="Main.css" />
-    <Content Include="favicon.ico" />
+    <Content Include="Main.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Main.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Main.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="favicon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Web.config" />
     <Content Include="Global.asax" />
     <Compile Include="Global.asax.fs" />

@@ -59,29 +59,31 @@ module private Helpers  =
         "https://www.betfair.com/exchange/football"
         #endif 
 
+module Coupon = 
+    open Atom
+
+    let CouponIdStatus = status "COUPON-ID-STATUS" "initialized"
     let CouponId = 
         let f() = async{             
             let! x = downloadUrl couponIdUrl (Parsing.firstPageId)
-            Logging.debug "Купон id - %A" x
+            do! CouponIdStatus.Set1 (sprintf "%d") x
             return rightSome x }
-        Atoms.TodayValue("COUPON-ID", f)
+        todayValue "COUPON-ID" f Logs.byValue
 
-module Coupon = 
-    
-    let Inplay = Atoms.Atom( "INPLAY", [])
-    let Today1 = Atoms.Atom( "TODAY-1", [])
-    let Today2 = Atoms.Atom( "TODAY-2", [])
-    let NextPage = Atoms.Atom( "NEXT-PAGE", None)
+    let Inplay = withListLogs "INPLAY" []
+    let Today1 = withListLogs "TODAY-1" []
+    let Today2 = withListLogs "TODAY-2" []
+    let NextPage = withNoLogs "NEXT-PAGE" None
     
     
-    let set1 (games,nextPage) = 
+    let set1 (games,nextPage) = async{
         let inplays,todays1 = 
             games |> List.partition( function 
                 |_, {playMinute = Some _} -> true 
                 | _ -> false)
-        Inplay.Set inplays
-        Today1.Set todays1
-        NextPage.Set nextPage 
+        do! Inplay.Set inplays
+        do! Today1.Set todays1
+        do! NextPage.Set nextPage }
 
     let set2 =
         List.filter( function 
@@ -89,33 +91,36 @@ module Coupon =
             | _ -> false)
         >> Today2.Set 
 
+    let ``no coupon id`` = Left "no coupon id"
+    let ``no next id`` = Left "no next id"
+
 
         
     let updateInplay() = async {
         let! couponId = CouponId.Get() 
         match couponId with 
-        | None -> return Left "coupon id not recived"
+        | None -> return ``no coupon id``
         | Some couponId -> 
             let! gs = readGamesList couponId false 1
             match gs with
             | Right ((games, nextPageId) as x) ->                 
-                set1 x
+                do! set1 x
                 return Right (games.Length,nextPageId)
             | Left error -> return Left error }
 
     let updateToday() = async{
         let! couponId = CouponId.Get() 
         match couponId with 
-        | None -> return Left "coupon id was not recived"
+        | None -> return ``no coupon id``
         | Some couponId -> 
             let! nextPage = NextPage.Get()
             match nextPage with 
-            | None -> return Left "next page was not recived"
+            | None -> return ``no next id``
             | Some nextPage ->
                 let! gs = readGamesList couponId true nextPage 
                 match gs with
                 | Right (today2,n) -> 
-                    set2 today2  
+                    do! set2 today2  
                     return Right (today2.Length, n)
                 | Left error -> return Left error  }
         
