@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,JSON,PrintfHelpers,window,List,CentBet,Client,Admin,UI,Next,Doc,AttrModule,T,AttrProxy,Seq,Key,Var1,Unchecked,Var,Concurrency,jQuery,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Utils,console,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,JSON,PrintfHelpers,window,List,CentBet,Client,Admin,UI,Next,Doc,AttrModule,T,AttrProxy,Seq,Key,Var,Concurrency,Var1,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Utils,console,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -146,7 +146,217 @@
      {
       return x;
      },
-     getCommandFromHistory:function(isnext)
+     op_SpliceUntyped:Runtime.Field(function()
+     {
+      return function(x)
+      {
+       return Admin.doc(x);
+      };
+     }),
+     recordKey:function(x)
+     {
+      return x.Id;
+     },
+     renderInput:function()
+     {
+      var varInput,rvFocusInput,varDisableInput,doSend,handleKeyDown,x,arg00,_arg00_;
+      varInput=Var.Create("");
+      rvFocusInput=Var.Create(null);
+      varDisableInput=Var.Create(false);
+      doSend=Concurrency.Delay(function()
+      {
+       Var1.Set(varDisableInput,true);
+       return Concurrency.Bind(Admin.send(Var1.Get(varInput)),function()
+       {
+        Var1.Set(varDisableInput,false);
+        Var1.Set(varInput,"");
+        return Concurrency.Return(null);
+       });
+      });
+      handleKeyDown=function(_arg2)
+      {
+       var _,_1,matchValue,_2,cmd,_3,_4,matchValue1,_5,cmd1,_6;
+       if(_arg2==="Enter")
+        {
+         _=Concurrency.Start(doSend,{
+          $:0
+         });
+        }
+       else
+        {
+         if(_arg2==="Up")
+          {
+           matchValue=Admin.tryGetCommandFromHistory(_arg2==="Up");
+           if(matchValue.$==1)
+            {
+             cmd=matchValue.$0;
+             _3={
+              $:1,
+              $0:cmd
+             };
+             Admin.varCmd=function()
+             {
+              return _3;
+             };
+             _2=Var1.Set(varInput,cmd.Text);
+            }
+           else
+            {
+             _2=null;
+            }
+           _1=_2;
+          }
+         else
+          {
+           if(_arg2==="Down")
+            {
+             matchValue1=Admin.tryGetCommandFromHistory(_arg2==="Up");
+             if(matchValue1.$==1)
+              {
+               cmd1=matchValue1.$0;
+               _6={
+                $:1,
+                $0:cmd1
+               };
+               Admin.varCmd=function()
+               {
+                return _6;
+               };
+               _5=Var1.Set(varInput,cmd1.Text);
+              }
+             else
+              {
+               _5=null;
+              }
+             _4=_5;
+            }
+           else
+            {
+             _4=null;
+            }
+           _1=_4;
+          }
+         _=_1;
+        }
+       return _;
+      };
+      x=varDisableInput.get_View();
+      arg00=function(disable)
+      {
+       return Doc.Input(Seq.toList(Seq.delay(function()
+       {
+        return Seq.append([AttrProxy.Create("id",Admin["cmd-input"]())],Seq.delay(function()
+        {
+         return Seq.append(disable?[AttrProxy.Create("disabled","disabled")]:Seq.empty(),Seq.delay(function()
+         {
+          return Seq.append([AttrModule.Style("width","80%")],Seq.delay(function()
+          {
+           return Seq.append([AttrModule.CustomVar(rvFocusInput,function(el)
+           {
+            return function()
+            {
+             return el.focus();
+            };
+           },function()
+           {
+            return{
+             $:0
+            };
+           })],Seq.delay(function()
+           {
+            var callback;
+            callback=function()
+            {
+             return function(e)
+             {
+              return handleKeyDown(e.keyIdentifier);
+             };
+            };
+            return[AttrModule.Handler("keydown",callback)];
+           }));
+          }));
+         }));
+        }));
+       })),varInput);
+      };
+      _arg00_=View.Map(arg00,x);
+      return Doc.EmbedView(_arg00_);
+     },
+     renderRecord:Runtime.Field(function()
+     {
+      var arg00;
+      arg00=function(r)
+      {
+       var patternInput,fore,back;
+       patternInput=(Level.get_color())(r.Level);
+       fore=patternInput[1];
+       back=patternInput[0];
+       return(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(r.Level.get_s1()+" "+r.Text)])));
+      };
+      return function(x)
+      {
+       var _arg00_;
+       _arg00_=View.Map(arg00,x);
+       return Doc.EmbedView(_arg00_);
+      };
+     }),
+     send:function(inputText)
+     {
+      return Concurrency.Delay(function()
+      {
+       var inputText1,a,xs,_,x,_1;
+       inputText1=Strings.Trim(inputText);
+       Admin.addRecord(Runtime.New(Level,{
+        $:2
+       }),inputText1);
+       xs=Var1.Get(Admin.varCommandsHistory().Var);
+       if(Seq.isEmpty(xs))
+        {
+         _=true;
+        }
+       else
+        {
+         x=Seq1.last(xs);
+         _=x.Text!==inputText1;
+        }
+       if(_)
+        {
+         Admin.varCommandsHistory().Add({
+          Id:Key.Fresh(),
+          Text:inputText1
+         });
+         _1=Concurrency.Return(null);
+        }
+       else
+        {
+         _1=Concurrency.Return(null);
+        }
+       a=_1;
+       return Concurrency.Combine(a,Concurrency.Delay(function()
+       {
+        return Concurrency.TryWith(Concurrency.Delay(function()
+        {
+         return Concurrency.Bind(AjaxRemotingProvider.Async("WebFace:1",[inputText1]),function(_arg1)
+         {
+          var msg;
+          _arg1[0];
+          msg=_arg1[1];
+          Admin.addRecord(Runtime.New(Level,{
+           $:0
+          }),msg);
+          return Concurrency.Return(null);
+         });
+        }),function(_arg2)
+        {
+         Admin.addRecord(Runtime.New(Level,{
+          $:1
+         }),_arg2.message);
+         return Concurrency.Return(null);
+        });
+       }));
+      });
+     },
+     tryGetCommandFromHistory:function(isnext)
      {
       var xs,count,_,n,_1,_id_,mapping,predicate,source,source1,v,matchValue,_2,_3,n2,_4,n3,_5,_6,n4,_7,n5,_8,_9,n6,_a,n7,_b,_c,n8,_d,n9,arg0;
       xs=Var1.Get(Admin.varCommandsHistory().Var);
@@ -307,214 +517,6 @@
         };
        }
       return _;
-     },
-     op_SpliceUntyped:Runtime.Field(function()
-     {
-      return function(x)
-      {
-       return Admin.doc(x);
-      };
-     }),
-     recordKey:function(x)
-     {
-      return x.Id;
-     },
-     renderInput:function()
-     {
-      var varInput,rvFocusInput,varDisableInput,doSend,x,arg00,_arg00_;
-      varInput=Var.Create("");
-      rvFocusInput=Var.Create(null);
-      varDisableInput=Var.Create(false);
-      doSend=Concurrency.Delay(function()
-      {
-       Var1.Set(varDisableInput,true);
-       return Concurrency.Bind(Admin.send(Var1.Get(varInput)),function()
-       {
-        Var1.Set(varDisableInput,false);
-        Var1.Set(varInput,"");
-        return Concurrency.Return(null);
-       });
-      });
-      x=varDisableInput.get_View();
-      arg00=function(disable)
-      {
-       var arg001,objectArg,arg002;
-       arg001=Seq.toList(Seq.delay(function()
-       {
-        return Seq.append([AttrProxy.Create("id",Admin["cmd-input"]())],Seq.delay(function()
-        {
-         return Seq.append(disable?[AttrProxy.Create("disabled","disabled")]:Seq.empty(),Seq.delay(function()
-         {
-          return Seq.append([AttrModule.Style("width","80%")],Seq.delay(function()
-          {
-           return[AttrModule.CustomVar(rvFocusInput,function(el)
-           {
-            return function()
-            {
-             return el.focus();
-            };
-           },function()
-           {
-            return{
-             $:0
-            };
-           })];
-          }));
-         }));
-        }));
-       }));
-       objectArg=Doc.Input(arg001,varInput);
-       arg002=function()
-       {
-        var inputElement;
-        inputElement=jQuery("#"+Admin["cmd-input"]());
-        return inputElement.keydown(function(e1)
-        {
-         var matchValue,_,_1,matchValue1,_2,cmd,_3,_4,matchValue2,_5,cmd1,_6;
-         matchValue=e1.which;
-         if(matchValue===13)
-          {
-           _=Concurrency.Start(doSend,{
-            $:0
-           });
-          }
-         else
-          {
-           if(matchValue===38)
-            {
-             matchValue1=Admin.getCommandFromHistory(e1.which===40);
-             if(matchValue1.$==1)
-              {
-               cmd=matchValue1.$0;
-               _3={
-                $:1,
-                $0:cmd
-               };
-               Admin.varCmd=function()
-               {
-                return _3;
-               };
-               _2=Var1.Set(varInput,cmd.Text);
-              }
-             else
-              {
-               _2=null;
-              }
-             _1=_2;
-            }
-           else
-            {
-             if(matchValue===40)
-              {
-               matchValue2=Admin.getCommandFromHistory(e1.which===40);
-               if(matchValue2.$==1)
-                {
-                 cmd1=matchValue2.$0;
-                 _6={
-                  $:1,
-                  $0:cmd1
-                 };
-                 Admin.varCmd=function()
-                 {
-                  return _6;
-                 };
-                 _5=Var1.Set(varInput,cmd1.Text);
-                }
-               else
-                {
-                 _5=null;
-                }
-               _4=_5;
-              }
-             else
-              {
-               _4=null;
-              }
-             _1=_4;
-            }
-           _=_1;
-          }
-         return _;
-        });
-       };
-       return objectArg.OnAfterRender(arg002);
-      };
-      _arg00_=View.Map(arg00,x);
-      return Doc.EmbedView(_arg00_);
-     },
-     renderRecord:Runtime.Field(function()
-     {
-      var arg00;
-      arg00=function(r)
-      {
-       var patternInput,fore,back;
-       patternInput=(Level.get_color())(r.Level);
-       fore=patternInput[1];
-       back=patternInput[0];
-       return(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(r.Level.get_s1()+" "+r.Text)])));
-      };
-      return function(x)
-      {
-       var _arg00_;
-       _arg00_=View.Map(arg00,x);
-       return Doc.EmbedView(_arg00_);
-      };
-     }),
-     send:function(inputText)
-     {
-      return Concurrency.Delay(function()
-      {
-       var inputText1,a,xs,_,x,_1;
-       inputText1=Strings.Trim(inputText);
-       Admin.addRecord(Runtime.New(Level,{
-        $:2
-       }),inputText1);
-       xs=Var1.Get(Admin.varCommandsHistory().Var);
-       if(Seq.isEmpty(xs))
-        {
-         _=true;
-        }
-       else
-        {
-         x=Seq1.last(xs);
-         _=x.Text!==inputText1;
-        }
-       if(_)
-        {
-         Admin.varCommandsHistory().Add({
-          Id:Key.Fresh(),
-          Text:inputText1
-         });
-         _1=Concurrency.Return(null);
-        }
-       else
-        {
-         _1=Concurrency.Return(null);
-        }
-       a=_1;
-       return Concurrency.Combine(a,Concurrency.Delay(function()
-       {
-        return Concurrency.TryWith(Concurrency.Delay(function()
-        {
-         return Concurrency.Bind(AjaxRemotingProvider.Async("WebFace:1",[inputText1]),function(_arg1)
-         {
-          var msg;
-          _arg1[0];
-          msg=_arg1[1];
-          Admin.addRecord(Runtime.New(Level,{
-           $:0
-          }),msg);
-          return Concurrency.Return(null);
-         });
-        }),function(_arg2)
-        {
-         Admin.addRecord(Runtime.New(Level,{
-          $:1
-         }),_arg2.message);
-         return Concurrency.Return(null);
-        });
-       }));
-      });
      },
      varCmd:Runtime.Field(function()
      {
@@ -1065,17 +1067,16 @@
   AttrProxy=Runtime.Safe(Next.AttrProxy);
   Seq=Runtime.Safe(Global.WebSharper.Seq);
   Key=Runtime.Safe(Next.Key);
-  Var1=Runtime.Safe(Next.Var1);
-  Unchecked=Runtime.Safe(Global.WebSharper.Unchecked);
   Var=Runtime.Safe(Next.Var);
   Concurrency=Runtime.Safe(Global.WebSharper.Concurrency);
-  jQuery=Runtime.Safe(Global.jQuery);
+  Var1=Runtime.Safe(Next.Var1);
   View=Runtime.Safe(Next.View);
   Level=Runtime.Safe(Admin.Level);
   Strings=Runtime.Safe(Global.WebSharper.Strings);
   Seq1=Runtime.Safe(Global.Seq);
   Remoting=Runtime.Safe(Global.WebSharper.Remoting);
   AjaxRemotingProvider=Runtime.Safe(Remoting.AjaxRemotingProvider);
+  Unchecked=Runtime.Safe(Global.WebSharper.Unchecked);
   Storage1=Runtime.Safe(Next.Storage1);
   Json=Runtime.Safe(Global.WebSharper.Json);
   Provider=Runtime.Safe(Json.Provider);

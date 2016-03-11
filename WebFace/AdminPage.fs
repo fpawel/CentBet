@@ -105,7 +105,7 @@ let send (inputText : string) = async{
 
 
 let mutable varCmd = None
-let getCommandFromHistory  isnext =
+let tryGetCommandFromHistory isnext =
     let xs = varCommandsHistory.Value
     let count = Seq.length xs
     if count = 0 then None else   
@@ -135,6 +135,16 @@ let renderInput () =
         do! send varInput.Value
         varDisableInput.Value <- false
         varInput.Value <- "" }
+
+    let handleKeyDown = function
+        | "Enter" -> Async.Start doSend 
+        | "Up" | "Down" as key->
+            match tryGetCommandFromHistory (key = "Up") with 
+            | Some cmd -> 
+                varCmd <- Some cmd
+                varInput.Value <- cmd.Text
+            | _ -> ()  
+        | _ -> ()
     
     varDisableInput.View  |> View.Map( fun disable -> 
         ( Doc.Input [ 
@@ -142,18 +152,10 @@ let renderInput () =
                 if disable then yield attr.disabled "disabled" 
                 yield Attr.Style "width" "80%" 
                 yield Attr.CustomVar rvFocusInput (fun el _ -> focus(el)) (fun _ -> None)
-                ] varInput).OnAfterRender <| fun e ->
-            let inputElement = JQuery.JQuery.Of("#" + ``cmd-input``)
-            inputElement.Keydown(fun _ e ->
-                match e.Which with
-                | 13 -> Async.Start doSend 
-                | 38 | 40 -> 
-                    match getCommandFromHistory (e.Which = 40) with 
-                    | Some cmd -> 
-                        varCmd <- Some cmd
-                        varInput.Value <- cmd.Text
-                    | _ -> () 
-                | _ -> ()).Ignore
+                yield Attr.Handler "keydown" <| fun _ e ->
+                    let e = e |> box :?> Dom.KeyboardEvent
+                    handleKeyDown e.KeyIdentifier   ] varInput)
+
         :> Doc )
     |> Doc.EmbedView
 
