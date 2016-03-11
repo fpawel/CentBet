@@ -3,6 +3,45 @@
 open System
 open System.Diagnostics
 
+
+module Trace =
+    type private S = unit -> Async<string>
+
+    type private M1 = 
+        | Add of string * S
+        | GetValue of string * AsyncReplyChannel<string> 
+        | GetNames of AsyncReplyChannel<string list> 
+
+
+    let private mbox = MailboxProcessor.Start(fun agent ->  async {        
+        
+        let rec loop (xs) = async{            
+            let! msg = agent.Receive()
+            match msg with 
+            | GetValue (s,r) ->
+                match Map.tryFind s xs with
+                | Some x -> 
+                    let! x = x()
+                    r.Reply x
+                | _ -> r.Reply ""
+                return! loop xs
+            | GetNames r -> 
+                Map.toList xs |> List.map fst |> r.Reply
+                return! loop xs
+            | Add (s,f) ->             
+                return! Map.add s f xs  |> loop}        
+        return! loop Map.empty  } )
+
+    let getNames() = 
+        mbox.PostAndAsyncReply( fun r -> GetNames r)
+
+    let getAtomValue atom = 
+        mbox.PostAndAsyncReply( fun r -> GetValue(atom,r) )
+
+    let add wht get = 
+        mbox.Post <| Add ( wht, get )
+
+
 [<AutoOpen>]
 module Helpers = 
     type AtomChangedHandler<'a> =  string -> 'a -> 'a -> Async<unit>  
@@ -11,9 +50,6 @@ module Helpers =
         | Get of AsyncReplyChannel<'T> 
         | Set of 'T * AsyncReplyChannel<unit> 
         | Upd of ('T -> 'T) * AsyncReplyChannel<unit>
-
-    let lock' = ()
-
 
 module Logs = 
 
@@ -52,6 +88,16 @@ type Atom<'a> ( what, init, logs : Logs.Options<'a>   ) =
             return! loop value' }        
         return! loop (init)
         } )
+
+    let get() = mbox.PostAndAsyncReply Get
+    do
+        let get() = async{
+            let! v = get()
+            return sprintf "%A" v }
+        Trace.add what get
+        
+
+
     member __.What = what
     member __.Get ()  = mbox.PostAndAsyncReply Get
     member x.Set value = mbox.PostAndAsyncReply <| fun r -> Set (value,r) 

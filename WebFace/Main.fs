@@ -7,7 +7,7 @@ open WebSharper.UI.Next.Server
 
 type EndPoint =
     | [<EndPoint "/">] Coupon    
-    | [<EndPoint "/admin">] Admin
+    | [<EndPoint "/console">] Console
     
 
 module Templating =
@@ -23,13 +23,18 @@ module Templating =
                 if endpoint = a then yield attr.``class`` "active" ]
         [   match endpoint with 
             | Coupon -> yield client <@ CentBet.Client.Coupon.Menu() @>
-            | _ -> yield aAttr (refEndpoint Coupon) [text "Игры"] :> Doc ]
-    let Main ctx action title body =
+            | Console -> 
+                yield aAttr (refEndpoint Coupon) [text "Bact to coupon"] :> Doc 
+                yield client <@ CentBet.Client.Admin.RenderMenu() @>
+                
+                ]
+    let Main ctx action title footer body =
        Content.Page(            
             MainTemplate.Doc(
                 title = title,
                 navbar = NavBar ctx action,
-                body = body ))
+                body = body,
+                footer = footer))
 
    
 
@@ -41,15 +46,15 @@ module Site =
 
     
     let CouponPage ctx =
-        Templating.Main ctx EndPoint.Coupon "Купон" [
+        Templating.Main ctx EndPoint.Coupon "Купон" [] [
             client <@ CentBet.Client.Coupon.Main() @> ]
 
-    let AdminPage ctx = async{ 
-        let! isAdminCtx = CentBet.Remote.isAdminCtx ctx
+    let ConsolePage ctx = async{ 
+        //let! isAdminCtx = CentBet.Remote.isAdminCtx ctx
         return!
-            Templating.Main ctx Admin "Adminig" [
-                client <@ CentBet.Client.Admin.Page isAdminCtx @>             
-                ]
+            Templating.Main ctx Console "Console" 
+                [ client <@ CentBet.Client.Admin.RenderCommandPrompt()@>] 
+                [ client <@ CentBet.Client.Admin.RenderConsole()@> ]
         }
 
 
@@ -62,4 +67,4 @@ module Site =
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
             | Coupon -> CouponPage ctx 
-            | Admin -> AdminPage ctx )
+            | Console -> ConsolePage ctx )

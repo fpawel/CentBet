@@ -7,25 +7,6 @@ open Betfair
 open Betfair.Football
 open Betfair.Football.Services
 
-let isAdminCtx (ctx : Web.IContext) = async{
-    let! user = ctx.UserSession.GetLoggedInUser()
-    return 
-        match user with 
-        | Some "admin" -> true
-        | _ -> false }
-    
-
-[<Rpc>]
-let loginBetfair (buser,bpass) = 
-
-    let ctx = Web.Remoting.GetContext()
-    async{
-        let! isAdminCtx = isAdminCtx ctx
-        if isAdminCtx then
-            let! r = Betfair.Login.login buser bpass
-            return leftSome r
-        else return Some "access denied" }
-
 [<Rpc>]
 let getCoupon ( (reqGames,inplayOnly) as request)  = async{
     let reqIds, reqGames = List.ids reqGames fst
@@ -55,26 +36,79 @@ let getCoupon ( (reqGames,inplayOnly) as request)  = async{
         |> Seq.toList
     return newGames, update, outIds }
 
+
+let isAdminCtx (ctx : Web.IContext) = async{
+    let! user = ctx.UserSession.GetLoggedInUser()
+    return 
+        match user with 
+        | Some "admin" -> true
+        | _ -> false }
+
 let passwordKey = "E018CB561EE1DB0EF3892AE22FCCDD5C" 
 
-[<Rpc>]
-let authorizeAdmin reqPass = 
-    let ctx = Web.Remoting.GetContext()
-    async {
-        if md5hash reqPass = passwordKey then
-            do! ctx.UserSession.LoginUser("admin")
-            Logging.warn "authorize admin : success"
-            return true
-        else
-            Logging.warn "authorize admin : access denied for %A" passwordKey
-            return false }
+let authorizeAdmin (ctx : Web.IContext)  reqPass =  async {
+    if md5hash reqPass = passwordKey then
+        do! ctx.UserSession.LoginUser("admin")
+        return true, "admin is authorized"
+    else
+        return false, "access denied" }
+
+[<AutoOpen>]
+module Helpers =
+
+    let format1 f x = async{ 
+        let! x = x
+        match x with
+        | Left x -> return false, x
+        | Right x -> return true, f x }
+
+    let map1<'a> (x : Async<'a>) = async{
+        let! (x : 'a) = x
+        return true, sprintf "%A" x }
+
+    let map2<'a> (x : _) = async{
+        let! x = x
+        return 
+            match x with
+            | Left x -> false, x
+            | Right (x : 'a) -> true, sprintf "%A" x }
+
+    let fobj1<'a> = ( format1 ( fun (y, x : 'a) -> y, sprintf "%A" x ) )
+
+    let ``bad request`` = false, "bad request"
+    let ``access denied`` = false, "access denied"
+    
+let consoleCommands = [ 
+    "-login-betfair", 2, fun [user;pass] -> Betfair.Login.login user pass |> map2
+    "-atoms-names", 0, fun [] -> Atom.Trace.getNames() |> map1 
+    "-atom", 1, fun [x] -> Atom.Trace.getAtomValue x |> map1  ] |> List.map( fun (x,y,z) -> x, (y,z)) 
+                                                                                 |> Map.ofList
+let (|Cmd|_|) = consoleCommands.TryFind 
 
 [<Rpc>]
-let isAdminAuthorized () = 
+let perform (request : string )= 
     let ctx = Web.Remoting.GetContext()
-    async {
-        let! user = ctx.UserSession.GetLoggedInUser()
-        return
-            match user with
-            | Some "admin" -> true
-            | _ -> false }
+    async{         
+        let xs = 
+            request.Split([|" "|], StringSplitOptions.RemoveEmptyEntries )
+            |> Array.toList
+        let! isAdmin = isAdminCtx ctx
+        match isAdmin,xs with
+        | _, "-login" :: pass :: _ ->  
+            let! r = authorizeAdmin ctx pass
+            return r         
+        | false, _ -> return ``access denied``
+        | true, Cmd (n,f)::args when args.Length = n -> 
+            return! f args 
+        | _ -> return ``bad request`` }
+    
+    
+    
+
+
+
+
+
+
+
+

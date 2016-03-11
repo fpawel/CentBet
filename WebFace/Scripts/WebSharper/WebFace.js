@@ -1,149 +1,313 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,CentBet,Client,Admin,List,T,UI,Next,Doc,Var,View,Var1,Concurrency,PrintfHelpers,console,Utils,Level,Remoting,AjaxRemotingProvider,AttrProxy,Seq,AttrModule,Coupon,View1,Meetup,ListModel,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,JSON,PrintfHelpers,window,List,CentBet,Client,Admin,UI,Next,Doc,AttrModule,T,AttrProxy,Seq,Key,Var1,Unchecked,Var,Concurrency,jQuery,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Utils,console,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
     Admin:{
-     Br:Runtime.Field(function()
-     {
-      var arg20;
-      arg20=Runtime.New(T,{
-       $:0
-      });
-      return(Admin.op_SpliceUntyped())(Doc.Element("br",[],arg20));
-     }),
-     Page:function(isAdmin)
-     {
-      var varIsAdmin;
-      varIsAdmin=Var.Create(isAdmin);
-      return Doc.EmbedView(View.Map(function(xs)
+     Level:Runtime.Class({
+      get_s1:function()
       {
-       return Doc.Concat(List.append(xs,List.ofArray([Admin.msgPart()])));
-      },View.Map(function(_arg1)
+       return this.$==2?">":"<";
+      }
+     },{
+      get_color:function()
       {
-       return _arg1?Admin.loginBetfairPart():Admin.loginAdminPart(function()
+       return function(_arg1)
        {
-        return Var1.Set(varIsAdmin,true);
+        return _arg1.$==1?["lightgrey","red"]:_arg1.$==2?["lightgrey","green"]:["white","navy"];
+       };
+      }
+     }),
+     LocalStorage:Runtime.Class({
+      Get:function(k)
+      {
+       var _,arg00,value,e,_1;
+       try
+       {
+        arg00=this.strg.getItem(k);
+        value=JSON.parse(arg00);
+        _={
+         $:0,
+         $0:value
+        };
+       }
+       catch(e)
+       {
+        _1=this.strg;
+        _={
+         $:1,
+         $0:"local storage get item "+PrintfHelpers.prettyPrint(k)+" error : "+PrintfHelpers.prettyPrint(e)+", storage "+PrintfHelpers.prettyPrint(_1)
+        };
+       }
+       return _;
+      },
+      Set:function(k,value)
+      {
+       var _,value1,e,_1;
+       try
+       {
+        value1=JSON.stringify(value);
+        _={
+         $:0,
+         $0:this.strg.setItem(k,value1)
+        };
+       }
+       catch(e)
+       {
+        _1=this.strg;
+        _={
+         $:1,
+         $0:"local storage set item "+PrintfHelpers.prettyPrint(k)+" error : "+PrintfHelpers.prettyPrint(e)+", value "+PrintfHelpers.prettyPrint(value)+", storage "+PrintfHelpers.prettyPrint(_1)
+        };
+       }
+       return _;
+      }
+     },{
+      New:function()
+      {
+       var r;
+       r=Runtime.New(this,{});
+       r.strg=window.localStorage;
+       return r;
+      }
+     }),
+     RenderCommandPrompt:function()
+     {
+      var arg00;
+      arg00=List.ofArray([(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("margin-left","10px")]),Runtime.New(T,{
+       $:0
+      }))),(Admin.op_SpliceUntyped())(Doc.Element("label",List.ofArray([AttrProxy.Create("for",Admin["cmd-input"]())]),List.ofArray([Doc.TextNode("Input here:")]))),Admin.renderInput()]);
+      return Doc.Concat(arg00);
+     },
+     RenderConsole:function()
+     {
+      var _arg00_,_arg10_;
+      _arg00_=function(r)
+      {
+       var arg00,arg20;
+       arg20=Runtime.New(T,{
+        $:0
        });
-      },varIsAdmin.get_View())));
+       arg00=List.ofArray([(Admin.renderRecord())(r),(Admin.op_SpliceUntyped())(Doc.Element("br",[],arg20))]);
+       return Doc.Concat(arg00);
+      };
+      _arg10_=Admin.varConsole().get_View();
+      return Doc.ConvertSeq(_arg00_,_arg10_);
+     },
+     RenderMenu:function()
+     {
+      return Doc.Concat(List.map(function(x)
+      {
+       return x;
+      },List.ofArray([Doc.Element("a",Seq.toList(Seq.delay(function()
+      {
+       return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
+       {
+        return[AttrModule.Handler("click",function()
+        {
+         return function()
+         {
+          return Admin.varConsole().Clear();
+         };
+        })];
+       }));
+      })),List.ofArray([Doc.TextNode("Clear console")])),Doc.Element("a",Seq.toList(Seq.delay(function()
+      {
+       return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
+       {
+        return[AttrModule.Handler("click",function()
+        {
+         return function()
+         {
+          return Admin.varCommandsHistory().Clear();
+         };
+        })];
+       }));
+      })),List.ofArray([Doc.TextNode("Clear history")]))])));
+     },
+     addRecord:function(level,text)
+     {
+      return Admin.varConsole().Add({
+       Id:Key.Fresh(),
+       Text:text,
+       Level:level
+      });
+     },
+     "cmd-input":Runtime.Field(function()
+     {
+      return"cmd-input";
+     }),
+     cmdKey:function(x)
+     {
+      return x.Id;
      },
      doc:function(x)
      {
       return x;
      },
-     loginAdminPart:function(onok)
+     getCommandFromHistory:function(isnext)
      {
-      var varAdminKey,loginAdmin;
-      varAdminKey=Var.Create("");
-      loginAdmin=Concurrency.Delay(function()
-      {
-       var clo1,arg10,arg00,arg101;
-       clo1=function(_)
+      var xs,count,_,n,_1,_id_,mapping,predicate,source,source1,v,matchValue,_2,_3,n2,_4,n3,_5,_6,n4,_7,n5,_8,_9,n6,_a,n7,_b,_c,n8,_d,n9,arg0;
+      xs=Var1.Get(Admin.varCommandsHistory().Var);
+      count=Seq.length(xs);
+      if(count===0)
        {
-        var s;
-        s="authorize with "+PrintfHelpers.prettyPrint(_);
-        return console?console.log(s):undefined;
-       };
-       arg10=Var1.Get(varAdminKey);
-       clo1(arg10);
-       arg00=Admin.varMsg();
-       arg101={
-        $:1,
-        $0:[Runtime.New(Level,{
-         $:1
-        }),"logining admin.."]
-       };
-       Var1.Set(arg00,arg101);
-       return Concurrency.Bind(AjaxRemotingProvider.Async("WebFace:2",[Var1.Get(varAdminKey)]),function(_arg1)
+        _={
+         $:0
+        };
+       }
+      else
        {
-        var _;
-        if(_arg1)
+        if(Admin.varCmd().$==1)
          {
-          (Admin.setInfo())("login admin : success");
-          onok(null);
-          _=Concurrency.Return(null);
+          _id_=Admin.varCmd().$0.Id;
+          mapping=function(n1)
+          {
+           return function(x)
+           {
+            return[x,n1];
+           };
+          };
+          predicate=function(tupledArg)
+          {
+           var _arg1,_id__;
+           _arg1=tupledArg[0];
+           tupledArg[1];
+           _id__=_arg1.Id;
+           return Unchecked.Equals(_id__,_id_);
+          };
+          source=Var1.Get(Admin.varCommandsHistory().Var);
+          source1=Seq.mapi(mapping,source);
+          v=Seq.tryFind(predicate,source1);
+          matchValue=[v,isnext];
+          if(matchValue[0].$==1)
+           {
+            if(matchValue[1])
+             {
+              matchValue[0].$0[0];
+              n2=matchValue[0].$0[1];
+              if(count>0?n2<count-1:false)
+               {
+                n3=matchValue[0].$0[1];
+                matchValue[0].$0[0];
+                _4=n3+1;
+               }
+              else
+               {
+                if(matchValue[0].$==1)
+                 {
+                  if(matchValue[1])
+                   {
+                    _6=matchValue[1]?count-1:0;
+                   }
+                  else
+                   {
+                    matchValue[0].$0[0];
+                    n4=matchValue[0].$0[1];
+                    if(count>0?n4>0:false)
+                     {
+                      n5=matchValue[0].$0[1];
+                      matchValue[0].$0[0];
+                      _7=n5-1;
+                     }
+                    else
+                     {
+                      _7=matchValue[1]?count-1:0;
+                     }
+                    _6=_7;
+                   }
+                  _5=_6;
+                 }
+                else
+                 {
+                  _5=matchValue[1]?count-1:0;
+                 }
+                _4=_5;
+               }
+              _3=_4;
+             }
+            else
+             {
+              if(matchValue[0].$==1)
+               {
+                if(matchValue[1])
+                 {
+                  _9=matchValue[1]?count-1:0;
+                 }
+                else
+                 {
+                  matchValue[0].$0[0];
+                  n6=matchValue[0].$0[1];
+                  if(count>0?n6>0:false)
+                   {
+                    n7=matchValue[0].$0[1];
+                    matchValue[0].$0[0];
+                    _a=n7-1;
+                   }
+                  else
+                   {
+                    _a=matchValue[1]?count-1:0;
+                   }
+                  _9=_a;
+                 }
+                _8=_9;
+               }
+              else
+               {
+                _8=matchValue[1]?count-1:0;
+               }
+              _3=_8;
+             }
+            _2=_3;
+           }
+          else
+           {
+            if(matchValue[0].$==1)
+             {
+              if(matchValue[1])
+               {
+                _c=matchValue[1]?count-1:0;
+               }
+              else
+               {
+                matchValue[0].$0[0];
+                n8=matchValue[0].$0[1];
+                if(count>0?n8>0:false)
+                 {
+                  n9=matchValue[0].$0[1];
+                  matchValue[0].$0[0];
+                  _d=n9-1;
+                 }
+                else
+                 {
+                  _d=matchValue[1]?count-1:0;
+                 }
+                _c=_d;
+               }
+              _b=_c;
+             }
+            else
+             {
+              _b=matchValue[1]?count-1:0;
+             }
+            _2=_b;
+           }
+          _1=_2;
          }
         else
          {
-          (Admin.setError())("login admin : access denied");
-          _=Concurrency.Return(null);
+          _1=count-1;
          }
-        return _;
-       });
-      });
-      return List.ofArray([(Admin.op_SpliceUntyped())(Doc.PasswordBox(Runtime.New(T,{
-       $:0
-      }),varAdminKey)),Admin.submitButton("login admin",loginAdmin)]);
-     },
-     loginBetfairPart:function()
-     {
-      var varUser,varPass,loginBetfair;
-      varUser=Var.Create("");
-      varPass=Var.Create("");
-      loginBetfair=Concurrency.Delay(function()
-      {
-       var x;
-       (Admin.setInfo())("logining betfair...");
-       x=AjaxRemotingProvider.Async("WebFace:0",[Var1.Get(varUser),Var1.Get(varPass)]);
-       return Concurrency.Bind(x,function(_arg1)
-       {
-        var arg0,_,error,x1,arg00;
-        if(_arg1.$==1)
-         {
-          error=_arg1.$0;
-          _=[Runtime.New(Level,{
-           $:3
-          }),error];
-         }
-        else
-         {
-          _=[Runtime.New(Level,{
-           $:1
-          }),"successed!"];
-         }
-        arg0=_;
-        x1={
+        n=_1;
+        arg0=Seq.nth(n,xs);
+        _={
          $:1,
          $0:arg0
         };
-        arg00=Admin.varMsg();
-        Var1.Set(arg00,x1);
-        return Concurrency.Return(null);
-       });
-      });
-      return List.ofArray([Doc.TextNode("User"),(Admin.op_SpliceUntyped())(Doc.PasswordBox(Runtime.New(T,{
-       $:0
-      }),varUser)),Doc.TextNode("Pass"),(Admin.op_SpliceUntyped())(Doc.PasswordBox(Runtime.New(T,{
-       $:0
-      }),varPass)),Admin.submitButton("Login betfair",loginBetfair)]);
+       }
+      return _;
      },
-     msgPart:Runtime.Field(function()
-     {
-      var x,arg00,_arg00_;
-      x=Admin.varMsg().get_View();
-      arg00=function(_arg1)
-      {
-       var _,text,level,patternInput,fore,back,style;
-       if(_arg1.$==1)
-        {
-         text=_arg1.$0[1];
-         level=_arg1.$0[0];
-         patternInput=(Level.get_color())(level);
-         fore=patternInput[1];
-         back=patternInput[0];
-         style="background-color : "+PrintfHelpers.toSafe(back)+"; color : "+PrintfHelpers.toSafe(fore)+";";
-         _=(Admin.op_SpliceUntyped())(Doc.Element("p",List.ofArray([AttrProxy.Create("style",style)]),List.ofArray([Doc.TextNode(text)])));
-        }
-       else
-        {
-         _=Doc.get_Empty();
-        }
-       return _;
-      };
-      _arg00_=View.Map(arg00,x);
-      return Doc.EmbedView(_arg00_);
-     }),
      op_SpliceUntyped:Runtime.Field(function()
      {
       return function(x)
@@ -151,99 +315,238 @@
        return Admin.doc(x);
       };
      }),
-     setError:Runtime.Field(function()
+     recordKey:function(x)
      {
-      var level;
-      level=Runtime.New(Level,{
-       $:3
-      });
-      return function(x)
-      {
-       return Admin.setMsg(level,x);
-      };
-     }),
-     setInfo:Runtime.Field(function()
-     {
-      var level;
-      level=Runtime.New(Level,{
-       $:1
-      });
-      return function(x)
-      {
-       return Admin.setMsg(level,x);
-      };
-     }),
-     setMsg:function(level,x)
-     {
-      var arg0,x1,arg00;
-      arg0=[level,x];
-      x1={
-       $:1,
-       $0:arg0
-      };
-      arg00=Admin.varMsg();
-      return Var1.Set(arg00,x1);
+      return x.Id;
      },
-     submitButton:function(value,onclick)
+     renderInput:function()
      {
-      var varOn,_do_,x,arg00,_arg00_;
-      varOn=Var.Create(false);
-      _do_=Concurrency.Delay(function()
+      var varInput,rvFocusInput,varDisableInput,doSend,x,arg00,_arg00_;
+      varInput=Var.Create("");
+      rvFocusInput=Var.Create(null);
+      varDisableInput=Var.Create(false);
+      doSend=Concurrency.Delay(function()
       {
-       Var1.Set(varOn,true);
-       return Concurrency.Bind(onclick,function()
+       Var1.Set(varDisableInput,true);
+       return Concurrency.Bind(Admin.send(Var1.Get(varInput)),function()
        {
-        Var1.Set(varOn,false);
+        Var1.Set(varDisableInput,false);
+        Var1.Set(varInput,"");
         return Concurrency.Return(null);
        });
       });
-      x=varOn.get_View();
-      arg00=function(isOn)
+      x=varDisableInput.get_View();
+      arg00=function(disable)
       {
-       var atrs;
-       atrs=Seq.toList(Seq.delay(function()
+       var arg001,objectArg,arg002;
+       arg001=Seq.toList(Seq.delay(function()
        {
-        return isOn?[AttrProxy.Create("disabled","disabled")]:Seq.empty();
+        return Seq.append([AttrProxy.Create("id",Admin["cmd-input"]())],Seq.delay(function()
+        {
+         return Seq.append(disable?[AttrProxy.Create("disabled","disabled")]:Seq.empty(),Seq.delay(function()
+         {
+          return Seq.append([AttrModule.Style("width","80%")],Seq.delay(function()
+          {
+           return[AttrModule.CustomVar(rvFocusInput,function(el)
+           {
+            return function()
+            {
+             return el.focus();
+            };
+           },function()
+           {
+            return{
+             $:0
+            };
+           })];
+          }));
+         }));
+        }));
        }));
-       return Doc.Button(value,atrs,function()
+       objectArg=Doc.Input(arg001,varInput);
+       arg002=function()
        {
-        return Concurrency.Start(_do_,{
-         $:0
+        var inputElement;
+        inputElement=jQuery("#"+Admin["cmd-input"]());
+        return inputElement.keydown(function(e1)
+        {
+         var matchValue,_,_1,matchValue1,_2,cmd,_3,_4,matchValue2,_5,cmd1,_6;
+         matchValue=e1.which;
+         if(matchValue===13)
+          {
+           _=Concurrency.Start(doSend,{
+            $:0
+           });
+          }
+         else
+          {
+           if(matchValue===38)
+            {
+             matchValue1=Admin.getCommandFromHistory(e1.which===40);
+             if(matchValue1.$==1)
+              {
+               cmd=matchValue1.$0;
+               _3={
+                $:1,
+                $0:cmd
+               };
+               Admin.varCmd=function()
+               {
+                return _3;
+               };
+               _2=Var1.Set(varInput,cmd.Text);
+              }
+             else
+              {
+               _2=null;
+              }
+             _1=_2;
+            }
+           else
+            {
+             if(matchValue===40)
+              {
+               matchValue2=Admin.getCommandFromHistory(e1.which===40);
+               if(matchValue2.$==1)
+                {
+                 cmd1=matchValue2.$0;
+                 _6={
+                  $:1,
+                  $0:cmd1
+                 };
+                 Admin.varCmd=function()
+                 {
+                  return _6;
+                 };
+                 _5=Var1.Set(varInput,cmd1.Text);
+                }
+               else
+                {
+                 _5=null;
+                }
+               _4=_5;
+              }
+             else
+              {
+               _4=null;
+              }
+             _1=_4;
+            }
+           _=_1;
+          }
+         return _;
         });
-       });
+       };
+       return objectArg.OnAfterRender(arg002);
       };
       _arg00_=View.Map(arg00,x);
       return Doc.EmbedView(_arg00_);
      },
-     varMsg:Runtime.Field(function()
+     renderRecord:Runtime.Field(function()
      {
-      return Var.Create({
-       $:0
-      });
-     }),
-     viewMsg:Runtime.Field(function()
-     {
-      var x,arg00;
-      x=Admin.varMsg().get_View();
-      arg00=function(_arg1)
+      var arg00;
+      arg00=function(r)
       {
-       var _,s,level,patternInput,fore,back;
-       if(_arg1.$==1)
+       var patternInput,fore,back;
+       patternInput=(Level.get_color())(r.Level);
+       fore=patternInput[1];
+       back=patternInput[0];
+       return(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(r.Level.get_s1()+" "+r.Text)])));
+      };
+      return function(x)
+      {
+       var _arg00_;
+       _arg00_=View.Map(arg00,x);
+       return Doc.EmbedView(_arg00_);
+      };
+     }),
+     send:function(inputText)
+     {
+      return Concurrency.Delay(function()
+      {
+       var inputText1,a,xs,_,x,_1;
+       inputText1=Strings.Trim(inputText);
+       Admin.addRecord(Runtime.New(Level,{
+        $:2
+       }),inputText1);
+       xs=Var1.Get(Admin.varCommandsHistory().Var);
+       if(Seq.isEmpty(xs))
         {
-         s=_arg1.$0[1];
-         level=_arg1.$0[0];
-         patternInput=(Level.get_color())(level);
-         fore=patternInput[1];
-         back=patternInput[0];
-         _=Doc.Element("p",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(s)]));
+         _=true;
         }
        else
         {
-         _=Doc.get_Empty();
+         x=Seq1.last(xs);
+         _=x.Text!==inputText1;
         }
-       return _;
+       if(_)
+        {
+         Admin.varCommandsHistory().Add({
+          Id:Key.Fresh(),
+          Text:inputText1
+         });
+         _1=Concurrency.Return(null);
+        }
+       else
+        {
+         _1=Concurrency.Return(null);
+        }
+       a=_1;
+       return Concurrency.Combine(a,Concurrency.Delay(function()
+       {
+        return Concurrency.TryWith(Concurrency.Delay(function()
+        {
+         return Concurrency.Bind(AjaxRemotingProvider.Async("WebFace:1",[inputText1]),function(_arg1)
+         {
+          var msg;
+          _arg1[0];
+          msg=_arg1[1];
+          Admin.addRecord(Runtime.New(Level,{
+           $:0
+          }),msg);
+          return Concurrency.Return(null);
+         });
+        }),function(_arg2)
+        {
+         Admin.addRecord(Runtime.New(Level,{
+          $:1
+         }),_arg2.message);
+         return Concurrency.Return(null);
+        });
+       }));
+      });
+     },
+     varCmd:Runtime.Field(function()
+     {
+      return{
+       $:0
       };
-      return View.Map(arg00,x);
+     }),
+     varCommandsHistory:Runtime.Field(function()
+     {
+      var arg00,arg10;
+      arg00=function(x)
+      {
+       return Admin.cmdKey(x);
+      };
+      arg10=Storage1.LocalStorage("CentBetConsoleCommandsHistory",{
+       Encode:(Provider.get_Default().EncodeRecord(undefined,[["Id",Provider.get_Default().EncodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0]]))(),
+       Decode:(Provider.get_Default().DecodeRecord(undefined,[["Id",Provider.get_Default().DecodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0]]))()
+      });
+      return ListModel.CreateWithStorage(arg00,arg10);
+     }),
+     varConsole:Runtime.Field(function()
+     {
+      var arg00,arg10;
+      arg00=function(x)
+      {
+       return Admin.recordKey(x);
+      };
+      arg10=Storage1.LocalStorage("CentBetConsole",{
+       Encode:(Provider.get_Default().EncodeRecord(undefined,[["Id",Provider.get_Default().EncodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0],["Level",Provider.get_Default().EncodeUnion(Level,"$",[[0,[]],[1,[]],[2,[]]]),0]]))(),
+       Decode:(Provider.get_Default().DecodeRecord(undefined,[["Id",Provider.get_Default().DecodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0],["Level",Provider.get_Default().DecodeUnion(Level,"$",[[0,[]],[1,[]],[2,[]]]),0]]))()
+      });
+      return ListModel.CreateWithStorage(arg00,arg10);
      })
     },
     Coupon:{
@@ -444,7 +747,7 @@
      },
      downloadCoupon:function(inplayOnly,requst)
      {
-      return AjaxRemotingProvider.Async("WebFace:1",[requst,inplayOnly]);
+      return AjaxRemotingProvider.Async("WebFace:0",[requst,inplayOnly]);
      },
      meetups:Runtime.Field(function()
      {
@@ -646,15 +949,6 @@
      })
     },
     Utils:{
-     Level:Runtime.Class({},{
-      get_color:function()
-      {
-       return function(_arg1)
-       {
-        return _arg1.$==3?["lightgrey","red"]:_arg1.$==2?["white","green"]:_arg1.$==4?["black","yellow"]:_arg1.$==0?["lightgrey","gray"]:["white","navy"];
-       };
-      }
-     }),
      dateTimeToString:function($s)
      {
       var $0=this,$this=this;
@@ -735,7 +1029,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,22));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
              }
             _4=_5;
            }
@@ -756,31 +1050,42 @@
  });
  Runtime.OnInit(function()
  {
+  JSON=Runtime.Safe(Global.JSON);
+  PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
+  window=Runtime.Safe(Global.window);
+  List=Runtime.Safe(Global.WebSharper.List);
   CentBet=Runtime.Safe(Global.CentBet);
   Client=Runtime.Safe(CentBet.Client);
   Admin=Runtime.Safe(Client.Admin);
-  List=Runtime.Safe(Global.WebSharper.List);
-  T=Runtime.Safe(List.T);
   UI=Runtime.Safe(Global.WebSharper.UI);
   Next=Runtime.Safe(UI.Next);
   Doc=Runtime.Safe(Next.Doc);
-  Var=Runtime.Safe(Next.Var);
-  View=Runtime.Safe(Next.View);
-  Var1=Runtime.Safe(Next.Var1);
-  Concurrency=Runtime.Safe(Global.WebSharper.Concurrency);
-  PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
-  console=Runtime.Safe(Global.console);
-  Utils=Runtime.Safe(Client.Utils);
-  Level=Runtime.Safe(Utils.Level);
-  Remoting=Runtime.Safe(Global.WebSharper.Remoting);
-  AjaxRemotingProvider=Runtime.Safe(Remoting.AjaxRemotingProvider);
+  AttrModule=Runtime.Safe(Next.AttrModule);
+  T=Runtime.Safe(List.T);
   AttrProxy=Runtime.Safe(Next.AttrProxy);
   Seq=Runtime.Safe(Global.WebSharper.Seq);
-  AttrModule=Runtime.Safe(Next.AttrModule);
+  Key=Runtime.Safe(Next.Key);
+  Var1=Runtime.Safe(Next.Var1);
+  Unchecked=Runtime.Safe(Global.WebSharper.Unchecked);
+  Var=Runtime.Safe(Next.Var);
+  Concurrency=Runtime.Safe(Global.WebSharper.Concurrency);
+  jQuery=Runtime.Safe(Global.jQuery);
+  View=Runtime.Safe(Next.View);
+  Level=Runtime.Safe(Admin.Level);
+  Strings=Runtime.Safe(Global.WebSharper.Strings);
+  Seq1=Runtime.Safe(Global.Seq);
+  Remoting=Runtime.Safe(Global.WebSharper.Remoting);
+  AjaxRemotingProvider=Runtime.Safe(Remoting.AjaxRemotingProvider);
+  Storage1=Runtime.Safe(Next.Storage1);
+  Json=Runtime.Safe(Global.WebSharper.Json);
+  Provider=Runtime.Safe(Json.Provider);
+  Id=Runtime.Safe(Provider.Id);
+  ListModel=Runtime.Safe(Next.ListModel);
   Coupon=Runtime.Safe(Client.Coupon);
   View1=Runtime.Safe(Next.View1);
   Meetup=Runtime.Safe(Coupon.Meetup);
-  ListModel=Runtime.Safe(Next.ListModel);
+  Utils=Runtime.Safe(Client.Utils);
+  console=Runtime.Safe(Global.console);
   Date=Runtime.Safe(Global.Date);
   Collections=Runtime.Safe(Global.WebSharper.Collections);
   MapModule=Runtime.Safe(Collections.MapModule);
@@ -794,13 +1099,12 @@
  {
   Coupon.varInplayOnly();
   Coupon.meetups();
-  Admin.viewMsg();
-  Admin.varMsg();
-  Admin.setInfo();
-  Admin.setError();
+  Admin.varConsole();
+  Admin.varCommandsHistory();
+  Admin.varCmd();
+  Admin.renderRecord();
   Admin.op_SpliceUntyped();
-  Admin.msgPart();
-  Admin.Br();
+  Admin["cmd-input"]();
   return;
  });
 }());
