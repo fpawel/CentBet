@@ -135,12 +135,13 @@ type TodayValue<'a> (what, request: unit -> Async< 'a option>, logs ) =
             | _ -> None        
         return x }
 
-    member __.Get() = async{
-        let! x = atom.Get()
-        match x with
-        | None  -> return! update()
-        | Some (d,_) when not (d.DateEquals DateTime.Now) -> return! update()
-        | Some(_,x) -> return Some x }
+    member __.Get() = 
+        async{
+            let! x = atom.Get()
+            match x with
+            | None  -> return! update()
+            | Some (d,_) when not (d.DateEquals DateTime.Now) -> return! update()
+            | Some(_,x) -> return Some x }
 
 
 
@@ -153,7 +154,7 @@ type TodayValueRef<'a > (what ,init : 'a, logs) =
         | None  -> return init
         | Some (d,_) when not ( DateTime.dateEquals (d,DateTime.Now) ) -> return init
         | Some(_,x) -> return x }
-    member __.Set x = atom.Set (Some (DateTime.Now,init))
+    member __.Set x = atom.Set (Some (DateTime.Now,x))
 
 let todayValue what init logs = TodayValue(what, init, logs)
 let todayValueRef what init logs = TodayValueRef(what, init, logs)

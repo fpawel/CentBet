@@ -55,27 +55,6 @@ type DateTime with
     static member nowJavaScriptMillisecons() = 
         DateTime.toJavaScriptMilliseconds <| DateTime.Now.ToUniversalTime()
 
-type ObservableRef<'a>(value:'a) =
-    let mutable value = value
-    let mutable listeners = []
-    
-    member __.AddListener1 f =        
-        let f = Action<'a * 'a>(f)
-        listeners <-  f::listeners
-        fun () -> 
-            listeners <- List.filter ((<>) f) listeners
-
-    member x.AddListener f =
-        x.AddListener1 f |> ignore
-
-    member __.Set v = 
-        listeners |> List.iter( fun f -> f.Invoke(value,v) )
-        value <- v
-    member __.Get () = value 
-    member x.Value 
-        with get() = x.Get()
-        and set v = x.Set v
-
 module Map = 
     let inline union m1 m2 =
         Map.fold (fun acc key value -> Map.add key value acc) m1 m2

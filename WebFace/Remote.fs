@@ -1,4 +1,4 @@
-module CentBet.Remote
+﻿module CentBet.Remote
 
 open System
 open WebSharper
@@ -101,7 +101,36 @@ let perform (request : string )=
         | true, Cmd (n,f)::args when args.Length = n -> 
             return! f args 
         | _ -> return ``bad request`` }
+
+let shortCountries = 
+    [   "Боливарийская Республика Венесуэла", "Венесуэла"
+        "Чешская республика", "Чехия"
+    ]
+    |> List.map( fun (x,y) -> x.GetHashCode(),y)
+    |> Map.ofList
+
+let countryFromEvent (e: ApiNG.Event) = 
+    match e.countryCode with
+    | Some s ->
+        try
+            let i = Globalization.RegionInfo(s)  
+            if i=null then "" else 
+            let s = i.DisplayName
+            match shortCountries.TryFind  (s.GetHashCode()) with
+            | Some s -> s
+            | _ -> s
+        with _ -> ""
+    | _ -> ""
     
+[<Rpc>]
+let getApiNgEvents ids =     
+    Betfair.Football.Coupon.getExistedApiNgEvents ids
+    |> Either.mapAsync ( fun (rdds, msng) -> 
+        rdds 
+        |> Map.toList
+        |> List.map(fun (gameId,{event = e}) ->
+            let country = countryFromEvent e
+            gameId, e.name, country, e.openDate))
     
     
 

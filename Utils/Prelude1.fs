@@ -93,6 +93,15 @@ module Either =
         member x.Run(f) = 
             bind f (async{ return Right ()})
 
+module Option = 
+    let mapAsync f x = async{
+        let! x' = x
+        return 
+            match x' with
+            | None -> None
+            | Some x'' -> Some (f x'') }
+    
+
 
 
 let cuttext1 len (text:string)  = 

@@ -9,14 +9,16 @@ open Betfair.Football.Services
 
 let ApiNgEvents = Atom.todayValueRef "COUPON-EVENTS" Map.empty  Atom.Logs.none
 
+let getExistedApiNgEvents ids = async{
+    let! events = ApiNgEvents.Get()
+    let existedIds, missingIds = ids |> List.partition( fun k -> events.ContainsKey k )
+    let existed = existedIds |> List.map(fun id -> id, events.[id]) |> Map.ofList
+    return existed, missingIds }
+
 [<AutoOpen>]
 module private Helpers = 
 
-    let readApiNgEvents ids = async{
-        let! events = ApiNgEvents.Get()
-        let existedIds, missingIds = ids |> List.partition( fun k -> events.ContainsKey k )
-        let existed = existedIds |> List.map(fun id -> id, events.[id]) |> Map.ofList
-        return existed, missingIds }
+    
 
     let ``initialized`` = "initialized"
     let ``started`` = "started"
@@ -34,11 +36,13 @@ module private Helpers =
                 match x with
                 | Left _ -> do! Async.Sleep 5000
                 | _ -> ()
-
             do! status.Set Logging.Error ``stoped`` }
-        
 
-let private processEvents() = async{
+
+
+       
+
+let private processEvents() = async{        
     let! auth = Login.auth.Get()
     match auth with
     | None ->         
@@ -48,19 +52,26 @@ let private processEvents() = async{
         let! xs = Coupon.Inplay.Get()
         let! _, missingIds =
             xs 
-            |> List.map(fun ({gameId = eventId,_},_) -> eventId )
-            |> readApiNgEvents
-        let! newEvents' = ApiNG.Services.listEvents auth missingIds                     
-        match newEvents' with
-        | Left _ -> ()
-        | Right newEvents ->
+            |> List.map(fun ({gameId = gameId},_) -> gameId )
+            |> getExistedApiNgEvents
+        if missingIds.IsEmpty then return Right [] else
+        let! newEvents = 
+            List.map fst missingIds
+            |> ApiNG.Services.listEvents auth 
+        match newEvents with
+        | Right newEvents as r when newEvents.Length = missingIds.Length ->
             let! existedEvents = ApiNgEvents.Get()
-            do!
-                newEvents |> List.map(fun r -> r.event.id,r)
+            let newValue = 
+                newEvents |> List.choose( fun e -> 
+                    missingIds |> List.tryFind( fst >> ( (=)  e.event.id ) )
+                    |> Option.map( fun gameId -> gameId, e) )
                 |> Map.ofList
                 |> Map.union existedEvents 
-                |> ApiNgEvents.Set 
-        return newEvents' }
+            do! ApiNgEvents.Set newValue
+            return r
+        | Right newEvents  ->
+            return Left <| sprintf "-aping-events responsed size %d mismatch, waiting %d" newEvents.Length missingIds.Length 
+        | x -> return x }
 
 let Inplay = initStatus "INPLAY-GAMES"
 let Today = initStatus "TODAY-GAMES" 
@@ -70,8 +81,5 @@ let start =
     start' Inplay Coupon.updateInplay
     start' Today Coupon.updateToday
     start' Events processEvents
-
-    
-
     fun () -> ()
 

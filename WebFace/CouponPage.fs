@@ -1,6 +1,8 @@
 ﻿[<WebSharper.Pervasives.JavaScript>]
 module CentBet.Client.Coupon 
 
+open System
+
 open WebSharper
 open WebSharper.JavaScript
 open WebSharper.UI.Next
@@ -12,9 +14,25 @@ open Betfair.Football
     
 open Utils
 
+type Event = 
+    {   gameId : GameId
+        eventName : string
+        country : string 
+        openDate : DateTime option }
+    static member id x = x.gameId
+
+let events = 
+    //ListModel.CreateWithStorage Event.id (Storage.LocalStorage "CentBetApiNgEvents" Serializer.Default)
+    ListModel.Create Event.id []
+
+
+
+
 type Meetup =
     {   game : Game
         gameInfo : Var<GameInfo>
+        country : Var<string>
+        eventName : Var<string>
         mutable hash : int }
     static member id x = x.game.gameId
     static member viewGameInfo x = x.gameInfo.View
@@ -23,21 +41,32 @@ type Meetup =
     static member notinplay x = 
         x.gameInfo.Value.playMinute.IsNone
 
+
+
 type Meetups = ListModel<GameId,Meetup>
 
 let meetups = ListModel.Create Meetup.id []
+let varInplayOnly = Var.Create true
 
-let downloadCoupon inplayOnly requst  = CentBet.Remote.getCoupon (requst, inplayOnly)
 
+let tryGetEvent gameId = events.Value |> Seq.tryFind( fun {gameId = gameId'} -> gameId = gameId' )
+
+let tryGetCountry gameId  =
+    tryGetEvent gameId  |> function
+        | Some e -> e.country,e.eventName
+        | _ -> "",""
 
 let addNewGames newGames = 
     let existedMeetups = meetups.Value |> Seq.toList                    
     meetups.Clear()
     newGames 
-    |> List.map ( fun (game, gameInfo, hash) -> 
+    |> List.map ( fun (game : Game, gameInfo, hash) -> 
+        let country, eventName = tryGetCountry game.gameId  
         {   game = game
             gameInfo = Var.Create gameInfo
-            hash = hash } )
+            hash = hash 
+            country = Var.Create country
+            eventName = Var.Create eventName } )
 
     |> Seq.append existedMeetups 
     |> Seq.sortBy ( fun x -> x.gameInfo.Value.order )  
@@ -59,15 +88,31 @@ let updateCoupon (newGms,updGms,outGms) =
         | Some x ->
             x.gameInfo.Value <- gameInfo
             x.hash <- hash )
-            
 
-let processCoupon inplayOnly = async{
-    let! newGms,updGms,outGms = 
-        meetups.Value 
-        |> Seq.map(fun m -> m.game.gameId, m.hash)
-        |> Seq.toList
-        |> downloadCoupon inplayOnly
-    updateCoupon (newGms,updGms,outGms) } 
+let viewGames =     
+    View.Do {
+        let! meetups = meetups.View 
+        let! onlyInplay = varInplayOnly.View
+        let! games = 
+            meetups 
+            |> Seq.filter( fun x -> not onlyInplay || x.gameInfo.Value.playMinute.IsSome)
+            |> Seq.map( fun x -> 
+                x.gameInfo.View |> View.Map( fun i -> x.game, i ) )
+            |> View.Sequence
+        return games } 
+
+let viewCountries onlyInplay =     
+    View.Do {
+        let! events = events.View
+        let events = events |> Seq.map ( fun evt -> evt.gameId, evt) |> Map.ofSeq
+        let! games = viewGames 
+        return
+            games 
+            |> Seq.choose( fun (g,_) -> 
+                events.TryFind g.gameId
+                |> Option.map( fun e -> e.country) ) 
+            |> Seq.distinct
+            |> Seq.sort  } 
 
 
 let row  ( x : Meetup, inplayOnly) =
@@ -85,6 +130,7 @@ let row  ( x : Meetup, inplayOnly) =
             sprintf "%d.%d" page n)
         tx0 x.game.home
         tx0 x.game.away
+        td[ Doc.TextView x.country.View ]
         gameInfo (fun y -> y.status)
         gameInfo (fun y -> y.summary)
         gameInfo (fun y -> %% y.winBack)
@@ -95,9 +141,6 @@ let row  ( x : Meetup, inplayOnly) =
         gameInfo (fun y -> %% y.loseLay) ]
     :> Doc
 
-
-let varInplayOnly = Var.Create true
-//let varLoading = Var.Create true
 
 let table () = 
     meetups.View 
@@ -111,20 +154,30 @@ let table () =
 
 
 let Menu() = 
-        
     varInplayOnly.View
     |> View.Map( fun isInplayOnly -> 
+        let countries =  
+            viewCountries isInplayOnly |> View.Map( fun countries -> 
+                countries |> Seq.map( fun country ->
+                    aAttr [
+                        yield attr.href "#"
+                        yield Attr.Handler "click" (fun e x -> () ) ]
+                        [text country]  
+                    :> Doc )
+                |> Doc.Concat )
+            |> Doc.EmbedView
+
         [   aAttr [
                 yield attr.href "#"
                 yield Attr.Handler "click" (fun e x -> varInplayOnly.Value <- true )
                 if isInplayOnly then yield attr.``class`` "active"] 
-                [text "В игре"]
+                [text "В игре"] :> Doc
             aAttr [
                 yield attr.href "#"
                 yield Attr.Handler "click" (fun e x -> varInplayOnly.Value <- false )
                 if not isInplayOnly then yield attr.``class`` "active"] 
-                [text "Все матчи"] ]
-        |> List.map( fun x -> x :> Doc )
+                [text "Все матчи"] :> Doc
+            countries ]        
         |> Doc.Concat )
     |> Doc.EmbedView
 
@@ -139,11 +192,46 @@ let MenuToday() =
     |> Doc.EmbedView
 
 
+
+
+let processCoupon() = async{
+    let request =
+        meetups.Value 
+        |> Seq.map(fun m -> m.game.gameId, m.hash)
+        |> Seq.toList
+    let! newGms,updGms,outGms = CentBet.Remote.getCoupon (request, varInplayOnly.Value)
+    updateCoupon (newGms,updGms,outGms) } 
+
+let processEvents() = async{
+    let events' = events.Value
+    let request =
+        meetups.Value 
+        |> Seq.choose(fun m -> 
+            match events' |> Seq.tryFind( fun e -> e.gameId = m.game.gameId) with
+            | None -> Some m.game.gameId
+            | _ -> None )
+        |> Seq.toList
+    if request.IsEmpty then () else
+    let! newEvents =  CentBet.Remote.getApiNgEvents request
+    for gameId, name, country, openDate in newEvents do
+        events.Add  { gameId = gameId; eventName = name; country = country; openDate = openDate } 
+
+    for m in meetups.Value do
+        let country, eventName = tryGetCountry m.game.gameId
+        m.country.Value <- country
+        m.eventName.Value <- eventName } 
+
+
 let Main () =  
     
     async{
         while true do
-            do! processCoupon varInplayOnly.Value } 
+            try
+                do! processCoupon () 
+                do! processEvents() 
+            with e ->
+                printfn "error updating coupon : %A" e
+                do! Async.Sleep 5000 } 
     |> Async.Start
 
         
@@ -161,7 +249,7 @@ let Main () =
 
         return hasToday, hasInplay, isInplayOnly } 
     |> View.Map( function  
-        | false, _, _ -> h1 [ text "Сегодня нет футбольных матчей"]
+        | false, _, _ -> h1 [ text "Произошла какая-то ошибка :( Приносим свои извинения. "]
         | true, false, true -> h1 [ text "Футбольные матчи сегодня ещё не начались"]            
         | _ -> 
             tableAttr [] [ tbody [ table() ] ] )
