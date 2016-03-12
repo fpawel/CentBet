@@ -42,11 +42,6 @@ type Level =
         | RespOk -> "white", "navy"
         | RespError -> "lightgrey", "red"
         | Req -> "lightgrey", "green"
-    member x.s1 = 
-        match x with
-        | Req -> ">"
-        | _ -> "<"
-        
 
 type Record = { 
     Id : Key
@@ -77,7 +72,7 @@ let renderRecord =
         let back,fore = Level.color r.Level
         %% spanAttr 
             [Attr.Style "color" fore; Attr.Style "background" back] 
-            [ text ( r.Level.s1 + " " + r.Text) ]  )
+            [ text r.Text ]  )
     >> Doc.EmbedView
 
 let RenderConsole() = varConsole.View |> Doc.BindSeqCachedView  ( fun r -> 
@@ -126,6 +121,8 @@ let tryGetCommandFromHistory isnext =
     Seq.nth n xs |> Some
 
 let renderInput () =         
+   
+
     let varInput = Var.Create ""
     let rvFocusInput = Var.Create ()
     let varDisableInput = Var.Create false
@@ -136,27 +133,35 @@ let renderInput () =
         varDisableInput.Value <- false
         varInput.Value <- "" }
 
-    let handleKeyDown = function
-        | "Enter" -> Async.Start doSend 
-        | "Up" | "Down" as key->
-            match tryGetCommandFromHistory (key = "Up") with 
-            | Some cmd -> 
-                varCmd <- Some cmd
-                varInput.Value <- cmd.Text
-            | _ -> ()  
-        | _ -> ()
-    
+    let setCommandFromHistory  = 
+        tryGetCommandFromHistory 
+        >> Option.map( fun cmd -> 
+            varCmd <- Some cmd
+            varInput.Value <- cmd.Text ) 
+        >> ignore
+
     varDisableInput.View  |> View.Map( fun disable -> 
-        ( Doc.Input [ 
+        [   Doc.Input [  
                 yield attr.id ``cmd-input``
                 if disable then yield attr.disabled "disabled" 
                 yield Attr.Style "width" "80%" 
-                yield Attr.CustomVar rvFocusInput (fun el _ -> focus(el)) (fun _ -> None)
-                yield Attr.Handler "keydown" <| fun _ e ->
-                    let e = e |> box :?> Dom.KeyboardEvent
-                    handleKeyDown e.KeyIdentifier   ] varInput)
+                yield Attr.CustomVar rvFocusInput (fun el _ -> focus(el)) (fun _ -> None) 
+                yield on.keyDown ( fun _ e -> 
+                    let key : int = e?keyCode
+                    match key with
+                    | 13 -> Async.Start doSend 
+                    | 38 -> setCommandFromHistory true
+                    | 40 -> setCommandFromHistory false 
+                    | _ -> () )
+                ] varInput  :> Doc ]
+        |> Doc.Concat )
+                
 
-        :> Doc )
+                
+                
+//            vHandleKeypressed |> View.Map (fun _ -> Doc.Empty) |> Doc.EmbedView 
+            
+         
     |> Doc.EmbedView
 
 let RenderCommandPrompt() = 

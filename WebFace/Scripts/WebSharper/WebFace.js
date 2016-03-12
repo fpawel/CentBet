@@ -1,16 +1,11 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,JSON,PrintfHelpers,window,List,CentBet,Client,Admin,UI,Next,Doc,AttrModule,T,AttrProxy,Seq,Key,Var,Concurrency,Var1,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Utils,console,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,JSON,PrintfHelpers,window,List,CentBet,Client,Admin,UI,Next,Doc,AttrModule,T,AttrProxy,Seq,Key,Var,Concurrency,Var1,Option,Input,Keyboard,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Utils,console,Date,Collections,MapModule,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
     Admin:{
-     Level:Runtime.Class({
-      get_s1:function()
-      {
-       return this.$==2?">":"<";
-      }
-     },{
+     Level:Runtime.Class({},{
       get_color:function()
       {
        return function(_arg1)
@@ -159,7 +154,7 @@
      },
      renderInput:function()
      {
-      var varInput,rvFocusInput,varDisableInput,doSend,handleKeyDown,x,arg00,_arg00_;
+      var varInput,rvFocusInput,varDisableInput,doSend,mapping,setCommandFromHistory,x1,arg00,vHandleKeypressed,x2,arg001,_arg00_;
       varInput=Var.Create("");
       rvFocusInput=Var.Create(null);
       varDisableInput=Var.Create(false);
@@ -173,77 +168,39 @@
         return Concurrency.Return(null);
        });
       });
-      handleKeyDown=function(_arg2)
+      mapping=function(cmd)
       {
-       var _,_1,matchValue,_2,cmd,_3,_4,matchValue1,_5,cmd1,_6;
-       if(_arg2==="Enter")
-        {
-         _=Concurrency.Start(doSend,{
-          $:0
-         });
-        }
-       else
-        {
-         if(_arg2==="Up")
-          {
-           matchValue=Admin.tryGetCommandFromHistory(_arg2==="Up");
-           if(matchValue.$==1)
-            {
-             cmd=matchValue.$0;
-             _3={
-              $:1,
-              $0:cmd
-             };
-             Admin.varCmd=function()
-             {
-              return _3;
-             };
-             _2=Var1.Set(varInput,cmd.Text);
-            }
-           else
-            {
-             _2=null;
-            }
-           _1=_2;
-          }
-         else
-          {
-           if(_arg2==="Down")
-            {
-             matchValue1=Admin.tryGetCommandFromHistory(_arg2==="Up");
-             if(matchValue1.$==1)
-              {
-               cmd1=matchValue1.$0;
-               _6={
-                $:1,
-                $0:cmd1
-               };
-               Admin.varCmd=function()
-               {
-                return _6;
-               };
-               _5=Var1.Set(varInput,cmd1.Text);
-              }
-             else
-              {
-               _5=null;
-              }
-             _4=_5;
-            }
-           else
-            {
-             _4=null;
-            }
-           _1=_4;
-          }
-         _=_1;
-        }
-       return _;
+       var _;
+       _={
+        $:1,
+        $0:cmd
+       };
+       Admin.varCmd=function()
+       {
+        return _;
+       };
+       return Var1.Set(varInput,cmd.Text);
       };
-      x=varDisableInput.get_View();
-      arg00=function(disable)
+      setCommandFromHistory=function(x)
       {
-       return Doc.Input(Seq.toList(Seq.delay(function()
+       var option,value;
+       option=Admin.tryGetCommandFromHistory(x);
+       value=Option.map(mapping,option);
+       return;
+      };
+      x1=Keyboard.get_KeysPressed();
+      arg00=function(_arg2)
+      {
+       return _arg2.$==1?_arg2.$0===13?_arg2.$1.$==0?Concurrency.Start(doSend,{
+        $:0
+       }):null:_arg2.$0===38?_arg2.$1.$==0?setCommandFromHistory(true):null:_arg2.$0===40?_arg2.$1.$==0?setCommandFromHistory(false):null:null:null;
+      };
+      vHandleKeypressed=View.Map(arg00,x1);
+      x2=varDisableInput.get_View();
+      arg001=function(disable)
+      {
+       var arg002;
+       arg002=List.ofArray([Doc.Input(Seq.toList(Seq.delay(function()
        {
         return Seq.append([AttrProxy.Create("id",Admin["cmd-input"]())],Seq.delay(function()
         {
@@ -264,22 +221,25 @@
             };
            })],Seq.delay(function()
            {
-            var callback;
-            callback=function()
+            return[AttrModule.Handler("keydown",function()
             {
              return function(e)
              {
-              return handleKeyDown(e.keyIdentifier);
+              var key;
+              key=e.keyCode;
+              return key===13?Concurrency.Start(doSend,{
+               $:0
+              }):key===38?setCommandFromHistory(true):key===40?setCommandFromHistory(false):null;
              };
-            };
-            return[AttrModule.Handler("keydown",callback)];
+            })];
            }));
           }));
          }));
         }));
-       })),varInput);
+       })),varInput)]);
+       return Doc.Concat(arg002);
       };
-      _arg00_=View.Map(arg00,x);
+      _arg00_=View.Map(arg001,x2);
       return Doc.EmbedView(_arg00_);
      },
      renderRecord:Runtime.Field(function()
@@ -291,7 +251,7 @@
        patternInput=(Level.get_color())(r.Level);
        fore=patternInput[1];
        back=patternInput[0];
-       return(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(r.Level.get_s1()+" "+r.Text)])));
+       return(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(r.Text)])));
       };
       return function(x)
       {
@@ -1031,7 +991,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
+              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
              }
             _4=_5;
            }
@@ -1070,6 +1030,9 @@
   Var=Runtime.Safe(Next.Var);
   Concurrency=Runtime.Safe(Global.WebSharper.Concurrency);
   Var1=Runtime.Safe(Next.Var1);
+  Option=Runtime.Safe(Global.WebSharper.Option);
+  Input=Runtime.Safe(Next.Input);
+  Keyboard=Runtime.Safe(Input.Keyboard);
   View=Runtime.Safe(Next.View);
   Level=Runtime.Safe(Admin.Level);
   Strings=Runtime.Safe(Global.WebSharper.Strings);
