@@ -22,8 +22,6 @@ let formatDecimalOption = function
 [<Direct "dateTimeToString($s)">]
 let dateTimeToString (s: int64) : string = failwith "n/a"
 
-    
-
 let mkids<'T,'a when 'a:comparison> (x : 'T list)  (getid : 'T -> 'a)  =
     let m = x |> List.map(fun g -> (getid g), g) |> Map.ofList
     let s = x |> List.map( getid ) |> Set.ofList

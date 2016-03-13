@@ -93,6 +93,8 @@ module Either =
         member x.Run(f) = 
             bind f (async{ return Right ()})
 
+let asyncEiter = Either.AsyncBuilder()
+
 module Option = 
     let mapAsync f x = async{
         let! x' = x
@@ -100,6 +102,57 @@ module Option =
             match x' with
             | None -> None
             | Some x'' -> Some (f x'') }
+    let getWith def x =
+        match x with
+        | Some x' -> x'
+        | None -> def
+    let getBy f x =
+        match x with
+        | Some x' -> x'
+        | None -> f()
+        
+
+//    type Builder() =
+//        let bind f v = 
+//            match v with
+//            | None -> None
+//            | Some x -> f x
+//
+//        member x.Bind(v,f) = bind f  v
+//        member x.Return v = Some v
+//        member x.ReturnFrom o = o
+//
+//        member b.Combine( v, f) = 
+//            bind f v
+//
+//        member b.Delay(f ) =  
+//            f
+//
+//        member x.Run(f) = 
+//            bind f (Some ())
+
+//    type AsyncBuilder() =
+//        let bind f v' = async{        
+//            let! v = v'
+//            match v with
+//            | None -> return None
+//            | Some x -> return! f x }
+//
+//        member x.Bind(v,f) = bind f  v
+//    
+//        member x.Return v = async { return Some v }
+//        member x.ReturnFrom o = o
+//
+//        member b.Combine( v, f) = 
+//            bind f v
+//
+//        member b.Delay(f ) =  
+//            f
+//
+//        member x.Run(f) = 
+//            bind f (async{ return Some ()})
+
+//let asyncOpt = Option.AsyncBuilder()
     
 
 

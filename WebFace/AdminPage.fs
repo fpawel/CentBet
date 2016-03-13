@@ -60,8 +60,6 @@ let varCommandsHistory =
 let varConsole = 
     ListModel.CreateWithStorage recordKey (Storage.LocalStorage "CentBetConsole" Serializer.Default)
 
-
-
 let ``cmd-input`` = "cmd-input"
 
 [<Inline "$el.focus()">]
@@ -75,10 +73,7 @@ let renderRecord =
             [ text r.Text ]  )
     >> Doc.EmbedView
 
-let RenderConsole() = varConsole.View |> Doc.BindSeqCachedView  ( fun r -> 
-    [   renderRecord r
-        %% br [] ]
-    |> Doc.Concat )
+
 
 let addRecord level text = 
     varConsole.Add {Id = Key.Fresh(); Text = text; Level = level }
@@ -183,3 +178,14 @@ let RenderMenu() =
     |> List.map( fun x -> x :> Doc )
     |> Doc.Concat 
 
+
+let RenderRecords() = varConsole.View |> Doc.BindSeqCachedView  ( fun r -> 
+    [   renderRecord r
+        %% br [] ]
+    |> Doc.Concat )
+
+let Render() = 
+    [   RenderCommandPrompt()
+        %% br []
+        RenderRecords() ]
+    |> Doc.Concat

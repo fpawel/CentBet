@@ -71,48 +71,10 @@ module List =
 
 
 
-type OptionBuilder() =
-    let bind f v = 
-        match v with
-        | None -> None
-        | Some x -> f x
-
-    member x.Bind(v,f) = bind f  v
-    member x.Return v = Some v
-    member x.ReturnFrom o = o
-
-    member b.Combine( v, f) = 
-        bind f v
-
-    member b.Delay(f ) =  
-        f
-
-    member x.Run(f) = 
-        bind f (Some ())
 
 
-type AsyncOptionBuilder() =
-    let bind f v' = async{        
-        let! v = v'
-        match v with
-        | None -> return None
-        | Some x -> return! f x }
 
-    member x.Bind(v,f) = bind f  v
-    
-    member x.Return v = async { return Some v }
-    member x.ReturnFrom o = o
 
-    member b.Combine( v, f) = 
-        bind f v
-
-    member b.Delay(f ) =  
-        f
-
-    member x.Run(f) = 
-        bind f (async{ return Some ()})
-
-let asyncOpt = AsyncOptionBuilder()
 
 let md5hash (input : string) =
     use md5 = System.Security.Cryptography.MD5.Create()

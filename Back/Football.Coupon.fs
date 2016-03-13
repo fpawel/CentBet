@@ -49,9 +49,13 @@ let private processEvents() = async{
         do! Async.Sleep 5000
         return Left "waiting for auth to read"
     | Some auth ->
-        let! xs = Coupon.Inplay.Get()
+        let! inplay = Coupon.Inplay.Get()
+        let! today1 = Coupon.Today1.Get()
+        let! today2 = Coupon.Today2.Get()
+        let allGames = inplay @ today1 @ today2
+
         let! _, missingIds =
-            xs 
+            allGames 
             |> List.map(fun ({gameId = gameId},_) -> gameId )
             |> getExistedApiNgEvents
         if missingIds.IsEmpty then return Right [] else

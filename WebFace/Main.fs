@@ -5,6 +5,8 @@ open WebSharper.Sitelets
 open WebSharper.UI.Next
 open WebSharper.UI.Next.Server
 
+open CentBet.Client
+
 type EndPoint =
     | [<EndPoint "/">] Coupon    
     | [<EndPoint "/console">] Console
@@ -22,19 +24,18 @@ module Templating =
             [   yield attr.href (ctx.Link a) 
                 if endpoint = a then yield attr.``class`` "active" ]
         [   match endpoint with 
-            | Coupon -> yield client <@ CentBet.Client.Coupon.Menu() @>
+            | Coupon -> yield client <@ Coupon.RenderMenu() @>
             | Console -> 
                 yield aAttr (refEndpoint Coupon) [text "Bact to coupon"] :> Doc 
-                yield client <@ CentBet.Client.Admin.RenderMenu() @>
+                yield client <@ Admin.RenderMenu() @>
                 
                 ]
-    let Main ctx action title footer body =
+    let Main ctx action title body =
        Content.Page(            
             MainTemplate.Doc(
                 title = title,
                 navbar = NavBar ctx action,
-                body = body,
-                footer = footer))
+                body = body ))
 
    
 
@@ -46,15 +47,11 @@ module Site =
 
     
     let CouponPage ctx =
-        Templating.Main ctx EndPoint.Coupon "Купон" [] [
-            client <@ CentBet.Client.Coupon.Main() @> ]
+        Templating.Main ctx EndPoint.Coupon "Купон" [ client <@ Coupon.Render() @> ]
 
-    let ConsolePage ctx = async{ 
-        //let! isAdminCtx = CentBet.Remote.isAdminCtx ctx
+    let ConsolePage ctx = async{         
         return!
-            Templating.Main ctx Console "Console" 
-                [ client <@ CentBet.Client.Admin.RenderCommandPrompt()@>] 
-                [ client <@ CentBet.Client.Admin.RenderConsole()@> ]
+            Templating.Main ctx Console "Console" [ client <@ Admin.Render()@> ]
         }
 
 

@@ -1,6 +1,9 @@
 ﻿module CentBet.Remote
 
 open System
+open System.Threading
+open System.Globalization
+
 open WebSharper
 
 open Betfair
@@ -102,35 +105,65 @@ let perform (request : string )=
             return! f args 
         | _ -> return ``bad request`` }
 
+
+
 let shortCountries = 
     [   "Боливарийская Республика Венесуэла", "Венесуэла"
         "Чешская республика", "Чехия"
-    ]
-    |> List.map( fun (x,y) -> x.GetHashCode(),y)
+        "Китайская Народная Республика", "Китай"
+        "Македония (Бывшая Югославская Республика Македония)", "Македония"
+        "Сербия и Черногория (бывшая)", "Сербия" ]
     |> Map.ofList
 
+let countries1 = 
+    [ "GI", "Гибралтар" ]
+    |> Map.ofList
+
+
+let getCountryFromRegionInfo (countryCode : string) =     
+    let i = Globalization.RegionInfo(countryCode)
+    if i=null then countryCode else 
+    shortCountries.TryFind i.DisplayName 
+    |> Option.getWith i.DisplayName 
+
 let countryFromEvent (e: ApiNG.Event) = 
-    match e.countryCode with
-    | Some s ->
-        try
-            let i = Globalization.RegionInfo(s)  
-            if i=null then "" else 
-            let s = i.DisplayName
-            match shortCountries.TryFind  (s.GetHashCode()) with
-            | Some s -> s
-            | _ -> s
-        with _ -> ""
-    | _ -> ""
+    e.countryCode |> Option.map( fun countryCode ->
+        countries1.TryFind countryCode
+        |> Option.getBy ( fun () -> 
+            try
+                getCountryFromRegionInfo(countryCode)
+            with _ -> 
+                countryCode ) )
+
+
+        
+
+        
     
 [<Rpc>]
 let getApiNgEvents ids =     
     Betfair.Football.Coupon.getExistedApiNgEvents ids
     |> Either.mapAsync ( fun (rdds, msng) -> 
-        rdds 
-        |> Map.toList
-        |> List.map(fun (gameId,{event = e}) ->
-            let country = countryFromEvent e
-            gameId, e.name, country, e.openDate))
+
+        
+        // Change current culture
+        let culture = CultureInfo("ru-RU")      
+        Thread.CurrentThread.CurrentCulture <- culture
+        Thread.CurrentThread.CurrentUICulture <- culture
+        let response =
+            rdds 
+            |> Map.toList
+            |> List.map(fun (gameId,{event = e}) ->
+                let country = 
+                    try
+                        countryFromEvent e
+                    with exn -> 
+                        Logging.error "%A"  exn
+                        None
+                gameId, e.name, country, e.openDate)
+        response )
+        
+
     
     
 

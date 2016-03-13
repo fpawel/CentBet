@@ -36,10 +36,8 @@ module private Helpers  =
             #endif
         downloadUrl url (Parsing.coupon npage )
 
-    let asyncEither = Either.AsyncBuilder()
-
     let readGamesList couponId isAllToday =
-        let rec loop acc npage = asyncEither{
+        let rec loop acc npage = asyncEiter{
             let! (newPortion, xnextPage ) = downloadCouponPage couponId npage 
             let games = acc @ newPortion
             match xnextPage with
