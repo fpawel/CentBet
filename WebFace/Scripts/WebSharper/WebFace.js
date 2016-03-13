@@ -248,8 +248,8 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var arg00;
-      arg00=function(r)
+      var _arg00_69_3;
+      _arg00_69_3=function(r)
       {
        var patternInput,fore,back;
        patternInput=(Level.get_color())(r.Level);
@@ -260,7 +260,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(arg00,x);
+       _arg00_=View.Map(_arg00_69_3,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -758,27 +758,27 @@
      },
      events:Runtime.Field(function()
      {
-      var arg00,arg10;
-      arg00=function(arg001)
+      var _arg00_25_5,_arg10_25_3;
+      _arg00_25_5=function(arg00)
       {
-       return Event.id(arg001);
+       return Event.id(arg00);
       };
-      arg10=Runtime.New(T,{
+      _arg10_25_3=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(arg00,arg10);
+      return ListModel.Create(_arg00_25_5,_arg10_25_3);
      }),
      meetups:Runtime.Field(function()
      {
-      var arg00,arg10;
-      arg00=function(arg001)
+      var _arg00_46_4,_arg10_46_2;
+      _arg00_46_4=function(arg00)
       {
-       return Meetup.id(arg001);
+       return Meetup.id(arg00);
       };
-      arg10=Runtime.New(T,{
+      _arg10_46_2=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(arg00,arg10);
+      return ListModel.Create(_arg00_46_4,_arg10_46_2);
      }),
      processCoupon:function()
      {
@@ -1316,8 +1316,8 @@
      },
      viewGames:Runtime.Field(function()
      {
-      var _builder_,x;
-      _builder_=View.get_Do();
+      var _builder_76_1,x;
+      _builder_76_1=View.get_Do();
       x=Coupon.meetups().get_View();
       return View1.Bind(function(_arg1)
       {
