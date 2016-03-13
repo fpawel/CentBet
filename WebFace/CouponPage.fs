@@ -108,18 +108,18 @@ let renderMeetup1 (x : Meetup) =
         View.Map f x.gameInfo.View
         |> Doc.TextView
         
-    let span' color x = 
-        spanAttr [ Attr.Style "color" color ] [x]
+    let span' ``class`` x = 
+        spanAttr [ attr.``class`` ``class`` ] [x]
     let kef' back f = 
         tdAttr [attr.``class`` (if back then  "kef kef-back" else "kef kef-lay" ) ] [ vinfo f ]
 
     let (~%%) = formatDecimalOption
     trAttr [] [   
         td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]        
-        td[ span' "RoyalBlue" <| Doc.TextNode x.game.home
-            span' "SeaGreen" <| vinfo (fun y -> y.summary) 
-            span' "SteelBlue" <| Doc.TextNode x.game.away 
-            span' "SeaGreen" <| vinfo (fun y -> y.status)  ]
+        td[ span' "home-team" <| Doc.TextNode x.game.home
+            span' "game-status" <| vinfo (fun y -> y.summary) 
+            span' "away-team" <| Doc.TextNode x.game.away 
+            span' "game-status" <| vinfo (fun y -> y.status)  ]
 
 
 
@@ -296,6 +296,6 @@ let Render() =
         | false, _, _ -> h1 [ text "Произошла какая-то ошибка :( Приносим свои извинения. "]
         | true, false, true -> h1 [ text "Футбольные матчи сегодня ещё не начались"]            
         | _ -> 
-            tableAttr [Attr.Style "font-weight" "bold"] [ tbody [ renderMeetups() ] ] )
+            tableAttr [] [ tbody [ renderMeetups() ] ] )
     |> Doc.EmbedView    
 

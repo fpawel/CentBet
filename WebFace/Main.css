@@ -13,22 +13,41 @@ body{
     background-color : MintCream  ;
 }
 
-table td span{
+table tr td span{
     margin-right : 5px;
+    font : 13px Tahoma, sans-serif;
+    font-weight : bold;
 }
 
 
-table td.kef {
+table tr td span.home-team {
+    color : RoyalBlue;    
+}
+
+table tr td span.away-team {
+    color : SteelBlue;
+}
+
+table tr td span.game-status {
+    color : #009900 ;
+}
+
+
+
+table tr td.kef {
     text-align : center;
     padding : 3px;
+    font-family : Tahoma, Verdana, Arial, sans-serif;
+    font-size : 13px;
+    font-weight : bold;
 }
 
-table td.kef-back {
-    background : skyblue;
+table tr td.kef-back {
+    background : #72bbef;
 }
 
-table td.kef-lay {
-    background : LightPink;
+table tr td.kef-lay {
+    background : #faa9ba;
 }
 
 

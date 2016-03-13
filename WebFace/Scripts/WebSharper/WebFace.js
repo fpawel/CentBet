@@ -248,8 +248,8 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var _arg00_69_3;
-      _arg00_69_3=function(r)
+      var arg00;
+      arg00=function(r)
       {
        var patternInput,fore,back;
        patternInput=(Level.get_color())(r.Level);
@@ -260,7 +260,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(_arg00_69_3,x);
+       _arg00_=View.Map(arg00,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -606,7 +606,9 @@
          if(_arg7[1])
           {
            arg20=List.ofArray([Coupon.renderMeetups()]);
-           _1=Doc.Element("table",List.ofArray([AttrModule.Style("font-weight","bold")]),List.ofArray([Doc.Element("tbody",[],arg20)]));
+           _1=Doc.Element("table",Runtime.New(T,{
+            $:0
+           }),List.ofArray([Doc.Element("tbody",[],arg20)]));
           }
          else
           {
@@ -618,7 +620,9 @@
            else
             {
              arg202=List.ofArray([Coupon.renderMeetups()]);
-             _2=Doc.Element("table",List.ofArray([AttrModule.Style("font-weight","bold")]),List.ofArray([Doc.Element("tbody",[],arg202)]));
+             _2=Doc.Element("table",Runtime.New(T,{
+              $:0
+             }),List.ofArray([Doc.Element("tbody",[],arg202)]));
             }
            _1=_2;
           }
@@ -754,27 +758,27 @@
      },
      events:Runtime.Field(function()
      {
-      var _arg00_25_5,_arg10_25_3;
-      _arg00_25_5=function(arg00)
+      var arg00,arg10;
+      arg00=function(arg001)
       {
-       return Event.id(arg00);
+       return Event.id(arg001);
       };
-      _arg10_25_3=Runtime.New(T,{
+      arg10=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(_arg00_25_5,_arg10_25_3);
+      return ListModel.Create(arg00,arg10);
      }),
      meetups:Runtime.Field(function()
      {
-      var _arg00_46_4,_arg10_46_2;
-      _arg00_46_4=function(arg00)
+      var arg00,arg10;
+      arg00=function(arg001)
       {
-       return Meetup.id(arg00);
+       return Meetup.id(arg001);
       };
-      _arg10_46_2=Runtime.New(T,{
+      arg10=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(_arg00_46_4,_arg10_46_2);
+      return ListModel.Create(arg00,arg10);
      }),
      processCoupon:function()
      {
@@ -980,9 +984,9 @@
        _arg00_=View.Map(f,arg10);
        return Doc.TextView(_arg00_);
       };
-      _span_=function(color,x1)
+      _span_=function(_class,x1)
       {
-       return Doc.Element("span",List.ofArray([AttrModule.Style("color",color)]),List.ofArray([x1]));
+       return Doc.Element("span",List.ofArray([AttrProxy.Create("class",_class)]),List.ofArray([x1]));
       };
       _kef_=function(back,f)
       {
@@ -1003,10 +1007,10 @@
        n=patternInput[1];
        return Global.String(page)+"."+Global.String(n);
       })]);
-      arg201=List.ofArray([_span_("RoyalBlue",Doc.TextNode(x.game.home)),_span_("SeaGreen",vinfo(function(y)
+      arg201=List.ofArray([_span_("home-team",Doc.TextNode(x.game.home)),_span_("game-status",vinfo(function(y)
       {
        return y.summary;
-      })),_span_("SteelBlue",Doc.TextNode(x.game.away)),_span_("SeaGreen",vinfo(function(y)
+      })),_span_("away-team",Doc.TextNode(x.game.away)),_span_("game-status",vinfo(function(y)
       {
        return y.status;
       }))]);
@@ -1312,8 +1316,8 @@
      },
      viewGames:Runtime.Field(function()
      {
-      var _builder_76_1,x;
-      _builder_76_1=View.get_Do();
+      var _builder_,x;
+      _builder_=View.get_Do();
       x=Coupon.meetups().get_View();
       return View1.Bind(function(_arg1)
       {
