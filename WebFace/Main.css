@@ -13,6 +13,25 @@ body{
     background-color : MintCream  ;
 }
 
+table td span{
+    margin-right : 5px;
+}
+
+
+table td.kef {
+    text-align : center;
+    padding : 3px;
+}
+
+table td.kef-back {
+    background : skyblue;
+}
+
+table td.kef-lay {
+    background : LightPink;
+}
+
+
 #navbar-left-place-holder {
     width: 150px;
 	height: 100%;

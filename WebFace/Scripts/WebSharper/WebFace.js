@@ -606,9 +606,7 @@
          if(_arg7[1])
           {
            arg20=List.ofArray([Coupon.renderMeetups()]);
-           _1=Doc.Element("table",Runtime.New(T,{
-            $:0
-           }),List.ofArray([Doc.Element("tbody",[],arg20)]));
+           _1=Doc.Element("table",List.ofArray([AttrModule.Style("font-weight","bold")]),List.ofArray([Doc.Element("tbody",[],arg20)]));
           }
          else
           {
@@ -620,9 +618,7 @@
            else
             {
              arg202=List.ofArray([Coupon.renderMeetups()]);
-             _2=Doc.Element("table",Runtime.New(T,{
-              $:0
-             }),List.ofArray([Doc.Element("tbody",[],arg202)]));
+             _2=Doc.Element("table",List.ofArray([AttrModule.Style("font-weight","bold")]),List.ofArray([Doc.Element("tbody",[],arg202)]));
             }
            _1=_2;
           }
@@ -870,7 +866,7 @@
      },
      renderMeetup:function(x,inplayOnly,selectedCountry)
      {
-      var matchValue,_,_1,_2,selectedCountry1,_3,tx,tx0,gameInfo,op_SpliceUntyped,ats,arg201,tx1,tx01,gameInfo1,op_SpliceUntyped1,ats1,arg202,_4,selectedCountry2,_5,tx2,tx02,gameInfo2,op_SpliceUntyped2,ats2,arg203,tx3,tx03,gameInfo3,op_SpliceUntyped3,ats3,arg204;
+      var matchValue,_,_1,_2,selectedCountry1,_3,x1,arg00,_arg00_,x2,arg001,_arg00_1,_4,selectedCountry2,_5,x3,arg002,_arg00_2,x4,arg003,_arg00_3;
       matchValue=[inplayOnly,Var1.Get(x.gameInfo).playMinute,selectedCountry];
       if(matchValue[0])
        {
@@ -890,129 +886,37 @@
              }
             else
              {
-              tx=function(x1)
+              x1=x.gameInfo.get_View();
+              arg00=function(i)
               {
-               var arg20;
-               arg20=List.ofArray([x1]);
-               return Doc.Element("td",[],arg20);
+               var predicate,list;
+               predicate=function(option)
+               {
+                return option.$==1;
+               };
+               list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
+               return Seq.exists(predicate,list)?Coupon.renderMeetup1(x):Doc.get_Empty();
               };
-              tx0=function(x1)
-              {
-               var arg20;
-               arg20=List.ofArray([Doc.TextNode(x1)]);
-               return Doc.Element("td",[],arg20);
-              };
-              gameInfo=function(f)
-              {
-               var arg10,_arg00_;
-               arg10=x.gameInfo.get_View();
-               _arg00_=View.Map(f,arg10);
-               return tx(Doc.TextView(_arg00_));
-              };
-              op_SpliceUntyped=function(_arg1)
-              {
-               return Utils.formatDecimalOption(_arg1);
-              };
-              ats=Runtime.New(T,{
-               $:0
-              });
-              arg201=List.ofArray([Doc.TextView(x.country.get_View())]);
-              _3=Doc.Element("tr",ats,List.ofArray([gameInfo(function(y)
-              {
-               var patternInput,page,n;
-               patternInput=y.order;
-               page=patternInput[0];
-               n=patternInput[1];
-               return Global.String(page)+"."+Global.String(n);
-              }),tx0(x.game.home),tx0(x.game.away),Doc.Element("td",[],arg201),gameInfo(function(y)
-              {
-               return y.status;
-              }),gameInfo(function(y)
-              {
-               return y.summary;
-              }),gameInfo(function(y)
-              {
-               return op_SpliceUntyped(y.winBack);
-              }),gameInfo(function(y)
-              {
-               return op_SpliceUntyped(y.winLay);
-              }),gameInfo(function(y)
-              {
-               return op_SpliceUntyped(y.drawBack);
-              }),gameInfo(function(y)
-              {
-               return op_SpliceUntyped(y.drawLay);
-              }),gameInfo(function(y)
-              {
-               return op_SpliceUntyped(y.loseBack);
-              }),gameInfo(function(y)
-              {
-               return op_SpliceUntyped(y.loseLay);
-              })]));
+              _arg00_=View.Map(arg00,x1);
+              _3=Doc.EmbedView(_arg00_);
              }
             _2=_3;
            }
           else
            {
-            tx1=function(x1)
+            x2=x.gameInfo.get_View();
+            arg001=function(i)
             {
-             var arg20;
-             arg20=List.ofArray([x1]);
-             return Doc.Element("td",[],arg20);
+             var predicate,list;
+             predicate=function(option)
+             {
+              return option.$==1;
+             };
+             list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
+             return Seq.exists(predicate,list)?Coupon.renderMeetup1(x):Doc.get_Empty();
             };
-            tx01=function(x1)
-            {
-             var arg20;
-             arg20=List.ofArray([Doc.TextNode(x1)]);
-             return Doc.Element("td",[],arg20);
-            };
-            gameInfo1=function(f)
-            {
-             var arg10,_arg00_;
-             arg10=x.gameInfo.get_View();
-             _arg00_=View.Map(f,arg10);
-             return tx1(Doc.TextView(_arg00_));
-            };
-            op_SpliceUntyped1=function(_arg1)
-            {
-             return Utils.formatDecimalOption(_arg1);
-            };
-            ats1=Runtime.New(T,{
-             $:0
-            });
-            arg202=List.ofArray([Doc.TextView(x.country.get_View())]);
-            _2=Doc.Element("tr",ats1,List.ofArray([gameInfo1(function(y)
-            {
-             var patternInput,page,n;
-             patternInput=y.order;
-             page=patternInput[0];
-             n=patternInput[1];
-             return Global.String(page)+"."+Global.String(n);
-            }),tx01(x.game.home),tx01(x.game.away),Doc.Element("td",[],arg202),gameInfo1(function(y)
-            {
-             return y.status;
-            }),gameInfo1(function(y)
-            {
-             return y.summary;
-            }),gameInfo1(function(y)
-            {
-             return op_SpliceUntyped1(y.winBack);
-            }),gameInfo1(function(y)
-            {
-             return op_SpliceUntyped1(y.winLay);
-            }),gameInfo1(function(y)
-            {
-             return op_SpliceUntyped1(y.drawBack);
-            }),gameInfo1(function(y)
-            {
-             return op_SpliceUntyped1(y.drawLay);
-            }),gameInfo1(function(y)
-            {
-             return op_SpliceUntyped1(y.loseBack);
-            }),gameInfo1(function(y)
-            {
-             return op_SpliceUntyped1(y.loseLay);
-            })]));
+            _arg00_1=View.Map(arg001,x2);
+            _2=Doc.EmbedView(_arg00_1);
            }
           _1=_2;
          }
@@ -1030,133 +934,102 @@
            }
           else
            {
-            tx2=function(x1)
+            x3=x.gameInfo.get_View();
+            arg002=function(i)
             {
-             var arg20;
-             arg20=List.ofArray([x1]);
-             return Doc.Element("td",[],arg20);
+             var predicate,list;
+             predicate=function(option)
+             {
+              return option.$==1;
+             };
+             list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
+             return Seq.exists(predicate,list)?Coupon.renderMeetup1(x):Doc.get_Empty();
             };
-            tx02=function(x1)
-            {
-             var arg20;
-             arg20=List.ofArray([Doc.TextNode(x1)]);
-             return Doc.Element("td",[],arg20);
-            };
-            gameInfo2=function(f)
-            {
-             var arg10,_arg00_;
-             arg10=x.gameInfo.get_View();
-             _arg00_=View.Map(f,arg10);
-             return tx2(Doc.TextView(_arg00_));
-            };
-            op_SpliceUntyped2=function(_arg1)
-            {
-             return Utils.formatDecimalOption(_arg1);
-            };
-            ats2=Runtime.New(T,{
-             $:0
-            });
-            arg203=List.ofArray([Doc.TextView(x.country.get_View())]);
-            _5=Doc.Element("tr",ats2,List.ofArray([gameInfo2(function(y)
-            {
-             var patternInput,page,n;
-             patternInput=y.order;
-             page=patternInput[0];
-             n=patternInput[1];
-             return Global.String(page)+"."+Global.String(n);
-            }),tx02(x.game.home),tx02(x.game.away),Doc.Element("td",[],arg203),gameInfo2(function(y)
-            {
-             return y.status;
-            }),gameInfo2(function(y)
-            {
-             return y.summary;
-            }),gameInfo2(function(y)
-            {
-             return op_SpliceUntyped2(y.winBack);
-            }),gameInfo2(function(y)
-            {
-             return op_SpliceUntyped2(y.winLay);
-            }),gameInfo2(function(y)
-            {
-             return op_SpliceUntyped2(y.drawBack);
-            }),gameInfo2(function(y)
-            {
-             return op_SpliceUntyped2(y.drawLay);
-            }),gameInfo2(function(y)
-            {
-             return op_SpliceUntyped2(y.loseBack);
-            }),gameInfo2(function(y)
-            {
-             return op_SpliceUntyped2(y.loseLay);
-            })]));
+            _arg00_2=View.Map(arg002,x3);
+            _5=Doc.EmbedView(_arg00_2);
            }
           _4=_5;
          }
         else
          {
-          tx3=function(x1)
+          x4=x.gameInfo.get_View();
+          arg003=function(i)
           {
-           var arg20;
-           arg20=List.ofArray([x1]);
-           return Doc.Element("td",[],arg20);
+           var predicate,list;
+           predicate=function(option)
+           {
+            return option.$==1;
+           };
+           list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
+           return Seq.exists(predicate,list)?Coupon.renderMeetup1(x):Doc.get_Empty();
           };
-          tx03=function(x1)
-          {
-           var arg20;
-           arg20=List.ofArray([Doc.TextNode(x1)]);
-           return Doc.Element("td",[],arg20);
-          };
-          gameInfo3=function(f)
-          {
-           var arg10,_arg00_;
-           arg10=x.gameInfo.get_View();
-           _arg00_=View.Map(f,arg10);
-           return tx3(Doc.TextView(_arg00_));
-          };
-          op_SpliceUntyped3=function(_arg1)
-          {
-           return Utils.formatDecimalOption(_arg1);
-          };
-          ats3=Runtime.New(T,{
-           $:0
-          });
-          arg204=List.ofArray([Doc.TextView(x.country.get_View())]);
-          _4=Doc.Element("tr",ats3,List.ofArray([gameInfo3(function(y)
-          {
-           var patternInput,page,n;
-           patternInput=y.order;
-           page=patternInput[0];
-           n=patternInput[1];
-           return Global.String(page)+"."+Global.String(n);
-          }),tx03(x.game.home),tx03(x.game.away),Doc.Element("td",[],arg204),gameInfo3(function(y)
-          {
-           return y.status;
-          }),gameInfo3(function(y)
-          {
-           return y.summary;
-          }),gameInfo3(function(y)
-          {
-           return op_SpliceUntyped3(y.winBack);
-          }),gameInfo3(function(y)
-          {
-           return op_SpliceUntyped3(y.winLay);
-          }),gameInfo3(function(y)
-          {
-           return op_SpliceUntyped3(y.drawBack);
-          }),gameInfo3(function(y)
-          {
-           return op_SpliceUntyped3(y.drawLay);
-          }),gameInfo3(function(y)
-          {
-           return op_SpliceUntyped3(y.loseBack);
-          }),gameInfo3(function(y)
-          {
-           return op_SpliceUntyped3(y.loseLay);
-          })]));
+          _arg00_3=View.Map(arg003,x4);
+          _4=Doc.EmbedView(_arg00_3);
          }
         _=_4;
        }
       return _;
+     },
+     renderMeetup1:function(x)
+     {
+      var vinfo,_span_,_kef_,op_SpliceUntyped,ats,arg20,arg201,arg202;
+      vinfo=function(f)
+      {
+       var arg10,_arg00_;
+       arg10=x.gameInfo.get_View();
+       _arg00_=View.Map(f,arg10);
+       return Doc.TextView(_arg00_);
+      };
+      _span_=function(color,x1)
+      {
+       return Doc.Element("span",List.ofArray([AttrModule.Style("color",color)]),List.ofArray([x1]));
+      };
+      _kef_=function(back,f)
+      {
+       return Doc.Element("td",List.ofArray([AttrProxy.Create("class",back?"kef kef-back":"kef kef-lay")]),List.ofArray([vinfo(f)]));
+      };
+      op_SpliceUntyped=function(_arg1)
+      {
+       return Utils.formatDecimalOption(_arg1);
+      };
+      ats=Runtime.New(T,{
+       $:0
+      });
+      arg20=List.ofArray([vinfo(function(y)
+      {
+       var patternInput,page,n;
+       patternInput=y.order;
+       page=patternInput[0];
+       n=patternInput[1];
+       return Global.String(page)+"."+Global.String(n);
+      })]);
+      arg201=List.ofArray([_span_("RoyalBlue",Doc.TextNode(x.game.home)),_span_("SeaGreen",vinfo(function(y)
+      {
+       return y.summary;
+      })),_span_("SteelBlue",Doc.TextNode(x.game.away)),_span_("SeaGreen",vinfo(function(y)
+      {
+       return y.status;
+      }))]);
+      arg202=List.ofArray([Doc.TextView(x.country.get_View())]);
+      return Doc.Element("tr",ats,List.ofArray([Doc.Element("td",[],arg20),Doc.Element("td",[],arg201),_kef_(true,function(y)
+      {
+       return op_SpliceUntyped(y.winBack);
+      }),_kef_(false,function(y)
+      {
+       return op_SpliceUntyped(y.winLay);
+      }),_kef_(true,function(y)
+      {
+       return op_SpliceUntyped(y.drawBack);
+      }),_kef_(false,function(y)
+      {
+       return op_SpliceUntyped(y.drawLay);
+      }),_kef_(true,function(y)
+      {
+       return op_SpliceUntyped(y.loseBack);
+      }),_kef_(false,function(y)
+      {
+       return op_SpliceUntyped(y.loseLay);
+      }),Doc.Element("td",[],arg202)]));
      },
      renderMeetups:function()
      {

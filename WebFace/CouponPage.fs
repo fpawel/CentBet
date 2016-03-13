@@ -100,36 +100,54 @@ let viewCountries() =
             |> Seq.sort  } 
 
 
+let renderMeetup1 (x : Meetup) = 
+    let tx x = td[ x ]
+    let tx0 x = td[ Doc.TextNode x ]
+    
+    let vinfo f = 
+        View.Map f x.gameInfo.View
+        |> Doc.TextView
+        
+    let span' color x = 
+        spanAttr [ Attr.Style "color" color ] [x]
+    let kef' back f = 
+        tdAttr [attr.``class`` (if back then  "kef kef-back" else "kef kef-lay" ) ] [ vinfo f ]
+
+    let (~%%) = formatDecimalOption
+    trAttr [] [   
+        td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]        
+        td[ span' "RoyalBlue" <| Doc.TextNode x.game.home
+            span' "SeaGreen" <| vinfo (fun y -> y.summary) 
+            span' "SteelBlue" <| Doc.TextNode x.game.away 
+            span' "SeaGreen" <| vinfo (fun y -> y.status)  ]
+
+
+
+        kef' true (fun y -> %% y.winBack)
+        kef' false (fun y -> %% y.winLay)
+        kef' true (fun y -> %% y.drawBack)
+        kef' false (fun y -> %% y.drawLay)
+        kef' true (fun y -> %% y.loseBack)
+        kef' false (fun y -> %% y.loseLay) 
+        td[ Doc.TextView x.country.View ]
+        ]
+    
+
 let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
     match inplayOnly, x.gameInfo.Value.playMinute, selectedCountry with
     | true, None, _ -> Doc.Empty 
     | _, _, Some selectedCountry 
         when selectedCountry <> "" &&  
              selectedCountry <> x.country.Value -> Doc.Empty 
-    | _ ->
-        let tx x = td[ x ]
-        let tx0 x = td[ Doc.TextNode x ]
-        let gameInfo f = 
-            View.Map f x.gameInfo.View
-            |> Doc.TextView
-            |> tx    
-        let (~%%) = formatDecimalOption
-        trAttr [] [   
-            gameInfo ( fun y -> 
-                let page,n = y.order
-                sprintf "%d.%d" page n)
-            tx0 x.game.home
-            tx0 x.game.away
-            td[ Doc.TextView x.country.View ]
-            gameInfo (fun y -> y.status)
-            gameInfo (fun y -> y.summary)
-            gameInfo (fun y -> %% y.winBack)
-            gameInfo (fun y -> %% y.winLay)
-            gameInfo (fun y -> %% y.drawBack)
-            gameInfo (fun y -> %% y.drawLay)
-            gameInfo (fun y -> %% y.loseBack)
-            gameInfo (fun y -> %% y.loseLay) ]
-        :> Doc
+    | _ -> 
+        x.gameInfo.View |>  View.Map(  fun i ->
+            if [i.drawBack; i.drawLay; i.winBack; i.winLay; i.loseBack; i.loseLay] |> List.exists( Option.isSome ) then
+                renderMeetup1 x :> Doc
+            else
+                Doc.Empty )
+        |> Doc.EmbedView
+            
+        
 
 
 let renderMeetups () = 
@@ -167,7 +185,6 @@ let renderMenuItemCountry selectedCountry country  =
         yield Attr.Handler "click" (fun e x -> 
             varSelectedCountry.Value <- Some country ) ]
         [text country]
-
 
 let RenderMenu() = 
     varInplayOnly.View
@@ -279,6 +296,6 @@ let Render() =
         | false, _, _ -> h1 [ text "Произошла какая-то ошибка :( Приносим свои извинения. "]
         | true, false, true -> h1 [ text "Футбольные матчи сегодня ещё не начались"]            
         | _ -> 
-            tableAttr [] [ tbody [ renderMeetups() ] ] )
+            tableAttr [Attr.Style "font-weight" "bold"] [ tbody [ renderMeetups() ] ] )
     |> Doc.EmbedView    
 
