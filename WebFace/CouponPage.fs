@@ -72,32 +72,33 @@ let addNewGames newGames =
 
 
 
-let viewGames =     
+let viewGames = 
     View.Do {
         let! meetups = meetups.View 
+        if Seq.isEmpty meetups then return Seq.empty  else 
         let! onlyInplay = varInplayOnly.View
         let! games = 
             meetups 
             |> Seq.filter( fun x -> not onlyInplay || x.gameInfo.Value.playMinute.IsSome)
             |> Seq.map( fun x -> 
                 x.gameInfo.View |> View.Map( fun i -> x.game, i ) )
-            |> View.Sequence
+            |> View.Sequence 
         return games } 
+    
 
-let viewCountries() =     
-    View.Do {
-        let! events = events.View
-        let events = events |> Seq.map ( fun evt -> evt.gameId, evt) |> Map.ofSeq
-        let! games = viewGames 
-        return
-            games 
-            |> Seq.choose( fun (g,_) -> 
-                events.TryFind g.gameId
-                |> Option.map ( fun e -> e.country ) ) 
-            |> Seq.filter ( (<>) None)
-            |> Seq.choose id            
-            |> Seq.distinct
-            |> Seq.sort  } 
+let viewCountries() = View.Do {    
+    let! events = events.View    
+    let events = events |> Seq.map ( fun evt -> evt.gameId, evt) |> Map.ofSeq    
+    let! games = viewGames     
+    return
+        games 
+        |> Seq.choose( fun (g,_) -> 
+            events.TryFind g.gameId
+            |> Option.map ( fun e -> e.country ) ) 
+        |> Seq.filter ( (<>) None)
+        |> Seq.choose id            
+        |> Seq.distinct
+        |> Seq.sort  } 
 
 
 let renderMeetup1 (x : Meetup) = 
@@ -131,7 +132,6 @@ let renderMeetup1 (x : Meetup) =
         kef' false (fun y -> %% y.loseLay) 
         td[ Doc.TextView x.country.View ]
         ]
-    
 
 let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
     match inplayOnly, x.gameInfo.Value.playMinute, selectedCountry with
@@ -146,9 +146,6 @@ let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
             else
                 Doc.Empty )
         |> Doc.EmbedView
-            
-        
-
 
 let renderMeetups () = 
     meetups.View 
@@ -163,6 +160,7 @@ let renderMeetups () =
 
 
 let renderMenuItemAllCountries() = 
+    printfn "render all countries menu..."
     varSelectedCountry.View |> View.Map( fun selectedCountry ->         
         aAttr [
             match selectedCountry with
@@ -186,42 +184,45 @@ let renderMenuItemCountry selectedCountry country  =
             varSelectedCountry.Value <- Some country ) ]
         [text country]
 
-let RenderMenu() = 
+let renderMenuCountries() = 
+    printfn "render countries menu..."
+    View.Do{
+        let! countries = viewCountries ()
+        let! selectedCountry = varSelectedCountry.View
+        
+        return countries, selectedCountry } 
+    |> View.Map( fun (countries,selectedCountry) -> 
+        
+        if Seq.isEmpty countries then Doc.Empty else
+        countries |> Seq.map( fun country ->
+            renderMenuItemCountry selectedCountry country :> Doc )
+        |> Doc.Concat 
+        |> Doc.Append (renderMenuItemAllCountries() ) )
+    |> Doc.EmbedView
+
+let renderMenusInplay() = 
     varInplayOnly.View
     |> View.Map( fun isInplayOnly -> 
-        let countries = 
-            View.Do{
-                let! countries = viewCountries ()
-                let! selectedCountry = varSelectedCountry.View
-                return countries, selectedCountry } 
-            |> View.Map( fun (countries,selectedCountry) -> 
-                if Seq.isEmpty countries then Doc.Empty else
-                countries |> Seq.map( fun country ->
-                    renderMenuItemCountry selectedCountry country :> Doc )
-                |> Doc.Concat 
-                |> Doc.Append (renderMenuItemAllCountries() )
-                )
-            |> Doc.EmbedView
-
         [   aAttr [
                 yield attr.href "#"
                 yield Attr.Handler "click" (fun e x -> 
                     varSelectedCountry.Value <- None
-                    varInplayOnly.Value <- true 
-                    )
-                if isInplayOnly then yield attr.``class`` "active"] 
-                [text "В игре"] :> Doc
+                    varInplayOnly.Value <- true )
+                if isInplayOnly then yield attr.``class`` "active"]  [text "В игре"]
             aAttr [
                 yield attr.href "#"
                 yield Attr.Handler "click" (fun e x -> 
                     varSelectedCountry.Value <- None
-                    varInplayOnly.Value <- false  )
-                if not isInplayOnly then yield attr.``class`` "active"] 
-                [text "Все матчи"] :> Doc
-            countries ]        
+                    varInplayOnly.Value <- false )
+                if not isInplayOnly then yield attr.``class`` "active"]  [text "Все матчи"]  ] 
+        |> List.map ( fun x -> x :> Doc )
         |> Doc.Concat )
     |> Doc.EmbedView
 
+let RenderMenu() = 
+    [   renderMenusInplay()
+        renderMenuCountries() ]
+    |> Doc.Concat
 
 let updateCoupon (newGms,updGms,outGms) = 
     
@@ -293,8 +294,8 @@ let Render() =
 
         return hasToday, hasInplay, isInplayOnly } 
     |> View.Map( function  
-        | false, _, _ -> h1 [ text "Произошла какая-то ошибка :( Приносим свои извинения. "]
-        | true, false, true -> h1 [ text "Футбольные матчи сегодня ещё не начались"]            
+        | false, _, _ -> h1 [ text "Нет данных о футболе на сегодня"]
+        | true, false, true -> h1 [ text "Футбол сегодня ещё не начался"]            
         | _ -> 
             tableAttr [] [ tbody [ renderMeetups() ] ] )
     |> Doc.EmbedView    

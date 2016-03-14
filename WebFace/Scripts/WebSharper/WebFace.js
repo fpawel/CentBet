@@ -614,7 +614,7 @@
           {
            if(_arg7[2])
             {
-             arg201=List.ofArray([Doc.TextNode("\u0424\u0443\u0442\u0431\u043e\u043b\u044c\u043d\u044b\u0435 \u043c\u0430\u0442\u0447\u0438 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0435\u0449\u0451 \u043d\u0435 \u043d\u0430\u0447\u0430\u043b\u0438\u0441\u044c")]);
+             arg201=List.ofArray([Doc.TextNode("\u0424\u0443\u0442\u0431\u043e\u043b \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0435\u0449\u0451 \u043d\u0435 \u043d\u0430\u0447\u0430\u043b\u0441\u044f")]);
              _2=Doc.Element("h1",[],arg201);
             }
            else
@@ -630,7 +630,7 @@
         }
        else
         {
-         arg203=List.ofArray([Doc.TextNode("\u041f\u0440\u043e\u0438\u0437\u043e\u0448\u043b\u0430 \u043a\u0430\u043a\u0430\u044f-\u0442\u043e \u043e\u0448\u0438\u0431\u043a\u0430 :( \u041f\u0440\u0438\u043d\u043e\u0441\u0438\u043c \u0441\u0432\u043e\u0438 \u0438\u0437\u0432\u0438\u043d\u0435\u043d\u0438\u044f. ")]);
+         arg203=List.ofArray([Doc.TextNode("\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445 \u043e \u0444\u0443\u0442\u0431\u043e\u043b\u0435 \u043d\u0430 \u0441\u0435\u0433\u043e\u0434\u043d\u044f")]);
          _=Doc.Element("h1",[],arg203);
         }
        return _;
@@ -640,84 +640,9 @@
      },
      RenderMenu:function()
      {
-      var x,arg00,_arg00_1;
-      x=Coupon.varInplayOnly().get_View();
-      arg00=function(isInplayOnly)
-      {
-       var x1,arg001,_arg00_,countries1,arg004;
-       View.get_Do();
-       x1=View1.Bind(function(_arg1)
-       {
-        return View1.Bind(function(_arg2)
-        {
-         return View1.Const([_arg1,_arg2]);
-        },Coupon.varSelectedCountry().get_View());
-       },Coupon.viewCountries());
-       arg001=function(tupledArg)
-       {
-        var countries,selectedCountry,_,mapping,arg002,x2,arg003;
-        countries=tupledArg[0];
-        selectedCountry=tupledArg[1];
-        if(Seq.isEmpty(countries))
-         {
-          _=Doc.get_Empty();
-         }
-        else
-         {
-          mapping=function(country)
-          {
-           return Coupon.renderMenuItemCountry(selectedCountry,country);
-          };
-          arg002=Seq.map(mapping,countries);
-          x2=Doc.Concat(arg002);
-          arg003=Coupon.renderMenuItemAllCountries();
-          _=Doc.Append(arg003,x2);
-         }
-        return _;
-       };
-       _arg00_=View.Map(arg001,x1);
-       countries1=Doc.EmbedView(_arg00_);
-       arg004=List.ofArray([Doc.Element("a",Seq.toList(Seq.delay(function()
-       {
-        return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
-        {
-         return Seq.append([AttrModule.Handler("click",function()
-         {
-          return function()
-          {
-           Var1.Set(Coupon.varSelectedCountry(),{
-            $:0
-           });
-           return Var1.Set(Coupon.varInplayOnly(),true);
-          };
-         })],Seq.delay(function()
-         {
-          return isInplayOnly?[AttrProxy.Create("class","active")]:Seq.empty();
-         }));
-        }));
-       })),List.ofArray([Doc.TextNode("\u0412 \u0438\u0433\u0440\u0435")])),Doc.Element("a",Seq.toList(Seq.delay(function()
-       {
-        return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
-        {
-         return Seq.append([AttrModule.Handler("click",function()
-         {
-          return function()
-          {
-           Var1.Set(Coupon.varSelectedCountry(),{
-            $:0
-           });
-           return Var1.Set(Coupon.varInplayOnly(),false);
-          };
-         })],Seq.delay(function()
-         {
-          return!isInplayOnly?[AttrProxy.Create("class","active")]:Seq.empty();
-         }));
-        }));
-       })),List.ofArray([Doc.TextNode("\u0412\u0441\u0435 \u043c\u0430\u0442\u0447\u0438")])),countries1]);
-       return Doc.Concat(arg004);
-      };
-      _arg00_1=View.Map(arg00,x);
-      return Doc.EmbedView(_arg00_1);
+      var arg00;
+      arg00=List.ofArray([Coupon.renderMenusInplay(),Coupon.renderMenuCountries()]);
+      return Doc.Concat(arg00);
      },
      addNewGames:function(newGames)
      {
@@ -1066,9 +991,53 @@
       };
       return Doc.ConvertSeq(_arg00_,x);
      },
+     renderMenuCountries:function()
+     {
+      var x,arg00,_arg00_;
+      if(console)
+       {
+        console.log("render countries menu...");
+       }
+      View.get_Do();
+      x=View1.Bind(function(_arg1)
+      {
+       return View1.Bind(function(_arg2)
+       {
+        return View1.Const([_arg1,_arg2]);
+       },Coupon.varSelectedCountry().get_View());
+      },Coupon.viewCountries());
+      arg00=function(tupledArg)
+      {
+       var countries,selectedCountry,_,mapping,arg001,x1,arg002;
+       countries=tupledArg[0];
+       selectedCountry=tupledArg[1];
+       if(Seq.isEmpty(countries))
+        {
+         _=Doc.get_Empty();
+        }
+       else
+        {
+         mapping=function(country)
+         {
+          return Coupon.renderMenuItemCountry(selectedCountry,country);
+         };
+         arg001=Seq.map(mapping,countries);
+         x1=Doc.Concat(arg001);
+         arg002=Coupon.renderMenuItemAllCountries();
+         _=Doc.Append(arg002,x1);
+        }
+       return _;
+      };
+      _arg00_=View.Map(arg00,x);
+      return Doc.EmbedView(_arg00_);
+     },
      renderMenuItemAllCountries:function()
      {
       var x,arg00,_arg00_;
+      if(console)
+       {
+        console.log("render all countries menu...");
+       }
       x=Coupon.varSelectedCountry().get_View();
       arg00=function(selectedCountry)
       {
@@ -1153,6 +1122,60 @@
         }));
        }));
       })),List.ofArray([Doc.TextNode(country)]));
+     },
+     renderMenusInplay:function()
+     {
+      var x,arg00,_arg00_;
+      x=Coupon.varInplayOnly().get_View();
+      arg00=function(isInplayOnly)
+      {
+       var mapping,list,arg001;
+       mapping=function(x1)
+       {
+        return x1;
+       };
+       list=List.ofArray([Doc.Element("a",Seq.toList(Seq.delay(function()
+       {
+        return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
+        {
+         return Seq.append([AttrModule.Handler("click",function()
+         {
+          return function()
+          {
+           Var1.Set(Coupon.varSelectedCountry(),{
+            $:0
+           });
+           return Var1.Set(Coupon.varInplayOnly(),true);
+          };
+         })],Seq.delay(function()
+         {
+          return isInplayOnly?[AttrProxy.Create("class","active")]:Seq.empty();
+         }));
+        }));
+       })),List.ofArray([Doc.TextNode("\u0412 \u0438\u0433\u0440\u0435")])),Doc.Element("a",Seq.toList(Seq.delay(function()
+       {
+        return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
+        {
+         return Seq.append([AttrModule.Handler("click",function()
+         {
+          return function()
+          {
+           Var1.Set(Coupon.varSelectedCountry(),{
+            $:0
+           });
+           return Var1.Set(Coupon.varInplayOnly(),false);
+          };
+         })],Seq.delay(function()
+         {
+          return!isInplayOnly?[AttrProxy.Create("class","active")]:Seq.empty();
+         }));
+        }));
+       })),List.ofArray([Doc.TextNode("\u0412\u0441\u0435 \u043c\u0430\u0442\u0447\u0438")]))]);
+       arg001=List.map(mapping,list);
+       return Doc.Concat(arg001);
+      };
+      _arg00_=View.Map(arg00,x);
+      return Doc.EmbedView(_arg00_);
      },
      tryGetCountry:function(_,_1)
      {
@@ -1321,32 +1344,40 @@
       x=Coupon.meetups().get_View();
       return View1.Bind(function(_arg1)
       {
-       var x1;
-       x1=Coupon.varInplayOnly().get_View();
-       return View1.Bind(function(_arg2)
-       {
-        var predicate,mapping,source,arg001;
-        predicate=function(x2)
+       var _,x1;
+       if(Seq.isEmpty(_arg1))
         {
-         return!_arg2?true:Var1.Get(x2.gameInfo).playMinute.$==1;
-        };
-        mapping=function(x2)
+         _=View1.Const(Seq.empty());
+        }
+       else
         {
-         var arg00,arg10;
-         arg00=function(i)
+         x1=Coupon.varInplayOnly().get_View();
+         _=View1.Bind(function(_arg2)
          {
-          return[x2.game,i];
-         };
-         arg10=x2.gameInfo.get_View();
-         return View.Map(arg00,arg10);
-        };
-        source=Seq.filter(predicate,_arg1);
-        arg001=Seq.map(mapping,source);
-        return View1.Bind(function(_arg3)
-        {
-         return View1.Const(_arg3);
-        },View1.Sequence(arg001));
-       },x1);
+          var predicate,mapping,source,arg001;
+          predicate=function(x2)
+          {
+           return!_arg2?true:Var1.Get(x2.gameInfo).playMinute.$==1;
+          };
+          mapping=function(x2)
+          {
+           var arg00,arg10;
+           arg00=function(i)
+           {
+            return[x2.game,i];
+           };
+           arg10=x2.gameInfo.get_View();
+           return View.Map(arg00,arg10);
+          };
+          source=Seq.filter(predicate,_arg1);
+          arg001=Seq.map(mapping,source);
+          return View1.Bind(function(_arg3)
+          {
+           return View1.Const(_arg3);
+          },View1.Sequence(arg001));
+         },x1);
+        }
+       return _;
       },x);
      })
     },
@@ -1431,7 +1462,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
              }
             _4=_5;
            }

@@ -27,9 +27,7 @@ module Templating =
             | Coupon -> yield client <@ Coupon.RenderMenu() @>
             | Console -> 
                 yield aAttr (refEndpoint Coupon) [text "Bact to coupon"] :> Doc 
-                yield client <@ Admin.RenderMenu() @>
-                
-                ]
+                yield client <@ Admin.RenderMenu() @> ]
     let Main ctx action title body =
        Content.Page(            
             MainTemplate.Doc(
