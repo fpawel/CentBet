@@ -101,7 +101,7 @@ let viewCountries() = View.Do {
         |> Seq.sort  } 
 
 
-let renderMeetup1 (x : Meetup) = 
+let renderMeetup1 (x : Meetup, countryIsSelected) = 
     let tx x = td[ x ]
     let tx0 x = td[ Doc.TextNode x ]
     
@@ -115,23 +115,21 @@ let renderMeetup1 (x : Meetup) =
         tdAttr [attr.``class`` (if back then  "kef kef-back" else "kef kef-lay" ) ] [ vinfo f ]
 
     let (~%%) = formatDecimalOption
-    trAttr [] [   
-        td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]        
-        td[ span' "home-team" <| Doc.TextNode x.game.home
+    [   yield td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]        
+        yield td[ 
+            span' "home-team" <| Doc.TextNode x.game.home
             span' "game-status" <| vinfo (fun y -> y.summary) 
             span' "away-team" <| Doc.TextNode x.game.away 
             span' "game-status" <| vinfo (fun y -> y.status)  ]
-
-
-
-        kef' true (fun y -> %% y.winBack)
-        kef' false (fun y -> %% y.winLay)
-        kef' true (fun y -> %% y.drawBack)
-        kef' false (fun y -> %% y.drawLay)
-        kef' true (fun y -> %% y.loseBack)
-        kef' false (fun y -> %% y.loseLay) 
-        td[ Doc.TextView x.country.View ]
-        ]
+        yield kef' true (fun y -> %% y.winBack)
+        yield kef' false (fun y -> %% y.winLay)
+        yield kef' true (fun y -> %% y.drawBack)
+        yield kef' false (fun y -> %% y.drawLay)
+        yield kef' true (fun y -> %% y.loseBack)
+        yield kef' false (fun y -> %% y.loseLay) 
+        if not countryIsSelected then             
+            yield  td [ span' "game-status" <| Doc.TextView x.country.View ] ]
+    
 
 let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
     match inplayOnly, x.gameInfo.Value.playMinute, selectedCountry with
@@ -142,7 +140,9 @@ let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
     | _ -> 
         x.gameInfo.View |>  View.Map(  fun i ->
             if [i.drawBack; i.drawLay; i.winBack; i.winLay; i.loseBack; i.loseLay] |> List.exists( Option.isSome ) then
-                renderMeetup1 x :> Doc
+                renderMeetup1(x,selectedCountry.IsSome)  
+                |> List.map( fun x -> x :> Doc)
+                |> tr :> Doc
             else
                 Doc.Empty )
         |> Doc.EmbedView
@@ -160,7 +160,6 @@ let renderMeetups () =
 
 
 let renderMenuItemAllCountries() = 
-    printfn "render all countries menu..."
     varSelectedCountry.View |> View.Map( fun selectedCountry ->         
         aAttr [
             match selectedCountry with
@@ -185,7 +184,6 @@ let renderMenuItemCountry selectedCountry country  =
         [text country]
 
 let renderMenuCountries() = 
-    printfn "render countries menu..."
     View.Do{
         let! countries = viewCountries ()
         let! selectedCountry = varSelectedCountry.View
@@ -281,22 +279,14 @@ let Render() =
 
         
     View.Do {
-        let! isInplayOnly = varInplayOnly.View
+        let! inplayOnly = varInplayOnly.View
         let! meetups = meetups.View
+        let hasgames = meetups |> Seq.isEmpty |> not
 
-        let hasToday = meetups |> Seq.isEmpty |> not
-
-        let hasInplay = 
-            meetups 
-            |> Seq.filter Meetup.inplay 
-            |> Seq.isEmpty 
-            |> not
-
-        return hasToday, hasInplay, isInplayOnly } 
+        return hasgames, inplayOnly } 
     |> View.Map( function  
-        | false, _, _ -> h1 [ text "Нет данных о футболе на сегодня"]
-        | true, false, true -> h1 [ text "Футбол сегодня ещё не начался"]            
-        | _ -> 
-            tableAttr [] [ tbody [ renderMeetups() ] ] )
+        | true, _ ->  tableAttr [] [ tbody [ renderMeetups() ] ] 
+        | false, true -> h1 [ text "Нет данных о разыгрываемых в настоящий момент футбольных матчах"]
+        | false, false -> h1 [ text "Нет данных о футбольных матчах на сегодня"] )
     |> Doc.EmbedView    
 
