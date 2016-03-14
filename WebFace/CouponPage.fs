@@ -45,6 +45,7 @@ type Meetups = ListModel<GameId,Meetup>
 
 let meetups = ListModel.Create Meetup.id []
 let varInplayOnly = Var.Create true
+let varDataRecived = Var.Create false
 let varSelectedCountry = Var.Create None
 
 
@@ -116,11 +117,10 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
 
     let (~%%) = formatDecimalOption
     [   yield td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]        
-        yield td[ 
-            span' "home-team" <| Doc.TextNode x.game.home
-            span' "game-status" <| vinfo (fun y -> y.summary) 
-            span' "away-team" <| Doc.TextNode x.game.away 
-            span' "game-status" <| vinfo (fun y -> y.status)  ]
+        yield tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ]
+        yield tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.summary) ]
+        yield tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ]
+        yield tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.status)]
         yield kef' true (fun y -> %% y.winBack)
         yield kef' false (fun y -> %% y.winLay)
         yield kef' true (fun y -> %% y.drawBack)
@@ -205,13 +205,15 @@ let renderMenusInplay() =
                 yield attr.href "#"
                 yield Attr.Handler "click" (fun e x -> 
                     varSelectedCountry.Value <- None
-                    varInplayOnly.Value <- true )
+                    varInplayOnly.Value <- true 
+                    varDataRecived.Value <- false  )
                 if isInplayOnly then yield attr.``class`` "active"]  [text "В игре"]
             aAttr [
                 yield attr.href "#"
                 yield Attr.Handler "click" (fun e x -> 
                     varSelectedCountry.Value <- None
-                    varInplayOnly.Value <- false )
+                    varInplayOnly.Value <- false 
+                    varDataRecived.Value <- false )
                 if not isInplayOnly then yield attr.``class`` "active"]  [text "Все матчи"]  ] 
         |> List.map ( fun x -> x :> Doc )
         |> Doc.Concat )
@@ -264,29 +266,29 @@ let processEvents() = async{
     for m in meetups.Value do
         m.country.Value <- tryGetCountry m.game.gameId } 
 
+let rec workloop() = async{
+    try
+        do! processCoupon () 
+        do! processEvents() 
+        varDataRecived.Value <- true 
+    with e ->
+        printfn "error updating coupon : %A" e
+        do! Async.Sleep 5000 
+    return! workloop() }
 
 let Render() =  
     
-    async{
-        while true do
-            try
-                do! processCoupon () 
-                do! processEvents() 
-            with e ->
-                printfn "error updating coupon : %A" e
-                do! Async.Sleep 5000 } 
-    |> Async.Start
-
-        
+    Async.Start  (workloop())
     View.Do {
         let! inplayOnly = varInplayOnly.View
+        let! dataRecived = varDataRecived.View
         let! meetups = meetups.View
         let hasgames = meetups |> Seq.isEmpty |> not
-
-        return hasgames, inplayOnly } 
+        return hasgames, inplayOnly, dataRecived } 
     |> View.Map( function  
-        | true, _ ->  tableAttr [] [ tbody [ renderMeetups() ] ] 
-        | false, true -> h1 [ text "Нет данных о разыгрываемых в настоящий момент футбольных матчах"]
-        | false, false -> h1 [ text "Нет данных о футбольных матчах на сегодня"] )
+        | _,_,false -> h1 [ text "Данные загружаются с сервера. Пожалуйста, подождите."]
+        | true, _, _ ->  tableAttr [] [ tbody [ renderMeetups() ] ] 
+        | false, true, _ -> h1 [ text "Нет данных о разыгрываемых в настоящий момент футбольных матчах"]
+        | false, false, _ -> h1 [ text "Нет данных о футбольных матчах на сегодня"] )
     |> Doc.EmbedView    
 

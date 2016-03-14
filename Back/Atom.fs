@@ -50,6 +50,7 @@ module Helpers =
         | Get of AsyncReplyChannel<'T> 
         | Set of 'T * AsyncReplyChannel<unit> 
         | Upd of ('T -> 'T) * AsyncReplyChannel<unit>
+        | UpdAsync of ('T -> Async<'T> ) * AsyncReplyChannel<unit>
 
 module Logs = 
 
@@ -76,7 +77,11 @@ type Atom<'a> ( what, init, logs : Logs.Options<'a>   ) =
             return newValue
         | Upd (f,r) ->             
             r.Reply ()
-            return f value }
+            return f value 
+        | UpdAsync (f,r) ->             
+            r.Reply ()
+            let! value = f value
+            return value }
 
     let mbox = MailboxProcessor.Start(fun agent ->  async {        
         Logging.debug "-atom-started %s" what 
@@ -102,6 +107,7 @@ type Atom<'a> ( what, init, logs : Logs.Options<'a>   ) =
     member __.Get ()  = mbox.PostAndAsyncReply Get
     member x.Set value = mbox.PostAndAsyncReply <| fun r -> Set (value,r) 
     member x.Update f = mbox.PostAndAsyncReply <| fun r -> Upd (f,r) 
+    member x.UpdateAsync f = mbox.PostAndAsyncReply <| fun r -> UpdAsync (f,r) 
 
 let atom what init logs = Atom<'a> ( what, init, logs )
 
@@ -147,7 +153,6 @@ type TodayValue<'a> (what, request: unit -> Async< 'a option>, logs ) =
 
 type TodayValueRef<'a > (what ,init : 'a, logs) = 
     let atom = atom what None logs
-
     member __.Get() = async{
         let! x = atom.Get()
         match x with
@@ -155,6 +160,12 @@ type TodayValueRef<'a > (what ,init : 'a, logs) =
         | Some (d,_) when not ( DateTime.dateEquals (d,DateTime.Now) ) -> return init
         | Some(_,x) -> return x }
     member __.Set x = atom.Set (Some (DateTime.Now,x))
+    member __.UpdateAsync f = atom.UpdateAsync <| fun r -> async{        
+        let! x = f (match r with None -> init | Some (_,x) -> x)
+        return Some (DateTime.Now, x) }
+    member __.Update f = atom.Update <| fun r -> 
+        let x = f (match r with None -> init | Some (_,x) -> x)
+        Some (DateTime.Now, x) 
 
 let todayValue what init logs = TodayValue(what, init, logs)
 let todayValueRef what init logs = TodayValueRef(what, init, logs)

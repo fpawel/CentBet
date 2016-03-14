@@ -13,22 +13,22 @@ body{
     background-color : MintCream  ;
 }
 
-table tr td span{
+table tr td {
     margin-right : 5px;
     font : 13px Tahoma, sans-serif;
     font-weight : bold;
 }
 
 
-table tr td span.home-team {
+.home-team {
     color : RoyalBlue;    
 }
 
-table tr td span.away-team {
+.away-team {
     color : SteelBlue;
 }
 
-table tr td span.game-status {
+.game-status {
     color : #009900 ;
 }
 

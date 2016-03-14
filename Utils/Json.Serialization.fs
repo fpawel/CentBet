@@ -6,6 +6,8 @@ open Microsoft.FSharp.Reflection
 
 [<AutoOpen>]
 module private Helpers1 = 
+
+    let changeType (x:obj) (tx:Type) : obj =  Convert.ChangeType(x, tx) 
     
     let isStringMap (tx:Type) = 
         let x = tx.GetGenericArguments()
@@ -128,16 +130,20 @@ module private Serialization =
     
     and trySerializeCustomToJson (x : obj) : SerializationResult option = 
         let type' = x.GetType()
-        let toJson = 
+
+        
+
+        let toJsonUntyped = 
             type'.GetMethod
                 (   "ToJsonUntyped", 
                     BindingFlags.Public ||| BindingFlags.Static,
                     null,                
                     CallingConventions.Any,
-                    [| type'|],
+                    [| type' |],
                     null )
-        if toJson <> null then            
-            toJson.Invoke(null, [|x; serializeUntyped|] ) :?> Json |> Right |> Some 
+        
+        if toJsonUntyped <> null then            
+            toJsonUntyped.Invoke(null, [| box x |] ) :?> Json |> Right |> Some 
         else None
     and returnSeq rs = 
         let oks, fails = List.partition ( isRight ) rs
@@ -275,8 +281,6 @@ module private Serialization =
 
 module private Deserialization = 
     open System.Globalization
-    
-    let changeType (x:obj) (tx:Type) : obj =  Convert.ChangeType(x, tx) 
 
     let str' = function 
         | Json.String x -> x 
@@ -652,12 +656,13 @@ module private Deserialization =
         
 
     let rec deserializeUntyped (type':Type) (json : Json) : Either<string,obj>  =
-        match plain' type' json with
+        
+        match tryDeserializeCustomFromJson type' json with
         | Some x -> x
-        | _ ->             
-            match tryDeserializeCustomFromJson type' json with
+        | _ ->
+            match plain' type' json with
             | Some x -> x
-            | _ ->                  
+            | _ ->             
                 match deserializerFor' type' with
                 | None -> failwithf "can't find json deserializer for %A" (&& type')
                 | Some deserialize' ->
@@ -672,10 +677,17 @@ module private Deserialization =
                     CallingConventions.Any,
                     [| typeof<Json> |],
                     null )
+
         let rtype' = typeof<Either<string,obj>>
-        if fromJson <> null then            
-            fromJson.Invoke(null, [|json|] ) 
-            :?> Either<string,obj>
+        
+        if fromJson <> null then 
+            if fromJson.ReturnType <> rtype' then
+                failwithf "return type of %A.FromJsonUntyped must be %A, but is %A" 
+                    type'.Name rtype'.Name fromJson.ReturnType.Name
+            try
+                fromJson.Invoke(null, [|json|] ) :?> Either<string,obj>                                
+            with e ->
+                Left <| sprintf "error calling %A.FromJsonUntyped on %A : %A" type'.Name (stringify json) e.Message
             |> Some
         else None
 

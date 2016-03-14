@@ -1,5 +1,5 @@
 ﻿#I "../packages"
-#r "../Utils/bin/Debug/Utils.dll"
+#r "../Utils/bin/Release/Utils.dll"
 #r "FsCheck.2.2.4/lib/net45/FsCheck.dll"
 
 #load "Prelude.fs"
@@ -9,6 +9,10 @@ open System
 open FsCheck
 open Json
 open Json.Serialization
+
+
+
+open Betfair.ApiNG
 
 let test<'a when 'a : equality> ( x: 'a ) = 
     x 
@@ -22,6 +26,8 @@ let test<'a when 'a : equality> ( x: 'a ) =
 
 let (~%%) = test
 
+deserialize<MarketId>( Json.Number 1.456m )
+
 let validcahrs = 
     [ 'a'..'z' ] @ ['A' .. 'Z'] @ ['0' .. '9']
     
@@ -29,19 +35,24 @@ let genJsonChar = gen {
     let! i = Gen.choose (0, List.length validcahrs - 1)     
     return validcahrs.[i] }
 
-Check.Quick ( test<Map<string,string>> |@ "Map<string,string>" )
-
 type MyGenerators =
-  static member String() =
+    static member String() =
       {new Arbitrary<String>() with
           override x.Generator = gen{
             let! xs = Gen.arrayOfLength 50 genJsonChar
             return new String(xs) }
           override x.Shrinker t = Seq.empty }
+    static member Int32() =
+      {new Arbitrary<Int32>() with
+          override x.Generator = Gen.choose (1, Int32.MaxValue)
+          override x.Shrinker t = Seq.empty } 
+
 Arb.register<MyGenerators>()
 
-open Betfair.ApiNG
+test {MarketId.marketId = 100}
 
+Check.Quick ( test<Map<string,string>> |@ "Map<string,string>" )
+Check.Quick ( test<MarketId> )
 Check.Quick ( test<PlaceExecutionReport> |@ "PlaceExecutionReport json serialization" )
 Check.Quick ( test<PlaceInstruction>)
 

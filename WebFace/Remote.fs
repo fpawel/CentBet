@@ -142,7 +142,7 @@ let countryFromEvent (e: ApiNG.Event) =
     
 [<Rpc>]
 let getApiNgEvents ids =     
-    Betfair.Football.Coupon.getExistedApiNgEvents ids
+    Betfair.Football.Coupon.getExistedEvents ids
     |> Either.mapAsync ( fun (rdds, msng) -> 
 
         

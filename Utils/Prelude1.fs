@@ -110,52 +110,23 @@ module Option =
         match x with
         | Some x' -> x'
         | None -> f()
-        
 
-//    type Builder() =
-//        let bind f v = 
-//            match v with
-//            | None -> None
-//            | Some x -> f x
-//
-//        member x.Bind(v,f) = bind f  v
-//        member x.Return v = Some v
-//        member x.ReturnFrom o = o
-//
-//        member b.Combine( v, f) = 
-//            bind f v
-//
-//        member b.Delay(f ) =  
-//            f
-//
-//        member x.Run(f) = 
-//            bind f (Some ())
+type Decimal with
+    static member Pow (value,base') =  
+        System.Diagnostics.Contracts.Contract.Assert (base'>=0)
+        if base'=1 then value 
+        elif base'=0 then 1m else
+        let mutable A = 1m
+        let e = System.Collections.BitArray(BitConverter.GetBytes(base'))
+        let t = e.Count
+        for i=t-1 downto 0 do
+            A <- A * A
+            if e.[i] then A <- A * value
+        A
+    static member DecimalNumbersCount value =
+        BitConverter.GetBytes(Decimal.GetBits(value).[3]).[2]
 
-//    type AsyncBuilder() =
-//        let bind f v' = async{        
-//            let! v = v'
-//            match v with
-//            | None -> return None
-//            | Some x -> return! f x }
-//
-//        member x.Bind(v,f) = bind f  v
-//    
-//        member x.Return v = async { return Some v }
-//        member x.ReturnFrom o = o
-//
-//        member b.Combine( v, f) = 
-//            bind f v
-//
-//        member b.Delay(f ) =  
-//            f
-//
-//        member x.Run(f) = 
-//            bind f (async{ return Some ()})
-
-//let asyncOpt = Option.AsyncBuilder()
     
-
-
 
 let cuttext1 len (text:string)  = 
     if text.Length < len then text 

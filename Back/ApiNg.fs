@@ -2,8 +2,33 @@
 
 open System
 open System.ComponentModel
+open Json
 
-type MarketId = { marketId : int }
+type MarketId = 
+    { marketId : int }
+    static member ToJsonUntyped x =
+        x.marketId |> sprintf "1.%d" |> Json.String
+    static member FromJsonUntyped (json) = 
+        let ret x = { marketId = x} |> box |> Right
+        match json with
+        | Json.String x ->
+            let err = lazy( Left <| sprintf "string %A is not valid market id value" x )
+            let m = System.Text.RegularExpressions.Regex.Match(x, @"1\.([\d]+)")
+            if not m.Success then err.Value else
+            let b,x = Int32.TryParse m.Groups.[1].Value
+            if b then ret x else err.Value
+        | Json.Number value when value > 1m && value < 2m ->
+            try
+                let n = Decimal.DecimalNumbersCount(value)
+                (value - Decimal.Floor(value))  * Decimal.Pow( 10m,  int n )
+                |> int |> ret
+            with e ->
+                Left <| sprintf "%M is not valid market id" value
+
+        | json -> 
+            Json.formatWith JsonFormattingOptions.Pretty json
+            |> sprintf "json %A is not valid market id value" 
+            |> Left
 
 type MarketType = string
 type Venue = string
