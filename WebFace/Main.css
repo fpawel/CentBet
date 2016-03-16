@@ -13,10 +13,20 @@ body{
     background-color : MintCream  ;
 }
 
-table tr td {
+
+/*tr:nth-child(odd) {background: #FFF}*/
+tr:nth-child(even) {background: #CCC}
+
+td {
+    padding : 3px 7px;
     margin-right : 5px;
     font : 13px Tahoma, sans-serif;
     font-weight : bold;
+    margin-right : 5px;
+}
+
+tr:hover {
+    background-color: #DDD;    
 }
 
 
@@ -34,7 +44,7 @@ table tr td {
 
 
 
-table tr td.kef {
+.kef {
     text-align : center;
     padding : 3px;
     font-family : Tahoma, Verdana, Arial, sans-serif;
@@ -42,11 +52,11 @@ table tr td.kef {
     font-weight : bold;
 }
 
-table tr td.kef-back {
+.kef-back {
     background : #72bbef;
 }
 
-table tr td.kef-lay {
+.kef-lay {
     background : #faa9ba;
 }
 

@@ -35,12 +35,46 @@ let getDatePart (x:JavaScript.Date) =
 [<Inline "createBlobFromString($arg)">]
 let createBlobFromString (arg : string) : Blob = failwith "n/a"
 
-type Result<'b,'a> =
-    | Ok of 'a
-    | Error of 'b
+module LocalStorage = 
+    open WebSharper.UI.Next
+    let private strg = WebSharper.JavaScript.JS.Window.LocalStorage
 
+    let clear k = strg.RemoveItem k
 
+    let get<'a> k = 
+        try 
+            let value = 
+                strg.GetItem k
+                |> JavaScript.JSON.Parse
+                :?> 'a
 
-        
+            Some value
+        with e -> 
+            printfn "error getting from local storage, key %A : %A" k e 
+            None
 
+    let set k value = 
+        try 
+            let value = JavaScript.JSON.Stringify(value)
+            strg.SetItem(k,value)            
+        with error -> 
+            failwithf "error setting to local storage, key %A, value %A : %A" k value error            
 
+    let getWithDef k def = 
+        match get k with
+        | Some k -> k
+        | _ -> def
+
+    // если значение даты в ключе createdKey превышает текущую дату более чем на сутки 
+    //  - удалить значение в ключе createdKey, вернуть текущую дату
+    // иначе 
+    //  - вернуть значение даты в ключе createdKey
+    let checkTodayKey createdKey key = 
+        let now = DateTime.Now
+        let creationDate = getWithDef createdKey now
+        if now - creationDate > TimeSpan.FromDays 1. then
+            clear key
+            set createdKey DateTime.Now 
+            printfn "local storage %A of %A is inspired" key  creationDate
+            now
+        else creationDate

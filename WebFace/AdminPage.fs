@@ -13,26 +13,7 @@ open CentBet.Client.Utils
 let doc (x : Elt) = x :> Doc 
 let (~%%) = doc
 
-type LocalStorage(key) = 
-    let strg = WebSharper.JavaScript.JS.Window.LocalStorage
 
-    member x.Get<'a> k = 
-        try 
-            let value = 
-                strg.GetItem k
-                |> JavaScript.JSON.Parse
-                :?> 'a
-
-            Ok value
-        with e -> 
-            Error ( sprintf "local storage get item %A error : %A, storage %A" k e strg )
-
-    member x.Set k value = 
-        try 
-            let value = JavaScript.JSON.Stringify(value)
-            Ok( strg.SetItem(k,value) )
-        with e -> 
-            Error ( sprintf "local storage set item %A error : %A, value %A, storage %A" k e value strg )
 
 type Level = 
     | RespOk

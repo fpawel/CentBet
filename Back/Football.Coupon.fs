@@ -34,7 +34,6 @@ let getMarketCatalogue ((eventId,_) as gameId : GameId ) = async{
             | _ -> ()
             return r }
 
-
 [<AutoOpen>]
 module private Helpers = 
     let ``initialized`` = "initialized"
@@ -92,9 +91,7 @@ let private processEvents() = async{
             return Left <| sprintf "-aping-events responsed size %d mismatch, waiting %d" newEvents.Length missingIds.Length 
         | x -> return x }
 
-
 module Status = 
-
     let Inplay = initStatus "INPLAY"
     let Today = initStatus "TODAY" 
     let Events = initStatus "EVENTS" 

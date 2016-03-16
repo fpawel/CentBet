@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,JSON,PrintfHelpers,window,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Seq,Key,Var,Concurrency,Var1,Option,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Event,Utils,console,Collections,MapModule,Date,FSharpSet,BalancedTree,Slice,Operators,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Seq,Key,Var,Concurrency,Var1,Option,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,View1,Meetup,Utils,LocalStorage,EventCatalogue,PrintfHelpers,console,Collections,MapModule,Date,JSON,Operators,window,FSharpSet,BalancedTree,Slice,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -12,59 +12,6 @@
        {
         return _arg1.$==1?["lightgrey","red"]:_arg1.$==2?["lightgrey","green"]:["white","navy"];
        };
-      }
-     }),
-     LocalStorage:Runtime.Class({
-      Get:function(k)
-      {
-       var _,arg00,value,e,_1;
-       try
-       {
-        arg00=this.strg.getItem(k);
-        value=JSON.parse(arg00);
-        _={
-         $:0,
-         $0:value
-        };
-       }
-       catch(e)
-       {
-        _1=this.strg;
-        _={
-         $:1,
-         $0:"local storage get item "+PrintfHelpers.prettyPrint(k)+" error : "+PrintfHelpers.prettyPrint(e)+", storage "+PrintfHelpers.prettyPrint(_1)
-        };
-       }
-       return _;
-      },
-      Set:function(k,value)
-      {
-       var _,value1,e,_1;
-       try
-       {
-        value1=JSON.stringify(value);
-        _={
-         $:0,
-         $0:this.strg.setItem(k,value1)
-        };
-       }
-       catch(e)
-       {
-        _1=this.strg;
-        _={
-         $:1,
-         $0:"local storage set item "+PrintfHelpers.prettyPrint(k)+" error : "+PrintfHelpers.prettyPrint(e)+", value "+PrintfHelpers.prettyPrint(value)+", storage "+PrintfHelpers.prettyPrint(_1)
-        };
-       }
-       return _;
-      }
-     },{
-      New:function()
-      {
-       var r;
-       r=Runtime.New(this,{});
-       r.strg=window.localStorage;
-       return r;
       }
      }),
      Render:function()
@@ -248,8 +195,8 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var arg00;
-      arg00=function(r)
+      var _arg00_50_2;
+      _arg00_50_2=function(r)
       {
        var patternInput,fore,back;
        patternInput=(Level.get_color())(r.Level);
@@ -260,7 +207,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(arg00,x);
+       _arg00_=View.Map(_arg00_50_2,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -516,7 +463,7 @@
      })
     },
     Coupon:{
-     Event:Runtime.Class({},{
+     EventCatalogue:Runtime.Class({},{
       id:function(x)
       {
        return x.gameId;
@@ -626,6 +573,9 @@
         game:game,
         gameInfo:gameInfo1,
         country:Var.Create(country),
+        totalMatched:Var.Create({
+         $:0
+        }),
         hash:hash
        });
       };
@@ -642,29 +592,46 @@
       source3=Seq.sortBy(projection,source1);
       return Seq.iter(action,source3);
      },
-     events:Runtime.Field(function()
+     eventsCatalogue:Runtime.Field(function()
      {
-      var arg00,arg10;
+      var _dt_35_1,arg00,arg10,enc,_x_36_2,clo1;
+      _dt_35_1=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
       arg00=function(arg001)
       {
-       return Event.id(arg001);
+       return EventCatalogue.id(arg001);
       };
-      arg10=Runtime.New(T,{
-       $:0
+      enc=(Provider.get_Default().EncodeRecord(EventCatalogue,[["gameId",Provider.get_Default().EncodeTuple([Id,Id]),0],["country",Id,1],["markets",Provider.get_Default().EncodeList(Provider.get_Default().EncodeRecord(undefined,[["marketId",Id,0],["marketName",Id,0],["runners",Provider.get_Default().EncodeList(Provider.get_Default().EncodeRecord(undefined,[["selectionId",Id,0],["runnerName",Id,0]])),0]])),0]]))();
+      arg10=Storage1.LocalStorage("CentBetEventsCatalogue",{
+       Encode:enc,
+       Decode:(Provider.get_Default().DecodeRecord(EventCatalogue,[["gameId",Provider.get_Default().DecodeTuple([Id,Id]),0],["country",Id,1],["markets",Provider.get_Default().DecodeList(Provider.get_Default().DecodeRecord(undefined,[["marketId",Id,0],["marketName",Id,0],["runners",Provider.get_Default().DecodeList(Provider.get_Default().DecodeRecord(undefined,[["selectionId",Id,0],["runnerName",Id,0]])),0]])),0]]))()
       });
-      return ListModel.Create(arg00,arg10);
+      _x_36_2=ListModel.CreateWithStorage(arg00,arg10);
+      clo1=function(_)
+      {
+       return function(_1)
+       {
+        return function(_2)
+        {
+         var s;
+         s=PrintfHelpers.prettyPrint(_)+" - "+Global.String(_1)+", "+PrintfHelpers.prettyPrint(_2);
+         return console?console.log(s):undefined;
+        };
+       };
+      };
+      ((clo1("CentBetEventsCatalogue"))(_x_36_2.get_Length()))(_dt_35_1);
+      return _x_36_2;
      }),
      meetups:Runtime.Field(function()
      {
-      var arg00,arg10;
-      arg00=function(arg001)
+      var _arg00_58_3,_arg10_58_1;
+      _arg00_58_3=function(arg00)
       {
-       return Meetup.id(arg001);
+       return Meetup.id(arg00);
       };
-      arg10=Runtime.New(T,{
+      _arg10_58_1=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(arg00,arg10);
+      return ListModel.Create(_arg00_58_3,_arg10_58_1);
      }),
      processCoupon:function()
      {
@@ -694,7 +661,7 @@
       return Concurrency.Delay(function()
       {
        var _events_,x,chooser,source,request,_,x1;
-       _events_=Var1.Get(Coupon.events().Var);
+       _events_=Var1.Get(Coupon.eventsCatalogue().Var);
        x=Var1.Get(Coupon.meetups().Var);
        chooser=function(m)
        {
@@ -715,40 +682,210 @@
        request=Seq.toList(source);
        if(request.$==0)
         {
-         _=Concurrency.Return(null);
+         _=Concurrency.Bind(Concurrency.Sleep(5000),function()
+         {
+          return Concurrency.Return(null);
+         });
         }
        else
         {
          x1=AjaxRemotingProvider.Async("WebFace:2",[request]);
-         _=Concurrency.Bind(x1,function(_arg1)
+         _=Concurrency.Bind(x1,function(_arg2)
          {
           var a;
-          a=Concurrency.For(_arg1,function(_arg2)
+          a=Concurrency.For(_arg2,function(_arg3)
           {
-           var openDate,gameId,country;
-           openDate=_arg2[3];
-           _arg2[1];
-           gameId=_arg2[0];
-           country=_arg2[2];
-           Coupon.events().Add(Runtime.New(Event,{
+           var gameId,country;
+           _arg3[1];
+           gameId=_arg3[0];
+           country=_arg3[2];
+           Coupon.eventsCatalogue().Add(Runtime.New(EventCatalogue,{
             gameId:gameId,
             country:country,
-            openDate:openDate
+            markets:Runtime.New(T,{
+             $:0
+            })
            }));
            return Concurrency.Return(null);
           });
           return Concurrency.Combine(a,Concurrency.Delay(function()
           {
-           return Concurrency.For(Var1.Get(Coupon.meetups().Var),function(_arg3)
+           return Concurrency.For(Var1.Get(Coupon.meetups().Var),function(_arg4)
            {
             var tupledArg,_arg00_,_arg01_;
-            tupledArg=_arg3.game.gameId;
+            tupledArg=_arg4.game.gameId;
             _arg00_=tupledArg[0];
             _arg01_=tupledArg[1];
-            Var1.Set(_arg3.country,Coupon.tryGetCountry(_arg00_,_arg01_));
+            Var1.Set(_arg4.country,Coupon.tryGetCountry(_arg00_,_arg01_));
             return Concurrency.Return(null);
            });
           }));
+         });
+        }
+       return _;
+      });
+     },
+     processMarkets:function()
+     {
+      return Concurrency.Delay(function()
+      {
+       var predicate,source,source1,_events_,_,ev,tupledArg,_arg00_,_arg01_,x1;
+       predicate=function(x)
+       {
+        return x.markets.$==0;
+       };
+       source=Var1.Get(Coupon.eventsCatalogue().Var);
+       source1=Seq.filter(predicate,source);
+       _events_=Seq.toList(source1);
+       if(_events_.$==0)
+        {
+         _=Concurrency.Return(null);
+        }
+       else
+        {
+         ev=_events_.$0;
+         tupledArg=ev.gameId;
+         _arg00_=tupledArg[0];
+         _arg01_=tupledArg[1];
+         x1=AjaxRemotingProvider.Async("WebFace:4",[_arg00_,_arg01_]);
+         _=Concurrency.Bind(x1,function(_arg1)
+         {
+          var _1,value,chooser,tupledArg2,_arg00_1,_arg01_1,_arg2,toltalMatched,_2,arg0,mapping,markets,arg00,arg10,x2,clo1;
+          if(_arg1.$==1)
+           {
+            value=_arg1.$0;
+            chooser=function(tupledArg1)
+            {
+             var totalMatched;
+             tupledArg1[0];
+             tupledArg1[1];
+             tupledArg1[2];
+             totalMatched=tupledArg1[3];
+             return totalMatched;
+            };
+            tupledArg2=ev.gameId;
+            _arg00_1=tupledArg2[0];
+            _arg01_1=tupledArg2[1];
+            _arg2=List.choose(chooser,value);
+            if(_arg2.$==0)
+             {
+              _2={
+               $:0
+              };
+             }
+            else
+             {
+              arg0=Seq.sum(_arg2);
+              _2={
+               $:1,
+               $0:arg0
+              };
+             }
+            toltalMatched=_2;
+            Coupon.updateTotalMatched(_arg00_1,_arg01_1,toltalMatched);
+            mapping=function(tupledArg1)
+            {
+             var marketId,marketName,runners,mapping1;
+             marketId=tupledArg1[0];
+             marketName=tupledArg1[1];
+             runners=tupledArg1[2];
+             tupledArg1[3];
+             mapping1=function(tupledArg3)
+             {
+              var runnerNamem,selectionId;
+              runnerNamem=tupledArg3[0];
+              selectionId=tupledArg3[1];
+              return{
+               selectionId:selectionId,
+               runnerName:runnerNamem
+              };
+             };
+             return{
+              marketId:marketId,
+              marketName:marketName,
+              runners:List.map(mapping1,runners)
+             };
+            };
+            markets=List.map(mapping,value);
+            arg00=function(x)
+            {
+             return{
+              $:1,
+              $0:Runtime.New(EventCatalogue,{
+               gameId:x.gameId,
+               country:x.country,
+               markets:markets
+              })
+             };
+            };
+            arg10=ev.gameId;
+            Coupon.eventsCatalogue().UpdateBy(arg00,arg10);
+            _1=Concurrency.Return(null);
+           }
+          else
+           {
+            x2=_arg1.$0;
+            clo1=function(_3)
+            {
+             var s;
+             s="error of market catalog request : "+PrintfHelpers.toSafe(_3);
+             return console?console.log(s):undefined;
+            };
+            clo1(x2);
+            _1=Concurrency.Return(null);
+           }
+          return _1;
+         });
+        }
+       return _;
+      });
+     },
+     processTotalMatched:function()
+     {
+      return Concurrency.Delay(function()
+      {
+       var mapping,source,source1,gamesIds,_,gameId,_arg00_,_arg01_,x;
+       mapping=function(m)
+       {
+        return m.game.gameId;
+       };
+       source=Var1.Get(Coupon.meetups().Var);
+       source1=Seq.map(mapping,source);
+       gamesIds=Seq.toList(source1);
+       if(gamesIds.$==0)
+        {
+         _=Concurrency.Return(null);
+        }
+       else
+        {
+         gameId=gamesIds.$0;
+         _arg00_=gameId[0];
+         _arg01_=gameId[1];
+         x=AjaxRemotingProvider.Async("WebFace:3",[_arg00_,_arg01_]);
+         _=Concurrency.Bind(x,function(_arg1)
+         {
+          var _1,value,_arg00_1,_arg01_1,x1,clo1;
+          if(_arg1.$==1)
+           {
+            value=_arg1.$0;
+            _arg00_1=gameId[0];
+            _arg01_1=gameId[1];
+            Coupon.updateTotalMatched(_arg00_1,_arg01_1,value);
+            _1=Concurrency.Return(null);
+           }
+          else
+           {
+            x1=_arg1.$0;
+            clo1=function(_2)
+            {
+             var s;
+             s="error of total matched request : "+PrintfHelpers.toSafe(_2);
+             return console?console.log(s):undefined;
+            };
+            clo1(x1);
+            _1=Concurrency.Return(null);
+           }
+          return _1;
          });
         }
        return _;
@@ -961,48 +1098,70 @@
             return y.status;
            })]))],Seq.delay(function()
            {
-            return Seq.append([_kef_(true,function(y)
+            var arg201,arg00,arg10,_arg00_;
+            arg00=function(_arg1)
             {
-             return op_SpliceUntyped(y.winBack);
-            })],Seq.delay(function()
+             var _,m,t;
+             if(_arg1.$==1)
+              {
+               m=_arg1.$0;
+               t=Strings.PadLeft(m.toFixed(2),2)+" GPB";
+               _=Doc.TextNode(t);
+              }
+             else
+              {
+               _=Doc.get_Empty();
+              }
+             return _;
+            };
+            arg10=x.totalMatched.get_View();
+            _arg00_=View.Map(arg00,arg10);
+            arg201=List.ofArray([Doc.EmbedView(_arg00_)]);
+            return Seq.append([Doc.Element("td",[],arg201)],Seq.delay(function()
             {
-             return Seq.append([_kef_(false,function(y)
+             return Seq.append([_kef_(true,function(y)
              {
-              return op_SpliceUntyped(y.winLay);
+              return op_SpliceUntyped(y.winBack);
              })],Seq.delay(function()
              {
-              return Seq.append([_kef_(true,function(y)
+              return Seq.append([_kef_(false,function(y)
               {
-               return op_SpliceUntyped(y.drawBack);
+               return op_SpliceUntyped(y.winLay);
               })],Seq.delay(function()
               {
-               return Seq.append([_kef_(false,function(y)
+               return Seq.append([_kef_(true,function(y)
                {
-                return op_SpliceUntyped(y.drawLay);
+                return op_SpliceUntyped(y.drawBack);
                })],Seq.delay(function()
                {
-                return Seq.append([_kef_(true,function(y)
+                return Seq.append([_kef_(false,function(y)
                 {
-                 return op_SpliceUntyped(y.loseBack);
+                 return op_SpliceUntyped(y.drawLay);
                 })],Seq.delay(function()
                 {
-                 return Seq.append([_kef_(false,function(y)
+                 return Seq.append([_kef_(true,function(y)
                  {
-                  return op_SpliceUntyped(y.loseLay);
+                  return op_SpliceUntyped(y.loseBack);
                  })],Seq.delay(function()
                  {
-                  var _,arg201,x1;
-                  if(!countryIsSelected)
-                   {
-                    x1=Doc.TextView(x.country.get_View());
-                    arg201=List.ofArray([Doc.Element("span",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([x1]))]);
-                    _=[Doc.Element("td",[],arg201)];
-                   }
-                  else
-                   {
-                    _=Seq.empty();
-                   }
-                  return _;
+                  return Seq.append([_kef_(false,function(y)
+                  {
+                   return op_SpliceUntyped(y.loseLay);
+                  })],Seq.delay(function()
+                  {
+                   var _,arg202,x1;
+                   if(!countryIsSelected)
+                    {
+                     x1=Doc.TextView(x.country.get_View());
+                     arg202=List.ofArray([Doc.Element("span",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([x1]))]);
+                     _=[Doc.Element("td",[],arg202)];
+                    }
+                   else
+                    {
+                     _=Seq.empty();
+                    }
+                   return _;
+                  }));
                  }));
                 }));
                }));
@@ -1263,7 +1422,7 @@
        _gameId_=_arg1.gameId;
        return Unchecked.Equals(gameId,_gameId_);
       };
-      source=Var1.Get(Coupon.events().Var);
+      source=Var1.Get(Coupon.eventsCatalogue().Var);
       return Seq.tryFind(predicate,source);
      },
      updateCoupon:function(newGms,updGms,outGms)
@@ -1328,6 +1487,22 @@
       };
       return Seq.iter(action1,updGms);
      },
+     updateTotalMatched:function(_,_1,_2)
+     {
+      var gameId,matchValue,_3,game;
+      gameId=[_,_1];
+      matchValue=Coupon.meetups().TryFindByKey(gameId);
+      if(matchValue.$==1)
+       {
+        game=matchValue.$0;
+        _3=Var1.Set(game.totalMatched,_2);
+       }
+      else
+       {
+        _3=null;
+       }
+      return _3;
+     },
      varDataRecived:Runtime.Field(function()
      {
       return Var.Create(false);
@@ -1346,7 +1521,7 @@
      {
       var _builder_,x;
       _builder_=View.get_Do();
-      x=Coupon.events().get_View();
+      x=Coupon.eventsCatalogue().get_View();
       return View1.Bind(function(_arg1)
       {
        var mapping,elements,events,x1;
@@ -1393,8 +1568,8 @@
      },
      viewGames:Runtime.Field(function()
      {
-      var _builder_,x;
-      _builder_=View.get_Do();
+      var _builder_95_1,x;
+      _builder_95_1=View.get_Do();
       x=Coupon.meetups().get_View();
       return View1.Bind(function(_arg1)
       {
@@ -1444,11 +1619,17 @@
         {
          return Concurrency.Bind(Coupon.processEvents(),function()
          {
-          Var1.Set(Coupon.varDataRecived(),true);
-          return Concurrency.Return(null);
+          return Concurrency.Bind(Coupon.processMarkets(),function()
+          {
+           return Concurrency.Bind(Coupon.processTotalMatched(),function()
+           {
+            Var1.Set(Coupon.varDataRecived(),true);
+            return Concurrency.Return(null);
+           });
+          });
          });
         });
-       }),function(_arg3)
+       }),function(_arg5)
        {
         var clo1;
         clo1=function(_)
@@ -1457,7 +1638,7 @@
          s="error updating coupon : "+PrintfHelpers.prettyPrint(_);
          return console?console.log(s):undefined;
         };
-        clo1(_arg3);
+        clo1(_arg5);
         return Concurrency.Bind(Concurrency.Sleep(5000),function()
         {
          return Concurrency.Return(null);
@@ -1470,6 +1651,112 @@
      }
     },
     Utils:{
+     LocalStorage:{
+      checkTodayKey:function(createdKey,key)
+      {
+       var now,creationDate,_,clo1;
+       now=Date.now();
+       creationDate=LocalStorage.getWithDef(createdKey,now);
+       if(now-creationDate>1*86400000)
+        {
+         LocalStorage.clear(key);
+         LocalStorage.set(createdKey,Date.now());
+         clo1=function(_1)
+         {
+          return function(_2)
+          {
+           var s;
+           s="local storage "+PrintfHelpers.prettyPrint(_1)+" of "+PrintfHelpers.prettyPrint(_2)+" is inspired";
+           return console?console.log(s):undefined;
+          };
+         };
+         (clo1(key))(creationDate);
+         _=now;
+        }
+       else
+        {
+         _=creationDate;
+        }
+       return _;
+      },
+      clear:function(k)
+      {
+       return LocalStorage.strg().removeItem(k);
+      },
+      get:function(k)
+      {
+       var _,arg00,value,e,clo1;
+       try
+       {
+        arg00=LocalStorage.strg().getItem(k);
+        value=JSON.parse(arg00);
+        _={
+         $:1,
+         $0:value
+        };
+       }
+       catch(e)
+       {
+        clo1=function(_1)
+        {
+         return function(_2)
+         {
+          var s;
+          s="error getting from local storage, key "+PrintfHelpers.prettyPrint(_1)+" : "+PrintfHelpers.prettyPrint(_2);
+          return console?console.log(s):undefined;
+         };
+        };
+        (clo1(k))(e);
+        _={
+         $:0
+        };
+       }
+       return _;
+      },
+      getWithDef:function(k,def)
+      {
+       var matchValue,_,k1;
+       matchValue=LocalStorage.get(k);
+       if(matchValue.$==1)
+        {
+         k1=matchValue.$0;
+         _=k1;
+        }
+       else
+        {
+         _=def;
+        }
+       return _;
+      },
+      set:function(k,value)
+      {
+       var _,value1,error,clo1;
+       try
+       {
+        value1=JSON.stringify(value);
+        _=LocalStorage.strg().setItem(k,value1);
+       }
+       catch(error)
+       {
+        clo1=function(_1)
+        {
+         return function(_2)
+         {
+          return function(_3)
+          {
+           return Operators.FailWith("error setting to local storage, key "+PrintfHelpers.prettyPrint(_1)+", value "+PrintfHelpers.prettyPrint(_2)+" : "+PrintfHelpers.prettyPrint(_3));
+          };
+         };
+        };
+        _=((clo1(k))(value))(error);
+       }
+       return _;
+      },
+      strg:Runtime.Field(function()
+      {
+       return window.localStorage;
+      })
+     },
      dateTimeToString:function($s)
      {
       var $0=this,$this=this;
@@ -1550,7 +1837,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
              }
             _4=_5;
            }
@@ -1571,9 +1858,6 @@
  });
  Runtime.OnInit(function()
  {
-  JSON=Runtime.Safe(Global.JSON);
-  PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
-  window=Runtime.Safe(Global.window);
   UI=Runtime.Safe(Global.WebSharper.UI);
   Next=Runtime.Safe(UI.Next);
   Doc=Runtime.Safe(Next.Doc);
@@ -1605,26 +1889,31 @@
   Coupon=Runtime.Safe(Client.Coupon);
   View1=Runtime.Safe(Next.View1);
   Meetup=Runtime.Safe(Coupon.Meetup);
-  Event=Runtime.Safe(Coupon.Event);
   Utils=Runtime.Safe(Client.Utils);
+  LocalStorage=Runtime.Safe(Utils.LocalStorage);
+  EventCatalogue=Runtime.Safe(Coupon.EventCatalogue);
+  PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
   console=Runtime.Safe(Global.console);
   Collections=Runtime.Safe(Global.WebSharper.Collections);
   MapModule=Runtime.Safe(Collections.MapModule);
   Date=Runtime.Safe(Global.Date);
+  JSON=Runtime.Safe(Global.JSON);
+  Operators=Runtime.Safe(Global.WebSharper.Operators);
+  window=Runtime.Safe(Global.window);
   FSharpSet=Runtime.Safe(Collections.FSharpSet);
   BalancedTree=Runtime.Safe(Collections.BalancedTree);
   Slice=Runtime.Safe(Global.WebSharper.Slice);
-  Operators=Runtime.Safe(Global.WebSharper.Operators);
   return MatchFailureException=Runtime.Safe(Global.WebSharper.MatchFailureException);
  });
  Runtime.OnLoad(function()
  {
+  LocalStorage.strg();
   Coupon.viewGames();
   Coupon.varSelectedCountry();
   Coupon.varInplayOnly();
   Coupon.varDataRecived();
   Coupon.meetups();
-  Coupon.events();
+  Coupon.eventsCatalogue();
   Admin.varConsole();
   Admin.varCommandsHistory();
   Admin.varCmd();

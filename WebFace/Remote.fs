@@ -120,7 +120,12 @@ let countries1 =
     |> Map.ofList
 
 
-let getCountryFromRegionInfo (countryCode : string) =     
+let getCountryFromRegionInfo (countryCode : string) = 
+    // Change current culture
+    let culture = CultureInfo("ru-RU")      
+    Thread.CurrentThread.CurrentCulture <- culture
+    Thread.CurrentThread.CurrentUICulture <- culture
+
     let i = Globalization.RegionInfo(countryCode)
     if i=null then countryCode else 
     shortCountries.TryFind i.DisplayName 
@@ -134,36 +139,40 @@ let countryFromEvent (e: ApiNG.Event) =
                 getCountryFromRegionInfo(countryCode)
             with _ -> 
                 countryCode ) )
-
-
-        
-
-        
     
 [<Rpc>]
-let getApiNgEvents ids =     
+let getEventsCatalogue ids =     
     Betfair.Football.Coupon.getExistedEvents ids
     |> Either.mapAsync ( fun (rdds, msng) -> 
+        rdds 
+        |> Map.toList
+        |> List.map(fun (gameId,{event = e}) ->
+            let country = 
+                try
+                    countryFromEvent e
+                with exn -> 
+                    Logging.error "%A"  exn
+                    None
+            gameId, e.name, country ) )
 
-        
-        // Change current culture
-        let culture = CultureInfo("ru-RU")      
-        Thread.CurrentThread.CurrentCulture <- culture
-        Thread.CurrentThread.CurrentUICulture <- culture
-        let response =
-            rdds 
-            |> Map.toList
-            |> List.map(fun (gameId,{event = e}) ->
-                let country = 
-                    try
-                        countryFromEvent e
-                    with exn -> 
-                        Logging.error "%A"  exn
-                        None
-                gameId, e.name, country, e.openDate)
-        response )
-        
+let getToltalMatched xs = 
+    let xs = xs |> List.choose( fun (x : ApiNG.MarketCatalogue )-> x.totalMatched ) 
+    if xs.IsEmpty then None else Some <| List.sum xs 
 
+[<Rpc>]
+let getEventTotalMatched gameId = async{
+    let! m' = Betfair.Football.Coupon.getMarketCatalogue gameId    
+    return Either.mapRight getToltalMatched m'}
+        
+[<Rpc>]
+let getMarketCatalogue gameId = async{    
+    let! m = Betfair.Football.Coupon.getMarketCatalogue gameId
+    return m |> Either.mapRight ( fun m ->         
+        m |> List.map( fun x ->             
+            let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
+            x.marketId.marketId, x.marketName, runners, x.totalMatched ) ) }
+
+    
     
     
 

@@ -14,23 +14,35 @@ open Betfair.Football
     
 open Utils
 
-type Event = 
+///Information about the Runners (selections) in a market
+type RunnerCatalog = {   
+    selectionId : int 
+    runnerName : string }
+
+type MarketCatalogue = {   
+    marketId : int
+    marketName : string 
+    runners : RunnerCatalog list }
+
+type EventCatalogue = 
     {   gameId : GameId
-        country : string option
-        openDate : DateTime option }
+        country : string option  
+        markets : MarketCatalogue list }
     static member id x = x.gameId
 
-let events = 
-    //ListModel.CreateWithStorage Event.id (Storage.LocalStorage "CentBetApiNgEvents" Serializer.Default)
-    ListModel.Create Event.id []
-
-
+let eventsCatalogue = 
+    let k = "CentBetEventsCatalogue"
+    let dt = LocalStorage.checkTodayKey "CentBetEventsCatalogueCreated" k
+    let x = ListModel.CreateWithStorage EventCatalogue.id (Storage.LocalStorage k Serializer.Default)
+    printfn "%A - %d, %A" k x.Length dt
+    x
 
 
 type Meetup =
     {   game : Game
         gameInfo : Var<GameInfo>
         country : Var<string>
+        totalMatched : Var<decimal option>
         mutable hash : int }
     static member id x = x.game.gameId
     static member viewGameInfo x = x.gameInfo.View
@@ -48,8 +60,13 @@ let varInplayOnly = Var.Create true
 let varDataRecived = Var.Create false
 let varSelectedCountry = Var.Create None
 
+let updateTotalMatched gameId toltalMatched = 
+    match meetups.TryFindByKey gameId with
+    | Some game -> game.totalMatched.Value <- toltalMatched
+    | _ -> ()
 
-let tryGetEvent gameId = events.Value |> Seq.tryFind( fun {gameId = gameId'} -> gameId = gameId' )
+
+let tryGetEvent gameId = eventsCatalogue.Value |> Seq.tryFind( fun {gameId = gameId'} -> gameId = gameId' )
 
 let tryGetCountry gameId  =
     tryGetEvent gameId  |> function
@@ -65,7 +82,8 @@ let addNewGames newGames =
         {   game = game
             gameInfo = Var.Create gameInfo
             hash = hash 
-            country = Var.Create country } )
+            country = Var.Create country 
+            totalMatched = Var.Create None} )
 
     |> Seq.append existedMeetups 
     |> Seq.sortBy ( fun x -> x.gameInfo.Value.order )  
@@ -88,7 +106,7 @@ let viewGames =
     
 
 let viewCountries() = View.Do {    
-    let! events = events.View    
+    let! events = eventsCatalogue.View    
     let events = events |> Seq.map ( fun evt -> evt.gameId, evt) |> Map.ofSeq    
     let! games = viewGames     
     return
@@ -121,6 +139,11 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
         yield tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.summary) ]
         yield tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ]
         yield tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.status)]
+        yield td [             
+            x.totalMatched.View |> View.Map( function 
+                | None -> Doc.Empty
+                | Some m -> text <| sprintf "%2.2M GPB" m) |> Doc.EmbedView ]
+
         yield kef' true (fun y -> %% y.winBack)
         yield kef' false (fun y -> %% y.winLay)
         yield kef' true (fun y -> %% y.drawBack)
@@ -250,7 +273,7 @@ let processCoupon() = async{
     updateCoupon (newGms,updGms,outGms) } 
 
 let processEvents() = async{
-    let events' = events.Value
+    let events' = eventsCatalogue.Value
     let request =
         meetups.Value 
         |> Seq.choose(fun m -> 
@@ -258,26 +281,63 @@ let processEvents() = async{
             | None -> Some m.game.gameId
             | _ -> None )
         |> Seq.toList
-    if request.IsEmpty then () else
-    let! newEvents =  CentBet.Remote.getApiNgEvents request
-    for gameId, name, country, openDate in newEvents do
-        events.Add  { gameId = gameId; country = country; openDate = openDate } 
-
+    if request.IsEmpty then do! Async.Sleep 5000 else
+    let! newEvents =  CentBet.Remote.getEventsCatalogue request
+    for gameId, name, country in newEvents do
+        eventsCatalogue.Add  { gameId = gameId; country = country; markets = []  } 
     for m in meetups.Value do
         m.country.Value <- tryGetCountry m.game.gameId } 
+
+let processMarkets() = async{
+    let events' = 
+        eventsCatalogue.Value |> Seq.filter( fun x -> x.markets.IsEmpty )
+        |> Seq.toList
+
+    if List.isEmpty events' then () else
+    let ev = events'.Head
+    let! m = CentBet.Remote.getMarketCatalogue ev.gameId
+    match m with
+    | Choice1Of2 x -> printfn "error of market catalog request : %s" x
+    | Choice2Of2 value -> 
+        value |> List.choose( fun (_,_, _,totalMatched )-> totalMatched ) 
+        |> function [] -> None | xs ->  Some <| List.sum xs 
+        |> updateTotalMatched ev.gameId
+        let markets = value |> List.map( fun (marketId, marketName, runners,_) -> 
+            {   marketId = marketId
+                marketName = marketName 
+                runners = runners |> List.map( fun (runnerNamem, selectionId) -> 
+                    {   selectionId = selectionId
+                        runnerName = runnerNamem } ) } )
+        eventsCatalogue.UpdateBy (fun x -> Some {x with markets = markets}) ev.gameId } 
+    
+let processTotalMatched() = async{
+    let gamesIds =
+        meetups.Value 
+        |> Seq.map(fun m -> m.game.gameId)
+        |> Seq.toList
+    if List.isEmpty gamesIds then () else
+    let gameId = gamesIds.Head
+    
+    let! m = CentBet.Remote.getEventTotalMatched gameId
+    match m with
+    | Choice1Of2 x -> printfn "error of total matched request : %s" x
+    | Choice2Of2 value -> 
+        updateTotalMatched gameId value } 
+
 
 let rec workloop() = async{
     try
         do! processCoupon () 
         do! processEvents() 
+        do! processMarkets()
+        do! processTotalMatched()
         varDataRecived.Value <- true 
     with e ->
         printfn "error updating coupon : %A" e
         do! Async.Sleep 5000 
     return! workloop() }
 
-let Render() =  
-    
+let Render() =
     Async.Start  (workloop())
     View.Do {
         let! inplayOnly = varInplayOnly.View

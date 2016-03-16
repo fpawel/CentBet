@@ -59,6 +59,10 @@ module Site =
     let Main =
         let passwordKey = "E018CB561EE1DB0EF3892AE22FCCDD5C" 
 
+        let culture = System.Globalization.CultureInfo("ru-RU")      
+        System.Threading.Thread.CurrentThread.CurrentCulture <- culture
+        System.Threading.Thread.CurrentThread.CurrentUICulture <- culture
+
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
             | Coupon -> CouponPage ctx 
