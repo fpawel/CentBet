@@ -155,10 +155,9 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
         yield 
             x.totalMatched.View 
             |> View.Map( function 
-                | None -> Doc.Empty
+                | None -> td [] 
                 | Some totalMatched -> 
-                    tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]
-                    |> doc  ) 
+                    tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ] ) 
             |> Doc.EmbedView         
         if not countryIsSelected then 
             yield doc <| tdAttr [ attr.``class`` "game-country" ] [ Doc.TextView x.country.View ] ] 
