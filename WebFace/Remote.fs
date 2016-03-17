@@ -158,6 +158,7 @@ let getEventsCatalogue ids =
 let getToltalMatched xs = 
     let xs = xs |> List.choose( fun (x : ApiNG.MarketCatalogue )-> x.totalMatched ) 
     if xs.IsEmpty then None else Some <| List.sum xs 
+    |> Option.map int
 
 [<Rpc>]
 let getEventTotalMatched gameId = async{
@@ -167,10 +168,10 @@ let getEventTotalMatched gameId = async{
 [<Rpc>]
 let getMarketCatalogue gameId = async{    
     let! m = Betfair.Football.Coupon.getMarketCatalogue gameId
-    return m |> Either.mapRight ( fun m ->         
+    return m |> Either.mapRight ( fun m ->       
         m |> List.map( fun x ->             
             let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
-            x.marketId.marketId, x.marketName, runners, x.totalMatched ) ) }
+            x.marketId.marketId, x.marketName, runners, Option.map int x.totalMatched ) ) }
 
     
     

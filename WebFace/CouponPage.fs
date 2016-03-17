@@ -42,12 +42,14 @@ type Meetup =
     {   game : Game
         gameInfo : Var<GameInfo>
         country : Var<string>
-        totalMatched : Var<decimal option>
+        totalMatched : Var<int option>
         mutable hash : int }
     static member id x = x.game.gameId
     static member viewGameInfo x = x.gameInfo.View
     static member inplay x = 
         x.gameInfo.Value.playMinute.IsSome
+    static member hasGPB x = 
+        x.totalMatched.Value.IsSome
     static member notinplay x = 
         x.gameInfo.Value.playMinute.IsNone
 
@@ -119,6 +121,7 @@ let viewCountries() = View.Do {
         |> Seq.distinct
         |> Seq.sort  } 
 
+let doc (x :Elt) = x :> Doc
 
 let renderMeetup1 (x : Meetup, countryIsSelected) = 
     let tx x = td[ x ]
@@ -131,30 +134,40 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
     let span' ``class`` x = 
         spanAttr [ attr.``class`` ``class`` ] [x]
     let kef' back f = 
-        tdAttr [attr.``class`` (if back then  "kef kef-back" else "kef kef-lay" ) ] [ vinfo f ]
+        doc <| tdAttr [attr.``class`` (if back then  "kef kef-back" else "kef kef-lay" ) ] [ vinfo f ] 
 
-    let (~%%) = formatDecimalOption
-    [   yield td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]        
-        yield tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ]
-        yield tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.summary) ]
-        yield tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ]
-        yield tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.status)]
-        yield td [             
-            x.totalMatched.View |> View.Map( function 
-                | None -> Doc.Empty
-                | Some m -> text <| sprintf "%2.2M GPB" m) |> Doc.EmbedView ]
-
-        yield kef' true (fun y -> %% y.winBack)
-        yield kef' false (fun y -> %% y.winLay)
-        yield kef' true (fun y -> %% y.drawBack)
-        yield kef' false (fun y -> %% y.drawLay)
-        yield kef' true (fun y -> %% y.loseBack)
-        yield kef' false (fun y -> %% y.loseLay) 
-        if not countryIsSelected then             
-            yield  td [ span' "game-status" <| Doc.TextView x.country.View ] ]
+    [   yield doc <|  td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]
+        yield doc <| tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ] 
+        yield 
+            x.gameInfo.View.Map( function
+                | {playMinute = Some playMinute } as i ->
+                    doc <| tdAttr [ attr.``class`` "game-status"] [ text i.summary ] 
+                | _ -> Doc.Empty )
+            |> Doc.EmbedView
+        yield doc <| tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ] 
+        yield doc <| tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.status)] 
+        yield kef' true (fun y -> formatDecimalOption y.winBack)
+        yield kef' false (fun y -> formatDecimalOption y.winLay)
+        yield kef' true (fun y -> formatDecimalOption y.drawBack)
+        yield kef' false (fun y -> formatDecimalOption y.drawLay)
+        yield kef' true (fun y -> formatDecimalOption y.loseBack)
+        yield kef' false (fun y -> formatDecimalOption y.loseLay) 
+        yield doc <| td [
+            yield 
+                x.totalMatched.View 
+                |> View.Map( function 
+                    | None -> Doc.Empty
+                    | Some totalMatched -> 
+                        spanAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]
+                        |> doc  ) 
+                |> Doc.EmbedView
+            if not countryIsSelected then 
+                yield 
+                    spanAttr [ attr.``class`` "game-coubtry" ] [ Doc.TextView x.country.View ] 
+                    |> doc ] ]  
     
 
-let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
+let renderMeetup (inplayOnly, selectedCountry) ( x : Meetup) =
     match inplayOnly, x.gameInfo.Value.playMinute, selectedCountry with
     | true, None, _ -> Doc.Empty 
     | _, _, Some selectedCountry 
@@ -162,25 +175,37 @@ let renderMeetup  ( x : Meetup, inplayOnly, selectedCountry) =
              selectedCountry <> x.country.Value -> Doc.Empty 
     | _ -> 
         x.gameInfo.View |>  View.Map(  fun i ->
-            if [i.drawBack; i.drawLay; i.winBack; i.winLay; i.loseBack; i.loseLay] |> List.exists( Option.isSome ) then
-                renderMeetup1(x,selectedCountry.IsSome)  
-                |> List.map( fun x -> x :> Doc)
-                |> tr :> Doc
-            else
-                Doc.Empty )
+            if [i.drawBack; i.drawLay; i.winBack; i.winLay; i.loseBack; i.loseLay] 
+               |> List.exists( Option.isSome ) then  
+                renderMeetup1(x,selectedCountry.IsSome) |> tr |> doc
+            else Doc.Empty )
         |> Doc.EmbedView
 
-let renderMeetups () = 
-    meetups.View 
-    |> Doc.BindSeqCachedView  ( fun x -> 
-        View.Do {
-            let! x = x
-            let! inplayOnly = varInplayOnly.View
-            let! selectedCountry = varSelectedCountry.View
-            return x, inplayOnly, selectedCountry } 
-        |> View.Map renderMeetup
-        |> Doc.EmbedView )
 
+let renderGamesHeaderRow hasInPlay = 
+    [   yield doc <| td [text "№"]
+        yield doc <| td [text "1"]
+        if hasInPlay then
+            yield doc <| td [ ]
+        yield doc <| td [text "2"]
+        yield doc <| tdAttr [ attr.colspan "2" ] [text "1"]
+        yield doc <| tdAttr [ attr.colspan "2" ] [text "×"]
+        yield doc <| tdAttr [ attr.colspan "2" ] [text "2"] ]
+    |> trAttr [ Attr.Class "coupon-header-row" ]
+    
+let renderMeetups() = 
+    View.Do {
+        let! meetups = meetups.View 
+        let! inplayOnly = varInplayOnly.View
+        let! selectedCountry = varSelectedCountry.View
+        let hasInplay = meetups |> Seq.exists Meetup.inplay
+        return 
+            table [ 
+                thead [ doc <| renderGamesHeaderRow hasInplay  ]
+                meetups 
+                |> Seq.map (renderMeetup (inplayOnly, selectedCountry))
+                |> tbody ]  }
+    |> Doc.EmbedView 
 
 let renderMenuItemAllCountries() = 
     varSelectedCountry.View |> View.Map( fun selectedCountry ->         
@@ -270,6 +295,8 @@ let processCoupon() = async{
         |> Seq.map(fun m -> m.game.gameId, m.hash)
         |> Seq.toList
     let! newGms,updGms,outGms = CentBet.Remote.getCoupon (request, varInplayOnly.Value)
+    if not newGms.IsEmpty || not updGms.IsEmpty then
+        varDataRecived.Value <- true
     updateCoupon (newGms,updGms,outGms) } 
 
 let processEvents() = async{
@@ -281,7 +308,7 @@ let processEvents() = async{
             | None -> Some m.game.gameId
             | _ -> None )
         |> Seq.toList
-    if request.IsEmpty then do! Async.Sleep 5000 else
+    if request.IsEmpty then () else
     let! newEvents =  CentBet.Remote.getEventsCatalogue request
     for gameId, name, country in newEvents do
         eventsCatalogue.Add  { gameId = gameId; country = country; markets = []  } 
@@ -294,51 +321,68 @@ let processMarkets() = async{
         |> Seq.toList
 
     if List.isEmpty events' then () else
-    let ev = events'.Head
-    let! m = CentBet.Remote.getMarketCatalogue ev.gameId
-    match m with
-    | Choice1Of2 x -> printfn "error of market catalog request : %s" x
-    | Choice2Of2 value -> 
-        value |> List.choose( fun (_,_, _,totalMatched )-> totalMatched ) 
-        |> function [] -> None | xs ->  Some <| List.sum xs 
-        |> updateTotalMatched ev.gameId
-        let markets = value |> List.map( fun (marketId, marketName, runners,_) -> 
-            {   marketId = marketId
-                marketName = marketName 
-                runners = runners |> List.map( fun (runnerNamem, selectionId) -> 
-                    {   selectionId = selectionId
-                        runnerName = runnerNamem } ) } )
-        eventsCatalogue.UpdateBy (fun x -> Some {x with markets = markets}) ev.gameId } 
+    for ev in events' do
+        let! m = CentBet.Remote.getMarketCatalogue ev.gameId
+        match m with
+        | Choice1Of2 x -> failwith x
+        | Choice2Of2 value -> 
+            value |> List.choose( fun (_,_, _,totalMatched )-> totalMatched ) 
+            |> function [] -> None | xs ->  Some <| List.sum xs 
+            |> updateTotalMatched ev.gameId
+            let markets = value |> List.map( fun (marketId, marketName, runners,_) -> 
+                {   marketId = marketId
+                    marketName = marketName 
+                    runners = runners |> List.map( fun (runnerNamem, selectionId) -> 
+                        {   selectionId = selectionId
+                            runnerName = runnerNamem } ) } )
+            eventsCatalogue.UpdateBy (fun x -> Some {x with markets = markets}) ev.gameId } 
     
 let processTotalMatched() = async{
     let gamesIds =
         meetups.Value 
         |> Seq.map(fun m -> m.game.gameId)
         |> Seq.toList
-    if List.isEmpty gamesIds then () else
-    let gameId = gamesIds.Head
+    if List.isEmpty gamesIds then ()  else
+    for gameId in gamesIds do    
+        let! m = CentBet.Remote.getEventTotalMatched gameId
+        match m with
+        | Choice1Of2 x -> failwith x
+        | Choice2Of2 value -> 
+            updateTotalMatched gameId value } 
+
+type Work = 
+    {   what : string
+        sleepInterval : int
+        sleepErrorInterval : int 
+        work : unit -> Async<unit> }
     
-    let! m = CentBet.Remote.getEventTotalMatched gameId
-    match m with
-    | Choice1Of2 x -> printfn "error of total matched request : %s" x
-    | Choice2Of2 value -> 
-        updateTotalMatched gameId value } 
+    static member ``new`` (what,sleepInterval,sleepErrorInterval) work =
+        {   what = what
+            sleepInterval  = sleepInterval
+            sleepErrorInterval = sleepErrorInterval
+            work = work }
+        |> Work.run
+                    
+    static member loop x = async{        
+        try
+            do! x.work()
+            do! Async.Sleep x.sleepInterval 
+        with e ->
+            printfn "task error %A : %A" x.what e
+            do! Async.Sleep x.sleepErrorInterval 
+        return! Work.loop x }
 
+    static member run x = Async.Start <| async { 
+        printfn "task %A : started" x.what
+        do! Work.loop x
+        printfn "task %A : terminated" x.what }
 
-let rec workloop() = async{
-    try
-        do! processCoupon () 
-        do! processEvents() 
-        do! processMarkets()
-        do! processTotalMatched()
-        varDataRecived.Value <- true 
-    with e ->
-        printfn "error updating coupon : %A" e
-        do! Async.Sleep 5000 
-    return! workloop() }
 
 let Render() =
-    Async.Start  (workloop())
+    Work.``new`` ("COUPON", 5000, 5000) processCoupon    
+    Work.``new`` ("EVENTS-CATALOGUE", 10000, 5000) processEvents
+    Work.``new`` ("MARKETS-CATALOGUE", 10000, 5000) processMarkets
+    Work.``new`` ("TOTAL-MATCHED", 10000, 5000) processTotalMatched
     View.Do {
         let! inplayOnly = varInplayOnly.View
         let! dataRecived = varDataRecived.View
