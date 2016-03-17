@@ -10,6 +10,11 @@ open Betfair
 open Betfair.Football
 open Betfair.Football.Services
 
+[<NamedUnionCases "result">]
+type Result<'T> =
+    | [<CompiledName "success">] Success of 'T
+    | [<CompiledName "failure">] Failure of message: string
+
 [<Rpc>]
 let getCoupon ( (reqGames,inplayOnly) as request)  = async{
     let reqIds, reqGames = List.ids reqGames fst
@@ -39,7 +44,6 @@ let getCoupon ( (reqGames,inplayOnly) as request)  = async{
         |> Seq.toList
     return newGames, update, outIds }
 
-
 let isAdminCtx (ctx : Web.IContext) = async{
     let! user = ctx.UserSession.GetLoggedInUser()
     return 
@@ -49,12 +53,15 @@ let isAdminCtx (ctx : Web.IContext) = async{
 
 let passwordKey = "E018CB561EE1DB0EF3892AE22FCCDD5C" 
 
-let authorizeAdmin (ctx : Web.IContext)  reqPass =  async {
+let authorizeAdmin reqPass (ctx : Web.IContext)   =  async {
     if md5hash reqPass = passwordKey then
         do! ctx.UserSession.LoginUser("admin")
-        return true, "admin is authorized"
+        return Success "ok"
     else
-        return false, "access denied" }
+        return Failure "access denied" }
+
+
+
 
 [<AutoOpen>]
 module Helpers =
@@ -62,24 +69,24 @@ module Helpers =
     let format1 f x = async{ 
         let! x = x
         match x with
-        | Left x -> return false, x
-        | Right x -> return true, f x }
+        | Left x -> return Failure x
+        | Right x -> return Success <| f x }
 
     let map1<'a> (x : Async<'a>) = async{
         let! (x : 'a) = x
-        return true, sprintf "%A" x }
+        return Success <| sprintf "%A" x }
 
     let map2<'a> (x : _) = async{
         let! x = x
         return 
             match x with
-            | Left x -> false, x
-            | Right (x : 'a) -> true, sprintf "%A" x }
+            | Left x -> Failure x
+            | Right (x : 'a) -> Success <| sprintf "%A" x }
 
     let fobj1<'a> = ( format1 ( fun (y, x : 'a) -> y, sprintf "%A" x ) )
 
-    let ``bad request`` = false, "bad request"
-    let ``access denied`` = false, "access denied"
+    let ``bad request`` = Failure "bad request"
+    let ``access denied`` = Failure "access denied"
     
 let consoleCommands = [ 
     "-login-betfair", 2, fun [user;pass] -> Betfair.Login.login user pass |> map2
@@ -88,6 +95,14 @@ let consoleCommands = [
                                                                                  |> Map.ofList
 let (|Cmd|_|) = consoleCommands.TryFind 
 
+let protected' ctx work = async {
+    let! admin = isAdminCtx ctx
+    if admin then 
+        return! work
+    else
+        return ``access denied`` }
+
+
 [<Rpc>]
 let perform (request : string )= 
     let ctx = Web.Remoting.GetContext()
@@ -95,15 +110,13 @@ let perform (request : string )=
         let xs = 
             request.Split([|" "|], StringSplitOptions.RemoveEmptyEntries )
             |> Array.toList
-        let! isAdmin = isAdminCtx ctx
-        match isAdmin,xs with
-        | _, "-login" :: pass :: _ ->  
-            let! r = authorizeAdmin ctx pass
+        match xs with
+        | "-login" :: pass :: _ ->  
+            let! r = authorizeAdmin pass ctx 
             return r         
-        | false, _ -> return ``access denied``
-        | true, Cmd (n,f)::args when args.Length = n -> 
-            return! f args 
-        | _ -> return ``bad request`` }
+        | Cmd (n,f)::args when args.Length = n -> 
+            return! protected' ctx <| f args 
+        | _ -> return  ``bad request`` }
 
 
 
@@ -172,6 +185,29 @@ let getMarketCatalogue gameId = async{
         m |> List.map( fun x ->             
             let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
             x.marketId.marketId, x.marketName, runners, Option.map int x.totalMatched ) ) }
+
+
+module Api = 
+    open WebSharper.Sitelets
+
+    type LoginAdmin = { password : string }
+    type LoginBetfair = { username: string; password : string }
+
+    type Action =
+        | [<Method "POST"; CompiledName "loginAdmin"; Json "data" >]
+            LoginAdmin of LoginAdmin
+        | [<Method "POST"; CompiledName "loginBetfair"; Json "data">]
+            LoginBetfair of LoginBetfair
+
+    
+    let ApiContent context (action: Action) =
+        match action with
+        | LoginAdmin { password = pass } ->
+            Content.Json <| authorizeAdmin pass
+        | LoginBetfair { username = username; password = pass } ->
+            Betfair.Login.login username pass |> map2 
+            |> protected' context 
+            |>  Content.Json 
 
     
     

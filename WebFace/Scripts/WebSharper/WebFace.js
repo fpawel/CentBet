@@ -1,11 +1,11 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Seq,Key,Var,Concurrency,Var1,Option,View,Level,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,Work,View1,PrintfHelpers,console,Meetup,Utils,LocalStorage,EventCatalogue,Operators,Collections,MapModule,Date,JSON,window,FSharpSet,BalancedTree,Slice,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Seq,Key,Var,Concurrency,Var1,Option,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,Work,View1,PrintfHelpers,console,Meetup,Utils,LocalStorage,EventCatalogue,Operators,Collections,MapModule,Date,JSON,window,FSharpSet,BalancedTree,Slice,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
     Admin:{
-     Level:Runtime.Class({},{
+     RecordType:Runtime.Class({},{
       get_color:function()
       {
        return function(_arg1)
@@ -80,12 +80,12 @@
       _arg10_=Admin.varConsole().get_View();
       return Doc.ConvertSeq(_arg00_,_arg10_);
      },
-     addRecord:function(level,text)
+     addRecord:function(recordType,text)
      {
       return Admin.varConsole().Add({
        Id:Key.Fresh(),
        Text:text,
-       Level:level
+       RecordType:recordType
       });
      },
      "cmd-input":Runtime.Field(function()
@@ -195,11 +195,11 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var _arg00_50_2;
-      _arg00_50_2=function(r)
+      var arg00;
+      arg00=function(r)
       {
        var patternInput,fore,back;
-       patternInput=(Level.get_color())(r.Level);
+       patternInput=(RecordType.get_color())(r.RecordType);
        fore=patternInput[1];
        back=patternInput[0];
        return(Admin.op_SpliceUntyped())(Doc.Element("span",List.ofArray([AttrModule.Style("color",fore),AttrModule.Style("background",back)]),List.ofArray([Doc.TextNode(r.Text)])));
@@ -207,7 +207,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(_arg00_50_2,x);
+       _arg00_=View.Map(arg00,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -217,7 +217,7 @@
       {
        var inputText1,a,xs,_,x,_1;
        inputText1=Strings.Trim(inputText);
-       Admin.addRecord(Runtime.New(Level,{
+       Admin.addRecord(Runtime.New(RecordType,{
         $:2
        }),inputText1);
        xs=Var1.Get(Admin.varCommandsHistory().Var);
@@ -247,19 +247,32 @@
        {
         return Concurrency.TryWith(Concurrency.Delay(function()
         {
-         return Concurrency.Bind(AjaxRemotingProvider.Async("WebFace:1",[inputText1]),function(_arg1)
+         var x1;
+         x1=AjaxRemotingProvider.Async("WebFace:1",[inputText1]);
+         return Concurrency.Bind(x1,function(_arg1)
          {
-          var msg;
-          _arg1[0];
-          msg=_arg1[1];
-          Admin.addRecord(Runtime.New(Level,{
-           $:0
-          }),msg);
-          return Concurrency.Return(null);
+          var _2,x2,x3;
+          if(_arg1.$==1)
+           {
+            x2=_arg1.$0;
+            Admin.addRecord(Runtime.New(RecordType,{
+             $:1
+            }),x2);
+            _2=Concurrency.Return(null);
+           }
+          else
+           {
+            x3=_arg1.$0;
+            Admin.addRecord(Runtime.New(RecordType,{
+             $:0
+            }),x3);
+            _2=Concurrency.Return(null);
+           }
+          return _2;
          });
         }),function(_arg2)
         {
-         Admin.addRecord(Runtime.New(Level,{
+         Admin.addRecord(Runtime.New(RecordType,{
           $:1
          }),_arg2.message);
          return Concurrency.Return(null);
@@ -456,8 +469,8 @@
        return Admin.recordKey(x);
       };
       arg10=Storage1.LocalStorage("CentBetConsole",{
-       Encode:(Provider.get_Default().EncodeRecord(undefined,[["Id",Provider.get_Default().EncodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0],["Level",Provider.get_Default().EncodeUnion(Level,"$",[[0,[]],[1,[]],[2,[]]]),0]]))(),
-       Decode:(Provider.get_Default().DecodeRecord(undefined,[["Id",Provider.get_Default().DecodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0],["Level",Provider.get_Default().DecodeUnion(Level,"$",[[0,[]],[1,[]],[2,[]]]),0]]))()
+       Encode:(Provider.get_Default().EncodeRecord(undefined,[["Id",Provider.get_Default().EncodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0],["RecordType",Provider.get_Default().EncodeUnion(RecordType,"$",[[0,[]],[1,[]],[2,[]]]),0]]))(),
+       Decode:(Provider.get_Default().DecodeRecord(undefined,[["Id",Provider.get_Default().DecodeUnion(Key,"$",[[0,[["$0","Item",Id,0]]]]),0],["Text",Id,0],["RecordType",Provider.get_Default().DecodeUnion(RecordType,"$",[[0,[]],[1,[]],[2,[]]]),0]]))()
       });
       return ListModel.CreateWithStorage(arg00,arg10);
      })
@@ -719,8 +732,8 @@
      },
      eventsCatalogue:Runtime.Field(function()
      {
-      var _dt_35_1,arg00,arg10,enc,_x_36_2,clo1;
-      _dt_35_1=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
+      var dt,arg00,arg10,enc,x,clo1;
+      dt=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
       arg00=function(arg001)
       {
        return EventCatalogue.id(arg001);
@@ -730,7 +743,7 @@
        Encode:enc,
        Decode:(Provider.get_Default().DecodeRecord(EventCatalogue,[["gameId",Provider.get_Default().DecodeTuple([Id,Id]),0],["country",Id,1],["markets",Provider.get_Default().DecodeList(Provider.get_Default().DecodeRecord(undefined,[["marketId",Id,0],["marketName",Id,0],["runners",Provider.get_Default().DecodeList(Provider.get_Default().DecodeRecord(undefined,[["selectionId",Id,0],["runnerName",Id,0]])),0]])),0]]))()
       });
-      _x_36_2=ListModel.CreateWithStorage(arg00,arg10);
+      x=ListModel.CreateWithStorage(arg00,arg10);
       clo1=function(_)
       {
        return function(_1)
@@ -743,20 +756,20 @@
         };
        };
       };
-      ((clo1("CentBetEventsCatalogue"))(_x_36_2.get_Length()))(_dt_35_1);
-      return _x_36_2;
+      ((clo1("CentBetEventsCatalogue"))(x.get_Length()))(dt);
+      return x;
      }),
      meetups:Runtime.Field(function()
      {
-      var _arg00_60_3,_arg10_60_1;
-      _arg00_60_3=function(arg00)
+      var arg00,arg10;
+      arg00=function(arg001)
       {
-       return Meetup.id(arg00);
+       return Meetup.id(arg001);
       };
-      _arg10_60_1=Runtime.New(T,{
+      arg10=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(_arg00_60_3,_arg10_60_1);
+      return ListModel.Create(arg00,arg10);
      }),
      processCoupon:function()
      {
@@ -1074,7 +1087,7 @@
       ats=List.ofArray([AttrModule.Class("coupon-header-row")]);
       return Doc.Element("tr",ats,x);
      },
-     renderMeetup:function(inplayOnly,selectedCountry,x)
+     renderMeetup:function(inplayOnly,selectedCountry,hasInplay,x)
      {
       var matchValue,_,_1,_2,selectedCountry1,_3,x1,arg00,_arg00_,x3,arg001,_arg00_1,_5,selectedCountry2,_6,x4,arg002,_arg00_2,x5,arg003,_arg00_3;
       matchValue=[inplayOnly,Var1.Get(x.gameInfo).playMinute,selectedCountry];
@@ -1107,7 +1120,7 @@
                list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
                if(Seq.exists(predicate,list))
                 {
-                 ch=Coupon.renderMeetup1(x,selectedCountry.$==1);
+                 ch=Coupon.renderMeetup1(x,selectedCountry.$==1,hasInplay);
                  x2=Doc.Element("tr",[],ch);
                  _4=Coupon.doc(x2);
                 }
@@ -1135,7 +1148,7 @@
              list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
              if(Seq.exists(predicate,list))
               {
-               ch=Coupon.renderMeetup1(x,selectedCountry.$==1);
+               ch=Coupon.renderMeetup1(x,selectedCountry.$==1,hasInplay);
                x2=Doc.Element("tr",[],ch);
                _4=Coupon.doc(x2);
               }
@@ -1175,7 +1188,7 @@
              list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
              if(Seq.exists(predicate,list))
               {
-               ch=Coupon.renderMeetup1(x,selectedCountry.$==1);
+               ch=Coupon.renderMeetup1(x,selectedCountry.$==1,hasInplay);
                x2=Doc.Element("tr",[],ch);
                _4=Coupon.doc(x2);
               }
@@ -1203,7 +1216,7 @@
            list=List.ofArray([i.drawBack,i.drawLay,i.winBack,i.winLay,i.loseBack,i.loseLay]);
            if(Seq.exists(predicate,list))
             {
-             ch=Coupon.renderMeetup1(x,selectedCountry.$==1);
+             ch=Coupon.renderMeetup1(x,selectedCountry.$==1,hasInplay);
              x2=Doc.Element("tr",[],ch);
              _4=Coupon.doc(x2);
             }
@@ -1220,7 +1233,7 @@
        }
       return _;
      },
-     renderMeetup1:function(x,countryIsSelected)
+     renderMeetup1:function(x,countryIsSelected,hasInplay)
      {
       var vinfo,_kef_;
       vinfo=function(f)
@@ -1254,24 +1267,35 @@
         x2=Doc.Element("td",List.ofArray([AttrProxy.Create("class","home-team")]),List.ofArray([Doc.TextNode(x.game.home)]));
         return Seq.append([Coupon.doc(x2)],Seq.delay(function()
         {
-         var v,_arg00_;
-         v=x.gameInfo.get_View();
-         _arg00_=View.Map(function(_arg1)
-         {
-          var _,x3;
-          if(_arg1.playMinute.$==1)
+         var _,v,_arg00_;
+         if(hasInplay)
+          {
+           v=x.gameInfo.get_View();
+           _arg00_=View.Map(function(x3)
            {
-            _arg1.playMinute.$0;
-            x3=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg1.summary)]));
-            _=Coupon.doc(x3);
-           }
-          else
-           {
-            _=Doc.get_Empty();
-           }
-          return _;
-         },v);
-         return Seq.append([Doc.EmbedView(_arg00_)],Seq.delay(function()
+            var x4,_1,arg201;
+            if(x3.playMinute.$==1)
+             {
+              x3.playMinute.$0;
+              _1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(x3.summary)]));
+             }
+            else
+             {
+              arg201=Runtime.New(T,{
+               $:0
+              });
+              _1=Doc.Element("td",[],arg201);
+             }
+            x4=_1;
+            return Coupon.doc(x4);
+           },v);
+           _=[Doc.EmbedView(_arg00_)];
+          }
+         else
+          {
+           _=Seq.empty();
+          }
+         return Seq.append(_,Seq.delay(function()
          {
           var x3;
           x3=Doc.Element("td",List.ofArray([AttrProxy.Create("class","away-team")]),List.ofArray([Doc.TextNode(x.game.away)]));
@@ -1318,34 +1342,36 @@
                   x5=x.totalMatched.get_View();
                   arg00=function(_arg2)
                   {
-                   var _,totalMatched,x6,t;
+                   var _1,totalMatched,t,arg201;
                    if(_arg2.$==1)
                     {
                      totalMatched=_arg2.$0;
                      t=Global.String(totalMatched);
-                     x6=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-gpb")]),List.ofArray([Doc.TextNode(t)]));
-                     _=Coupon.doc(x6);
+                     _1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-gpb")]),List.ofArray([Doc.TextNode(t)]));
                     }
                    else
                     {
-                     _=Doc.get_Empty();
+                     arg201=Runtime.New(T,{
+                      $:0
+                     });
+                     _1=Doc.Element("td",[],arg201);
                     }
-                   return _;
+                   return _1;
                   };
                   _arg00_1=View.Map(arg00,x5);
                   return Seq.append([Doc.EmbedView(_arg00_1)],Seq.delay(function()
                   {
-                   var _,x6;
+                   var _1,x6;
                    if(!countryIsSelected)
                     {
                      x6=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-country")]),List.ofArray([Doc.TextView(x.country.get_View())]));
-                     _=[Coupon.doc(x6)];
+                     _1=[Coupon.doc(x6)];
                     }
                    else
                     {
-                     _=Seq.empty();
+                     _1=Seq.empty();
                     }
-                   return _;
+                   return _1;
                   }));
                  }));
                 }));
@@ -1375,7 +1401,7 @@
         x2=Coupon.varSelectedCountry().get_View();
         return View1.Bind(function(_arg3)
         {
-         var predicate,hasInplay,arg20,arg201,x3,tupledArg,inplayOnly,selectedCountry,mapping,ch;
+         var predicate,hasInplay,arg20,arg201,x3,tupledArg,inplayOnly,selectedCountry,hasInplay1,mapping,ch;
          predicate=function(arg00)
          {
           return Meetup.inplay(arg00);
@@ -1383,12 +1409,13 @@
          hasInplay=Seq.exists(predicate,_arg1);
          x3=Coupon.renderGamesHeaderRow(hasInplay);
          arg201=List.ofArray([Coupon.doc(x3)]);
-         tupledArg=[_arg2,_arg3];
+         tupledArg=[_arg2,_arg3,hasInplay];
          inplayOnly=tupledArg[0];
          selectedCountry=tupledArg[1];
+         hasInplay1=tupledArg[2];
          mapping=function(x4)
          {
-          return Coupon.renderMeetup(inplayOnly,selectedCountry,x4);
+          return Coupon.renderMeetup(inplayOnly,selectedCountry,hasInplay1,x4);
          };
          ch=Seq.map(mapping,_arg1);
          arg20=List.ofArray([Doc.Element("thead",[],arg201),Doc.Element("tbody",[],ch)]);
@@ -1760,8 +1787,8 @@
      },
      viewGames:Runtime.Field(function()
      {
-      var _builder_97_1,x;
-      _builder_97_1=View.get_Do();
+      var _builder_,x;
+      _builder_=View.get_Do();
       x=Coupon.meetups().get_View();
       return View1.Bind(function(_arg1)
       {
@@ -1989,7 +2016,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
+              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
              }
             _4=_5;
            }
@@ -2027,7 +2054,7 @@
   Var1=Runtime.Safe(Next.Var1);
   Option=Runtime.Safe(Global.WebSharper.Option);
   View=Runtime.Safe(Next.View);
-  Level=Runtime.Safe(Admin.Level);
+  RecordType=Runtime.Safe(Admin.RecordType);
   Strings=Runtime.Safe(Global.WebSharper.Strings);
   Seq1=Runtime.Safe(Global.Seq);
   Remoting=Runtime.Safe(Global.WebSharper.Remoting);
