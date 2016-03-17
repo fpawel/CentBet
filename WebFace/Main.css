@@ -15,7 +15,7 @@ body{
 
 
 /*tr:nth-child(odd) {background: #FFF}*/
-tr:nth-child(even) {background: #CCC}
+tr:nth-child(even) {background: #EEE}
 
 td {
     padding : 3px 7px;
@@ -26,7 +26,7 @@ td {
 }
 
 tr:hover {
-    background-color: #DDD;    
+    background-color: #CCC;    
 }
 
 
@@ -42,6 +42,13 @@ tr:hover {
     color : #009900 ;
 }
 
+.game-gpb {
+    color : #009900 ;
+}
+
+.game-country {
+    color : #009900 ;
+}
 
 
 .kef {

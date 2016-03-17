@@ -152,19 +152,17 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
         yield kef' false (fun y -> formatDecimalOption y.drawLay)
         yield kef' true (fun y -> formatDecimalOption y.loseBack)
         yield kef' false (fun y -> formatDecimalOption y.loseLay) 
-        yield doc <| td [
-            yield 
-                x.totalMatched.View 
-                |> View.Map( function 
-                    | None -> Doc.Empty
-                    | Some totalMatched -> 
-                        spanAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]
-                        |> doc  ) 
-                |> Doc.EmbedView
-            if not countryIsSelected then 
-                yield 
-                    spanAttr [ attr.``class`` "game-coubtry" ] [ Doc.TextView x.country.View ] 
-                    |> doc ] ]  
+        yield 
+            x.totalMatched.View 
+            |> View.Map( function 
+                | None -> Doc.Empty
+                | Some totalMatched -> 
+                    tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]
+                    |> doc  ) 
+            |> Doc.EmbedView         
+        if not countryIsSelected then 
+            yield doc <| tdAttr [ attr.``class`` "game-country" ] [ Doc.TextView x.country.View ] ] 
+                      
     
 
 let renderMeetup (inplayOnly, selectedCountry) ( x : Meetup) =
@@ -188,9 +186,11 @@ let renderGamesHeaderRow hasInPlay =
         if hasInPlay then
             yield doc <| td [ ]
         yield doc <| td [text "2"]
+        yield doc <| td []
         yield doc <| tdAttr [ attr.colspan "2" ] [text "1"]
         yield doc <| tdAttr [ attr.colspan "2" ] [text "×"]
-        yield doc <| tdAttr [ attr.colspan "2" ] [text "2"] ]
+        yield doc <| tdAttr [ attr.colspan "2" ] [text "2"] 
+        yield doc <| td  [text "GPB"]  ]
     |> trAttr [ Attr.Class "coupon-header-row" ]
     
 let renderMeetups() = 
