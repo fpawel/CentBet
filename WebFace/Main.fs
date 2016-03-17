@@ -10,6 +10,7 @@ open CentBet.Client
 type EndPoint =
     | [<EndPoint "/">] Coupon    
     | [<EndPoint "/console">] Console
+    | [<EndPoint "/api">] Api of Remote.Api.Action
     
 
 module Templating =
@@ -27,7 +28,8 @@ module Templating =
             | Coupon -> yield client <@ Coupon.RenderMenu() @>
             | Console -> 
                 yield aAttr (refEndpoint Coupon) [text "Bact to coupon"] :> Doc 
-                yield client <@ Admin.RenderMenu() @> ]
+                yield client <@ Admin.RenderMenu() @> 
+            | _ -> yield Doc.Empty ]
     let Main ctx action title body =
        Content.Page(            
             MainTemplate.Doc(
@@ -66,4 +68,5 @@ module Site =
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
             | Coupon -> CouponPage ctx 
-            | Console -> ConsolePage ctx )
+            | Console -> ConsolePage ctx 
+            | Api action -> Remote.Api.ApiContent ctx action )

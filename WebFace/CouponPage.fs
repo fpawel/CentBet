@@ -123,7 +123,7 @@ let viewCountries() = View.Do {
 
 let doc (x :Elt) = x :> Doc
 
-let renderMeetup1 (x : Meetup, countryIsSelected) = 
+let renderMeetup1 (x : Meetup, countryIsSelected, hasInplay) = 
     let tx x = td[ x ]
     let tx0 x = td[ Doc.TextNode x ]
     
@@ -138,12 +138,13 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
 
     [   yield doc <|  td[ vinfo ( fun y -> let page,n = y.order in sprintf "%d.%d" page n) ]
         yield doc <| tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ] 
-        yield 
-            x.gameInfo.View.Map( function
-                | {playMinute = Some playMinute } as i ->
-                    doc <| tdAttr [ attr.``class`` "game-status"] [ text i.summary ] 
-                | _ -> Doc.Empty )
-            |> Doc.EmbedView
+        if hasInplay then
+            yield x.gameInfo.View.Map( 
+                function
+                    | {playMinute = Some playMinute } as i ->
+                        tdAttr [ attr.``class`` "game-status"] [ text i.summary ] 
+                    | _ -> td []  
+                >> doc ) |> Doc.EmbedView
         yield doc <| tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ] 
         yield doc <| tdAttr [ attr.``class`` "game-status"] [vinfo (fun y -> y.status)] 
         yield kef' true (fun y -> formatDecimalOption y.winBack)
@@ -164,7 +165,7 @@ let renderMeetup1 (x : Meetup, countryIsSelected) =
                       
     
 
-let renderMeetup (inplayOnly, selectedCountry) ( x : Meetup) =
+let renderMeetup (inplayOnly, selectedCountry, hasInplay) ( x : Meetup) =
     match inplayOnly, x.gameInfo.Value.playMinute, selectedCountry with
     | true, None, _ -> Doc.Empty 
     | _, _, Some selectedCountry 
@@ -174,7 +175,7 @@ let renderMeetup (inplayOnly, selectedCountry) ( x : Meetup) =
         x.gameInfo.View |>  View.Map(  fun i ->
             if [i.drawBack; i.drawLay; i.winBack; i.winLay; i.loseBack; i.loseLay] 
                |> List.exists( Option.isSome ) then  
-                renderMeetup1(x,selectedCountry.IsSome) |> tr |> doc
+               renderMeetup1(x, selectedCountry.IsSome, hasInplay) |> tr |> doc
             else Doc.Empty )
         |> Doc.EmbedView
 
@@ -202,7 +203,7 @@ let renderMeetups() =
             table [ 
                 thead [ doc <| renderGamesHeaderRow hasInplay  ]
                 meetups 
-                |> Seq.map (renderMeetup (inplayOnly, selectedCountry))
+                |> Seq.map (renderMeetup (inplayOnly, selectedCountry, hasInplay))
                 |> tbody ]  }
     |> Doc.EmbedView 
 

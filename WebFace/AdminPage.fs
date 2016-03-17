@@ -15,19 +15,19 @@ let (~%%) = doc
 
 
 
-type Level = 
-    | RespOk
-    | RespError
-    | Req
+type RecordType = 
+    | RResponseOk
+    | RResponseError
+    | RRequest
     static member color = function
-        | RespOk -> "white", "navy"
-        | RespError -> "lightgrey", "red"
-        | Req -> "lightgrey", "green"
+        | RResponseOk -> "white", "navy"
+        | RResponseError -> "lightgrey", "red"
+        | RRequest -> "lightgrey", "green"
 
 type Record = { 
     Id : Key
     Text: string
-    Level: Level }
+    RecordType: RecordType }
 let recordKey x = x.Id
 
 type Cmd =  { 
@@ -48,7 +48,7 @@ let focus (el : Dom.Element) = ()
 
 let renderRecord = 
     View.Map( fun r ->
-        let back,fore = Level.color r.Level
+        let back,fore = RecordType.color r.RecordType
         %% spanAttr 
             [Attr.Style "color" fore; Attr.Style "background" back] 
             [ text r.Text ]  )
@@ -56,23 +56,25 @@ let renderRecord =
 
 
 
-let addRecord level text = 
-    varConsole.Add {Id = Key.Fresh(); Text = text; Level = level }
+let addRecord recordType text = 
+    varConsole.Add {Id = Key.Fresh(); Text = text; RecordType = recordType }
     
 
 let send (inputText : string) = async{        
     let inputText = inputText.Trim()
-    addRecord Req inputText 
+    addRecord RRequest inputText 
     
     if (let xs = varCommandsHistory.Value in
         Seq.isEmpty xs || ( let x = Seq.last xs in x.Text <> inputText )) then
         varCommandsHistory.Add { Id = Key.Fresh(); Text = inputText }
           
     try
-        let! (res,msg) = CentBet.Remote.perform inputText
-        addRecord RespOk msg 
+        let! r = CentBet.Remote.perform inputText
+        match r with
+        | Success x -> addRecord RResponseOk x
+        | Failure x -> addRecord RResponseError x
     with e ->
-        addRecord RespError e.Message  }
+        addRecord RResponseError e.Message  }
 
 
 let mutable varCmd = None
