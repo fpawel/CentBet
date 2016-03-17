@@ -13,7 +13,7 @@ open Betfair.Football.Services
 [<NamedUnionCases "result">]
 type Result<'T> =
     | [<CompiledName "success">] Success of 'T
-    | [<CompiledName "failure">] Failure of message: string
+    | [<CompiledName "failure">] Failure of string
 
 [<Rpc>]
 let getCoupon ( (reqGames,inplayOnly) as request)  = async{
