@@ -23,9 +23,9 @@ module private Helpers  =
         webClient.Headers.[HttpRequestHeader.Referer] <- "http://www.betfair.com/ru/"
         webClient.Headers.[HttpRequestHeader.AcceptEncoding] <- "gzip,deflate,sdch"       
         
-        return! WebUtils.read ( fun () -> async{ 
+        return! WebUtils.catchInetErrors <| async{ 
             let! x =  webClient.AsyncDownloadString ( Uri( url ) ) 
-            return f x } ) }
+            return f x }  }
 
     let downloadCouponPage couponId npage = 
         let url = 

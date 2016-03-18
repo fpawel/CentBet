@@ -17,7 +17,7 @@ let login user pass =
     let req = WebRequest.Create(uri) :?> HttpWebRequest
     req.Method <- "POST"
     req.Timeout <- 15000
-    WebUtils.read <| fun () -> async{
+    WebUtils.catchInetErrors <| async{
         let! resp = req.GetResponseAsync() |> Async.AwaitTask        
         if resp=null then return Left "no response from betfair.com" 
         elif resp.Headers=null then return Left "no headers in response" else
