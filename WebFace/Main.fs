@@ -10,8 +10,8 @@ open CentBet.Client
 type EndPoint =
     | [<EndPoint "/">] Coupon    
     | [<EndPoint "/console">] Console
-    | [<EndPoint "/api">] Api of Remote.Api.Action
-    
+    | [<EndPoint "POST /api">] ApiCall
+
 
 module Templating =
     open WebSharper.UI.Next.Html
@@ -37,12 +37,12 @@ module Templating =
                 navbar = NavBar ctx action,
                 body = body ))
 
-   
-
 module Site =
     open WebSharper.Sitelets.ActionEncoding
     open WebSharper.UI.Next.Html
     open WebSharper.UI.Next.Server
+
+    open Json
 
 
     
@@ -54,19 +54,33 @@ module Site =
             Templating.Main ctx Console "Console" [ client <@ Admin.Render()@> ]
         }
 
-
-        
-
     [<Website>]
     let Main =
-        let passwordKey = "E018CB561EE1DB0EF3892AE22FCCDD5C" 
+        #if DEBUG
+        Async.Start <| async{ 
+            let pathToPass = @"..\..\..\password.txt"
+            let [|_; betuser; betpass |] = 
+                System.Text.RegularExpressions.Regex.Split(System.IO.File.ReadAllText pathToPass, "\\W+")
+
+            let! r = Betfair.Login.login betuser betpass
+            match r with
+            | Right x -> Logging.debug "ok local host login betfair - %A" x 
+            | Left error -> Logging.error "error local host login betfair - %s" error }      
+
+        #endif
 
         let culture = System.Globalization.CultureInfo("ru-RU")      
         System.Threading.Thread.CurrentThread.CurrentCulture <- culture
         System.Threading.Thread.CurrentThread.CurrentUICulture <- culture
-
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
             | Coupon -> CouponPage ctx 
             | Console -> ConsolePage ctx 
-            | Api action -> Remote.Api.ApiContent ctx action )
+            | ApiCall -> 
+                CentBet.Api.processInput ctx.Request.Body
+                |> Either.bindAsync
+                    (   Content.Text
+                        >> Content.WithContentType "application/json"
+                        >> Content.WithHeaders  [
+                            Http.Header.Custom "ContentType" "UTF-8"
+                            Http.Header.Custom "AcceptEncoding" "gzip,deflate,sdch"] ))

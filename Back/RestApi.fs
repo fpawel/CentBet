@@ -7,6 +7,36 @@ open System.IO
 
 open Json
 
+[<AutoOpen>]
+module private Helpers =
+    let formatPrety = Json.formatWith JsonFormattingOptions.Pretty
+    let formatCompact = Json.formatWith JsonFormattingOptions.Compact
+    let (|P|_|) k = prop k
+
+
+let makeRequest (apiurl : string ) json = 
+    ServicePointManager.Expect100Continue <- false
+    let request = HttpWebRequest.Create apiurl :?> HttpWebRequest
+    request.Method <- "POST"
+    request.ContentType <- "application/json"
+    request.Headers.Add(HttpRequestHeader.AcceptCharset, "UTF-8")
+    request.Accept <- "application/json"
+    let requestString = formatCompact json
+    let requestData = Encoding.UTF8.GetBytes requestString
+    request.ContentLength <- int64 requestData.Length 
+    
+
+    let sendAndGetResponse = async{
+        use stream = request.GetRequestStream()    
+        let! n = stream.AsyncWrite(requestData, 0, requestData.Length)        
+        let response = request.GetResponse()
+        use stream = response.GetResponseStream()
+        use reader = new StreamReader(stream, Encoding.UTF8)
+
+        let! responseString = Async.AwaitTask ( reader.ReadToEndAsync() ) 
+        return Json.parse responseString, response  }
+    request, sendAndGetResponse
+
 type ApiService = 
     {   ApiUrl : string   
         ApiMethod : string }
@@ -14,11 +44,7 @@ type ApiService =
         sprintf "url : %A, method : %A" x.ApiUrl x.ApiMethod
 
 [<AutoOpen>]
-module private Helpers =
-    let formatPrety = Json.formatWith JsonFormattingOptions.Pretty
-    let formatCompact = Json.formatWith JsonFormattingOptions.Compact
-    let (|P|_|) k = prop k
-
+module private Helpers1 =
     let makeArgs service args =        
         Json.obj 
             [   "jsonrpc", String "2.0"
@@ -42,9 +68,9 @@ type Auth1 = {
         
 
 
+
     
-let callUntyped auth service requestArgsJson =  async{ 
-    
+let callUntyped auth service requestArgsJson = 
     let requestJson = 
         Json.obj         
             [   "jsonrpc", String "2.0"
@@ -52,33 +78,39 @@ let callUntyped auth service requestArgsJson =  async{
                 "params", requestArgsJson
                 "id", Number 1m ]
 
-    let headers = 
-        [   match auth.AppKey with
-            | None -> ()
-            | Some x -> yield "X-Application", x
-            yield "X-Authentication", auth.SessionToken ] |> Map.ofList
+    catchInetErrors <| async {        
+        let headers = 
+            [   match auth.AppKey with
+                | None -> ()
+                | Some x -> yield "X-Application", x
+                yield "X-Authentication", auth.SessionToken ]
+
+        let request, sendAndGetResponse =  makeRequest service.ApiUrl requestJson        
+        request.Headers.Add("X-Authentication", auth.SessionToken)
+        match auth.AppKey with
+        | None -> ()
+        | Some x -> request.Headers.Add("X-Application",x)
+
         
+        let! (xresponseJson,_) = sendAndGetResponse 
+        let! canDebugLogging = Config.enableApiNgDebugLogs.Get()
+        if canDebugLogging then
+            let level,s = 
+                match xresponseJson with 
+                | Left error -> Logging.Error, "no answer"
+                | Right json -> Logging.Debug, formatPrety json
+            Logging.write level "rest api - %A, %A, %s -> %s" auth service (formatPrety requestJson) s
 
-    let! xresponseJson = WebUtils.transmitJson service.ApiUrl headers requestJson
-    let! canDebugLogging = Config.enableApiNgDebugLogs.Get()
-
-    if canDebugLogging then
-        let level,s = 
-            match xresponseJson with 
-            | Left error -> Logging.Error, "no answer"
-            | Right json -> Logging.Debug, formatPrety json
-        Logging.write level "rest api - %A, %A, %s -> %s" auth service (formatPrety requestJson) s
-
-    return 
-        xresponseJson 
-        |> Either.bindRight ( fun responseJson -> 
-            match responseJson with 
-            | ApiError (exceptionname, errorCode, errorDetails) ->                     
-                Left <| sprintf "%A, exceptionname - %A, errorCode - %A " errorDetails exceptionname errorCode
-            | P "result" json -> Right json
-            | _ -> Left "missing property \"result\" in response" )            
-        |> Either.mapLeft (fun error -> 
-            sprintf "rest api error - %s, service %s" (ApiService.what service) error ) }
+        return 
+            xresponseJson 
+            |> Either.bindRight ( fun responseJson -> 
+                match responseJson with 
+                | ApiError (exceptionname, errorCode, errorDetails) ->                     
+                    Left <| sprintf "%A, exceptionname - %A, errorCode - %A " errorDetails exceptionname errorCode
+                | P "result" json -> Right json
+                | _ -> Left "missing property \"result\" in response" )            
+            |> Either.mapLeft (fun error -> 
+                sprintf "rest api error - %s, service %s" (ApiService.what service) error ) }
 
 
     

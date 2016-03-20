@@ -23,7 +23,7 @@ module private Helpers  =
         webClient.Headers.[HttpRequestHeader.Referer] <- "http://www.betfair.com/ru/"
         webClient.Headers.[HttpRequestHeader.AcceptEncoding] <- "gzip,deflate,sdch"       
         
-        return! WebUtils.catchInetErrors <| async{ 
+        return! catchInetErrors <| async{ 
             let! x =  webClient.AsyncDownloadString ( Uri( url ) ) 
             return f x }  }
 

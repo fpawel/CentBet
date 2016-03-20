@@ -322,7 +322,7 @@ let processMarkets() = async{
 
     if List.isEmpty events' then () else
     for ev in events' do
-        let! m = CentBet.Remote.getMarketCatalogue ev.gameId
+        let! m = CentBet.Remote.MarketCatalogue.getWithTotalMatched ev.gameId
         match m with
         | Choice1Of2 x -> failwith x
         | Choice2Of2 value -> 
@@ -344,7 +344,7 @@ let processTotalMatched() = async{
         |> Seq.toList
     if List.isEmpty gamesIds then ()  else
     for gameId in gamesIds do    
-        let! m = CentBet.Remote.getEventTotalMatched gameId
+        let! m = CentBet.Remote.MarketCatalogue.getTotalMatchedOfEvent gameId
         match m with
         | Choice1Of2 x -> failwith x
         | Choice2Of2 value -> 

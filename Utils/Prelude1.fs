@@ -71,9 +71,9 @@ module Either =
         let! x' = x
         return f x'}
 
-    let mapAsyncR f x = async{
+    let bindAsync f x = async{
         let! x' = x
-        return f x'}
+        return! f x'}
 
 
     type AsyncBuilder() =

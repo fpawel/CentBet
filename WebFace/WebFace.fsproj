@@ -42,6 +42,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Remote.fs" />
+    <Compile Include="Api.fs" />
     <Compile Include="ClientUtils.fs" />
     <Compile Include="CouponPage.fs" />
     <Compile Include="AdminPage.fs" />

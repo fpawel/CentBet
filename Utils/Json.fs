@@ -24,6 +24,16 @@ module Helpers =
 
     let (|Prop|_|) key = prop key
 
+    let (|Props|_|) keys json = 
+        match json with        
+        | Object x -> 
+            let r = 
+                keys 
+                |> List.map( fun key -> Map.tryFind key x )
+                |> List.choose id
+                
+            if r.Length = keys.Length then Some r else None            
+        | _ -> None
 
     let (|StringInt|_|) = function    
         | String x -> 
@@ -435,6 +445,8 @@ module Formatting =
             StringBuilder ()
             |> formatJson 0 options json
             |> string
+
+        let stringify = formatWith JsonFormattingOptions.Pretty 
 
 
 type Json with

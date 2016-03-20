@@ -12,21 +12,7 @@ let rec exnRoot (exn:System.Exception) =
 
 let htmlDecode (s:string) = System.Web.HttpUtility.HtmlDecode(s.Trim())
 
-let (|HttpExcpetion|_|)  =     
-    let (<+>) l r = Some (if l=r then l else l + ", " + r )
-    let rec loop (x : System.Exception) = 
-        match x with
-        | null -> None
-        | :? Sockets.SocketException as e ->
-            Some ( e.Message)
-        | :? WebException as exn -> 
-            match exn.Response with
-            | :? HttpWebResponse as r -> 
-                r.StatusDescription <+> exn.Message
-            | _ -> Some exn.Message
-        | :?  System.AggregateException as exn -> loop exn.InnerException        
-        | _ -> None
-    loop
+
 
 let (|RootException|) = exnRoot
 
@@ -125,6 +111,33 @@ module Logging =
     let info format = Printf.kprintf (write' Info) format
     let warn format = Printf.kprintf (write' Warn) format
     let debug format = Printf.kprintf (write' Debug) format
+
+let (|HttpExcpetion|_|)  =     
+    let (<+>) l r = Some (if l=r then l else l + ", " + r )
+    let rec loop (x : System.Exception) = 
+        match x with
+        | null -> None
+        | :? Sockets.SocketException as e ->
+            Some ( e.Message)
+        | :? WebException as exn -> 
+            match exn.Response with
+            | :? HttpWebResponse as r -> 
+                r.StatusDescription <+> exn.Message
+            | _ -> Some exn.Message
+        | :?  System.AggregateException as exn -> loop exn.InnerException        
+        | _ -> None
+    loop
+
+let catchInetErrors<'T> (work : Async< Either<string,'T>>) =  async {    
+    try 
+        return! work
+    with 
+    | :? System.Net.ProtocolViolationException as exn ->            
+        return Left <| sprintf "protocol violation - %A" exn 
+    | RootException( HttpExcpetion (message) ) -> 
+        return Left <| sprintf "http error - %s" message                
+    | RootException exn ->            
+        return Left  <| sprintf  "unhandled exection when reading web - %A" exn    } 
 
 
 

@@ -54,7 +54,6 @@
     <Compile Include="Prelude.fs" />
     <Compile Include="Atom.fs" />
     <Compile Include="Config.fs" />
-    <Compile Include="WebUtils.fs" />
     <Compile Include="RestApi.fs" />
     <Compile Include="ApiNg.fs" />
     <Compile Include="ApiNgServices.fs" />

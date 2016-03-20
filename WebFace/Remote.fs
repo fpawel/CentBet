@@ -9,40 +9,23 @@ open WebSharper
 open Betfair
 open Betfair.Football
 open Betfair.Football.Services
+open Betfair.Football.Coupon
+
+let isValidPassword = md5hash >> (=) "57545929BA6115DCAA317EEF8065F63D"
 
 [<NamedUnionCases "result">]
 type Result<'T> =
     | [<CompiledName "success">] Success of 'T
     | [<CompiledName "failure">] Failure of string
 
-[<Rpc>]
-let getCoupon ( (reqGames,inplayOnly) as request)  = async{
-    let reqIds, reqGames = List.ids reqGames fst
-    let! games = async{ 
-        let! inplay = Coupon.Inplay.Get()
-        if inplayOnly then return inplay else
-        let! today1 = Coupon.Today1.Get()
-        let! today2 = Coupon.Today2.Get()
-        return inplay @ today1 @ today2 } 
-    let extIds, extGames = List.ids games ( fst >> Game.id )
-    let newIds = Set.difference extIds reqIds
-    let outIds = Set.difference reqIds extIds 
-    let updIds = Set.intersect reqIds extIds        
-    let newGames =
-        newIds |> Seq.map ( fun id -> 
-            let game, gameInfo = extGames.[id] 
-            game,  gameInfo, gameInfo.GetHash() )
-        |> Seq.toList
-    let update = 
-        updIds
-        |> Seq.map( fun id -> 
-            let _, gameInfo = extGames.[id] 
-            id, gameInfo, gameInfo.GetHash()  )
-        |> Seq.filter( fun(gameId, gameInfo, hash) -> 
-            let _,reqHash = reqGames.[gameId]     
-            hash <> reqHash  )
-        |> Seq.toList
-    return newGames, update, outIds }
+let resultOf<'a> (x : _) = async{
+    let! x = x
+    return 
+        match x with
+        | Left x -> Failure x
+        | Right (x : 'a) -> Success <| sprintf "%A" x }
+
+
 
 let isAdminCtx (ctx : Web.IContext) = async{
     let! user = ctx.UserSession.GetLoggedInUser()
@@ -51,16 +34,15 @@ let isAdminCtx (ctx : Web.IContext) = async{
         | Some "admin" -> true
         | _ -> false }
 
-let passwordKey = "E018CB561EE1DB0EF3892AE22FCCDD5C" 
+let ``bad request`` = "bad request"
+let ``access denied`` = "access denied"
 
-let authorizeAdmin reqPass (ctx : Web.IContext)   =  async {
-    if md5hash reqPass = passwordKey then
+let authorizeAdmin password (ctx : Web.IContext)   =  async {
+    if isValidPassword password then
         do! ctx.UserSession.LoginUser("admin")
         return Success "ok"
     else
         return Failure "access denied" }
-
-
 
 
 [<AutoOpen>]
@@ -76,33 +58,29 @@ module Helpers =
         let! (x : 'a) = x
         return Success <| sprintf "%A" x }
 
-    let map2<'a> (x : _) = async{
-        let! x = x
-        return 
-            match x with
-            | Left x -> Failure x
-            | Right (x : 'a) -> Success <| sprintf "%A" x }
+    
 
     let fobj1<'a> = ( format1 ( fun (y, x : 'a) -> y, sprintf "%A" x ) )
 
-    let ``bad request`` = Failure "bad request"
-    let ``access denied`` = Failure "access denied"
     
-let consoleCommands = [ 
-    "-login-betfair", 2, fun [user;pass] -> Betfair.Login.login user pass |> map2
-    "-atoms-names", 0, fun [] -> Atom.Trace.getNames() |> map1 
-    "-atom", 1, fun [x] -> Atom.Trace.getAtomValue x |> map1  ] |> List.map( fun (x,y,z) -> x, (y,z)) 
-                                                                                 |> Map.ofList
-let (|Cmd|_|) = consoleCommands.TryFind 
+    
+    let consoleCommands = [ 
+        "-login-betfair", 2, fun [user;pass] -> Betfair.Login.login user pass |> resultOf
+        "-atoms-names", 0, fun [] -> Atom.Trace.getNames() |> map1 
+        "-atom", 1, fun [x] -> Atom.Trace.getAtomValue x |> map1  ] |> List.map( fun (x,y,z) -> x, (y,z)) 
+                                                                                     |> Map.ofList
+    let (|Cmd|_|) = consoleCommands.TryFind 
 
-let protected' ctx work = async {
-    let! admin = isAdminCtx ctx
-    if admin then 
-        return! work
-    else
-        return ``access denied`` }
+    let webprotected ctx work = async {
+        let! admin = isAdminCtx ctx
+        if admin then 
+            return! work
+        else
+            return Failure ``access denied`` }
 
-
+[<Rpc>]
+let getCoupon x = Betfair.Football.Coupon.getCoupon x
+  
 [<Rpc>]
 let perform (request : string )= 
     let ctx = Web.Remoting.GetContext()
@@ -115,102 +93,31 @@ let perform (request : string )=
             let! r = authorizeAdmin pass ctx 
             return r         
         | Cmd (n,f)::args when args.Length = n -> 
-            return! protected' ctx <| f args 
-        | _ -> return  ``bad request`` }
-
-
-
-let shortCountries = 
-    [   "Боливарийская Республика Венесуэла", "Венесуэла"
-        "Чешская республика", "Чехия"
-        "Китайская Народная Республика", "Китай"
-        "Македония (Бывшая Югославская Республика Македония)", "Македония"
-        "Сербия и Черногория (бывшая)", "Сербия" ]
-    |> Map.ofList
-
-let countries1 = 
-    [ "GI", "Гибралтар" ]
-    |> Map.ofList
-
-
-let getCountryFromRegionInfo (countryCode : string) = 
-    // Change current culture
-    let culture = CultureInfo("ru-RU")      
-    Thread.CurrentThread.CurrentCulture <- culture
-    Thread.CurrentThread.CurrentUICulture <- culture
-
-    let i = Globalization.RegionInfo(countryCode)
-    if i=null then countryCode else 
-    shortCountries.TryFind i.DisplayName 
-    |> Option.getWith i.DisplayName 
-
-let countryFromEvent (e: ApiNG.Event) = 
-    e.countryCode |> Option.map( fun countryCode ->
-        countries1.TryFind countryCode
-        |> Option.getBy ( fun () -> 
-            try
-                getCountryFromRegionInfo(countryCode)
-            with _ -> 
-                countryCode ) )
+            return! webprotected ctx <| f args 
+        | _ -> return  Failure ``bad request`` }
     
 [<Rpc>]
-let getEventsCatalogue ids =     
-    Betfair.Football.Coupon.getExistedEvents ids
-    |> Either.mapAsync ( fun (rdds, msng) -> 
-        rdds 
-        |> Map.toList
-        |> List.map(fun (gameId,{event = e}) ->
-            let country = 
-                try
-                    countryFromEvent e
-                with exn -> 
-                    Logging.error "%A"  exn
-                    None
-            gameId, e.name, country ) )
+let getEventsCatalogue ids = getEventsCatalogue ids
 
-let getToltalMatched xs = 
-    let xs = xs |> List.choose( fun (x : ApiNG.MarketCatalogue )-> x.totalMatched ) 
-    if xs.IsEmpty then None else Some <| List.sum xs 
-    |> Option.map int
+module MarketCatalogue = 
+    open MarketCatalogue 
 
-[<Rpc>]
-let getEventTotalMatched gameId = async{
-    let! m' = Betfair.Football.Coupon.getMarketCatalogue gameId    
-    return Either.mapRight getToltalMatched m'}
+    [<Rpc>]
+    let getTotalMatchedOfEvent gameId = getTotalMatchedOfEvent gameId
         
-[<Rpc>]
-let getMarketCatalogue gameId = async{    
-    let! m = Betfair.Football.Coupon.getMarketCatalogue gameId
-    return m |> Either.mapRight ( fun m ->       
-        m |> List.map( fun x ->             
-            let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
-            x.marketId.marketId, x.marketName, runners, Option.map int x.totalMatched ) ) }
+    [<Rpc>]
+    let getMemoized gameId = getMemoized gameId
+
+    [<Rpc>]
+    let getNotMemoized gameId = getNotMemoized gameId
+
+    [<Rpc>]
+    let getWithTotalMatched gameId = getWithTotalMatched gameId
+
+        
 
 
-module Api = 
-    open WebSharper.Sitelets
 
-    type LoginAdmin = { password : string }
-    type LoginBetfair = { username: string; password : string }
-
-    type Action =
-        | [<Method "POST"; CompiledName "loginAdmin"; Json "data" >]
-            LoginAdmin of LoginAdmin
-        | [<Method "POST"; CompiledName "loginBetfair"; Json "data">]
-            LoginBetfair of LoginBetfair
-
-    
-    let ApiContent context (action: Action) =
-        match action with
-        | LoginAdmin { password = pass } ->
-            Content.Json <| authorizeAdmin pass
-        | LoginBetfair { username = username; password = pass } ->
-            Betfair.Login.login username pass |> map2 
-            |> protected' context 
-            |>  Content.Json 
-
-    
-    
     
 
 
