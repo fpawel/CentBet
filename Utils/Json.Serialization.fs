@@ -691,14 +691,17 @@ module private Deserialization =
             |> Some
         else None
 
+let serializeUntyped = Serialization.serializeUntyped
 
 let serialize<'a> (x:'a) = 
-    match Serialization.serializeUntyped x with
+    match serializeUntyped x with
     | Left e -> failwithf "error serialize JSON %A : %A - %s" x (&& x.GetType()) e
     | Right x -> x
 
+let deserializeUntyped = Deserialization.deserializeUntyped
+
 let deserialize<'T> json = 
-    Deserialization.deserializeUntyped typeof<'T> json 
+    deserializeUntyped typeof<'T> json 
     |> Either.mapRight( fun x -> x :?> 'T)
 
 

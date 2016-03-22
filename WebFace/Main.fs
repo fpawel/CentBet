@@ -57,28 +57,15 @@ module Site =
     [<Website>]
     let Main =
         #if DEBUG
-        Async.Start <| async{ 
-            let pathToPass = @"..\..\..\password.txt"
-            let [|_; betuser; betpass |] = 
-                System.Text.RegularExpressions.Regex.Split(System.IO.File.ReadAllText pathToPass, "\\W+")
-
-            let! r = Betfair.Login.login betuser betpass
-            match r with
-            | Right x -> Logging.debug "ok local host login betfair - %A" x 
-            | Left error -> Logging.error "error local host login betfair - %s" error }      
-
-        #endif
-
-        let culture = System.Globalization.CultureInfo("ru-RU")      
-        System.Threading.Thread.CurrentThread.CurrentCulture <- culture
-        System.Threading.Thread.CurrentThread.CurrentUICulture <- culture
+        #else
         Betfair.Football.Coupon.start()
+        #endif        
         Application.MultiPage (fun ctx -> function
             | Coupon -> CouponPage ctx 
             | Console -> ConsolePage ctx 
             | ApiCall -> 
                 CentBet.Api.processInput ctx.Request.Body
-                |> Either.bindAsync
+                |> Async.bind
                     (   Content.Text
                         >> Content.WithContentType "application/json"
                         >> Content.WithHeaders  [

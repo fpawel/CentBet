@@ -195,8 +195,8 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var arg00;
-      arg00=function(r)
+      var _arg00_50_2;
+      _arg00_50_2=function(r)
       {
        var patternInput,fore,back;
        patternInput=(RecordType.get_color())(r.RecordType);
@@ -207,7 +207,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(arg00,x);
+       _arg00_=View.Map(_arg00_50_2,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -732,8 +732,8 @@
      },
      eventsCatalogue:Runtime.Field(function()
      {
-      var dt,arg00,arg10,enc,x,clo1;
-      dt=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
+      var _dt_35_1,arg00,arg10,enc,_x_36_2,clo1;
+      _dt_35_1=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
       arg00=function(arg001)
       {
        return EventCatalogue.id(arg001);
@@ -743,7 +743,7 @@
        Encode:enc,
        Decode:(Provider.get_Default().DecodeRecord(EventCatalogue,[["gameId",Provider.get_Default().DecodeTuple([Id,Id]),0],["country",Id,1],["markets",Provider.get_Default().DecodeList(Provider.get_Default().DecodeRecord(undefined,[["marketId",Id,0],["marketName",Id,0],["runners",Provider.get_Default().DecodeList(Provider.get_Default().DecodeRecord(undefined,[["selectionId",Id,0],["runnerName",Id,0]])),0]])),0]]))()
       });
-      x=ListModel.CreateWithStorage(arg00,arg10);
+      _x_36_2=ListModel.CreateWithStorage(arg00,arg10);
       clo1=function(_)
       {
        return function(_1)
@@ -756,20 +756,20 @@
         };
        };
       };
-      ((clo1("CentBetEventsCatalogue"))(x.get_Length()))(dt);
-      return x;
+      ((clo1("CentBetEventsCatalogue"))(_x_36_2.get_Length()))(_dt_35_1);
+      return _x_36_2;
      }),
      meetups:Runtime.Field(function()
      {
-      var arg00,arg10;
-      arg00=function(arg001)
+      var _arg00_60_3,_arg10_60_1;
+      _arg00_60_3=function(arg00)
       {
-       return Meetup.id(arg001);
+       return Meetup.id(arg00);
       };
-      arg10=Runtime.New(T,{
+      _arg10_60_1=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(arg00,arg10);
+      return ListModel.Create(_arg00_60_3,_arg10_60_1);
      }),
      processCoupon:function()
      {
@@ -1787,8 +1787,8 @@
      },
      viewGames:Runtime.Field(function()
      {
-      var _builder_,x;
-      _builder_=View.get_Do();
+      var _builder_97_1,x;
+      _builder_97_1=View.get_Do();
       x=Coupon.meetups().get_View();
       return View1.Bind(function(_arg1)
       {
@@ -2016,7 +2016,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",9,18));
              }
             _4=_5;
            }

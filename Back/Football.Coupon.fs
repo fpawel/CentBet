@@ -134,10 +134,23 @@ let start =
     start' Status.Inplay Coupon.updateInplay
     start' Status.Today Coupon.updateToday
     start' Status.Events processEvents
+
+    #if DEBUG
+    #else
+    let culture = System.Globalization.CultureInfo("ru-RU")      
+    System.Threading.Thread.CurrentThread.CurrentCulture <- culture
+    System.Threading.Thread.CurrentThread.CurrentUICulture <- culture
+    #endif
+
     fun () -> ()
 
+type NewGame1 = Game * GameInfo * int
+type UpdGame1 = GameId * GameInfo * int
+type OutGame1 = GameId
 
-let getCoupon ( (reqGames,inplayOnly) as request)  = async{
+type CouponResponse = NewGame1 list * UpdGame1 list * Set<OutGame1>
+
+let getCoupon ( (reqGames,inplayOnly) as request) : Async<CouponResponse>  = async{
     let reqIds, reqGames = List.ids reqGames fst
     let! games = async{ 
         let! inplay = Coupon.Inplay.Get()
@@ -206,7 +219,7 @@ module Helpers1 =
 
 let getEventsCatalogue ids =     
     getExistedEvents ids
-    |> Either.mapAsync ( fun (rdds, msng) -> 
+    |> Async.map ( fun (rdds, msng) -> 
         rdds 
         |> Map.toList
         |> List.map(fun (gameId,{event = e}) ->

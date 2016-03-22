@@ -28,7 +28,7 @@ let login user pass =
         match x with
         | [] -> return Left "no sessoin token in headers"
         | x::_ -> return  Right x  }
-    |> Either.bindRightAsyncR ( fun sessionToken -> async{ 
+    |> Async.bindEither ( fun sessionToken -> async{ 
         let! appKey = ApiNG.Services.requestDevelopersAppKey sessionToken
         match appKey with
         | Left error -> return Left <| sprintf "error reciving app key : %s" error

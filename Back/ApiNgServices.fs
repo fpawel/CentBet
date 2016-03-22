@@ -138,26 +138,26 @@ let replaceOrder auth (marketId,betId : int64,newPrice) =
         | _ -> ``bad format`` )
 
 
-let (>>==) x f  = Either.bindLeftAsync f x
-let (==>>) x f = Either.bindRightAsync f x
-let (==>>!) x f = Either.bindRightAsyncR f x
+let (<<*>) x f  = Async.mapLeft f x
+//let (>>==*) x f = Async.bindRight f x
+let (>>==) x f = Async.bindEither f x
 
 let placeCentBet acc ((marketId,selectionId,betType,price,size : decimal) as betInfo)  = 
     let size = System.Math.Round(size, 2)
     let unmatchingPrice = if betType=BACK then 1000m else 1.01m    
     placeOrder acc (marketId,selectionId,betType,unmatchingPrice, 4m)
-    >>== sprintf "placing cent-bet error : %A - %s" betInfo  
-    ==>>! fun { BetId=betId } -> 
+    <<*> sprintf "placing cent-bet error : %A - %s" betInfo  
+    >>== fun { BetId=betId } -> 
         cancelOrder acc (marketId, betId, Some (4m-size) )        
-        >>== (sprintf "canceling placed cent-bet error : %A - %s" betInfo)
-        ==>>! fun _ -> 
+        <<*> (sprintf "canceling placed cent-bet error : %A - %s" betInfo)
+        >>== fun _ -> 
             replaceOrder acc (marketId, betId, price) 
-            |> Either.bindLeftAsync( sprintf "replacing cent-bet error : %A - %s" betInfo ) 
+            <<*> sprintf "replacing cent-bet error : %A - %s" betInfo 
 
 
 let placeBet acc ((marketId,selectionId,betType,price,size) as betInfo)  = 
     if size>=4m then 
-        placeOrder acc betInfo >>== sprintf "placing bet error : %A - %s" betInfo  
+        placeOrder acc betInfo <<*> sprintf "placing bet error : %A - %s" betInfo  
     else
         placeCentBet acc betInfo
              
@@ -172,7 +172,7 @@ let getAccauntFunds auth =
 let getCurentBets auth = 
     let rec loop acc = 
         RestApi.callForType<CurrentOrderSummaryReport> auth Betting.listCurrentOrders () 
-        ==>>! function 
+        >>== function 
             | {moreAvailable=true; currentOrders=currentOrders} -> loop ( acc @ currentOrders  )
             | {moreAvailable=false; currentOrders=currentOrders} -> async { return Right (acc @ currentOrders)  }
     loop []    

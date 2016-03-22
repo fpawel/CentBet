@@ -20,23 +20,26 @@ let (|Admin|) = function
 
 let fail x = async{ return x |> Left  |> serialize }
 
+
+
+
 type Action = 
     | LoginBetfair of string * string * string
     | GetCoupon of ((GameId * int) list) * bool
+
+    //| TestSet1 of ((GameId * int) list) * bool
     
-let private return'<'a> : Async<'a> -> Async<Json>  = 
-    Either.mapAsync ( serialize<'a> )
     
-   
+    
 let callAction = function
     | LoginBetfair (adminpass, betuser, betpass) ->
         if not <| Remote.isValidPassword adminpass then fail Remote.``access denied`` else
         Betfair.Login.login betuser betpass
-        |> return'
-    | GetCoupon (x,y) -> 
+        |> Async.map serialize 
+    | GetCoupon (x,y) ->
         Coupon.getCoupon (x,y)
-        |> return'
-
+        |> Async.map serialize
+    
 let processInput (inputStream : System.IO.Stream) = 
     use tr = new System.IO.StreamReader(inputStream)
     let input = tr.ReadToEnd()
@@ -50,7 +53,7 @@ let processInput (inputStream : System.IO.Stream) =
             sprintf "reest api can't deserialize action from %A"  input
             |> fail
         | Right action -> callAction action
-    |> Either.mapAsync( Json.formatWith JsonFormattingOptions.Compact )
+    |> Async.map( Json.formatWith JsonFormattingOptions.Compact )
     
 
 let loginBetfair apiurl (adminpass, betuser, betpass) = async{    
@@ -61,7 +64,13 @@ let loginBetfair apiurl (adminpass, betuser, betpass) = async{
     | Right x -> 
         match deserialize< Either<string, RestApi.Auth> > x with
         | Left error -> return Left error 
-        | Right auth -> return  auth
-
-        }
+        | Right auth -> return  auth }
     
+
+let getCoupon apiurl (games, inplay) = async{    
+    let _,send = RestApi.makeRequest apiurl (serialize <| GetCoupon (games, inplay) )
+    let! x,_ = send
+    return 
+        match x with
+        | Left error -> Left error 
+        | Right x -> deserialize< Coupon.CouponResponse > x }

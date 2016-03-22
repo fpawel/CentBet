@@ -11,6 +11,10 @@ let (|Left|Right|) = function
 let Left = Choice1Of2
 let Right = Choice2Of2
 
+
+
+            
+
 [<AutoOpen>]
 module Either =
     
@@ -49,33 +53,6 @@ module Either =
         | Left x -> Left x
         | Right x -> f x
 
-    let bindRightAsync f x = async{
-        let! x' = x
-        match x' with
-        | Left x -> return Left x
-        | Right x -> return f x }
-
-    let bindLeftAsync f x = async{
-        let! x' = x
-        match x' with
-        | Left x -> return Left ( f x)
-        | x -> return x }
-    
-    let bindRightAsyncR f x = async{
-        let! x' = x
-        match x' with
-        | Left x -> return Left x
-        | Right x -> return! f x }
-
-    let mapAsync f x = async{
-        let! x' = x
-        return f x'}
-
-    let bindAsync f x = async{
-        let! x' = x
-        return! f x'}
-
-
     type AsyncBuilder() =
         let bind f v' = async{        
             let! v = v'
@@ -100,12 +77,7 @@ module Either =
 let asyncEiter = Either.AsyncBuilder()
 
 module Option = 
-    let mapAsync f x = async{
-        let! x' = x
-        return 
-            match x' with
-            | None -> None
-            | Some x'' -> Some (f x'') }
+    
     let getWith def x =
         match x with
         | Some x' -> x'
@@ -114,6 +86,49 @@ module Option =
         match x with
         | Some x' -> x'
         | None -> f()
+
+module Async =
+    let inline map f x = async{
+        let! x = x
+        return f x }
+
+    let inline bind f x = async{
+        let! x = x
+        return! f x }
+
+    let inline mapOption f x = async{
+        let! x' = x
+        return 
+            match x' with
+            | None -> None
+            | Some x'' -> Some (f x'') }
+
+    let inline bindOption f x = async{
+        let! x' = x
+        match x' with
+        | None -> return None
+        | Some x'' -> 
+            return! f x'' }
+
+    let bindEither f x = async{
+        let! x' = x
+        match x' with
+        | Left x -> return Left x
+        | Right x -> return! f x }
+
+    let bindRight f x = async{
+        let! x' = x
+        match x' with
+        | Left x -> return Left x
+        | Right x -> return f x }
+
+    let mapLeft f x = async{
+        let! x' = x
+        match x' with
+        | Left x -> return Left ( f x)
+        | x -> return x }
+    
+    
 
 type Decimal with
     static member Pow (value,base') =  
