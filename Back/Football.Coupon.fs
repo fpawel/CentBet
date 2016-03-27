@@ -157,13 +157,13 @@ module MarketsCatalogue =
 
     let update auth = async{
         let! games = getAllGames()
-        let mutable errors = []
+        let errors = ref []
         for {gameId = gameId},_ in games do
             let! x = read'and'upd' auth gameId
-            errors <- match x with Left x -> x::errors | _ -> errors
+            errors := match x with Left x -> x::!errors | _ -> !errors
         return 
-            if errors.IsEmpty then ``ok`` else
-            error errors.[0] }
+            if List.isEmpty !errors then ``ok`` else
+            error (!errors).[0] }
 
     
 
