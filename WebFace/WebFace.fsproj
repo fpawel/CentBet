@@ -217,8 +217,7 @@
     <PropertyGroup>
       <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />
-    <Error Condition="!Exists('..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />
+    <Error Condition="!Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />    
   </Target>
   <Import Project="..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets" Condition="Exists('..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" />
 </Project>
