@@ -1465,5 +1465,3 @@
   return;
  });
 }());
-
-//# sourceMappingURL=WebSharper.Control.map

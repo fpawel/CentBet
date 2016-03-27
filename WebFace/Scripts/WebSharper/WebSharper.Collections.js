@@ -1672,5 +1672,3 @@
   return;
  });
 }());
-
-//# sourceMappingURL=WebSharper.Collections.map

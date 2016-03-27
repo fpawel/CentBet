@@ -499,5 +499,3 @@
   return;
  });
 }());
-
-//# sourceMappingURL=WebSharper.Web.map

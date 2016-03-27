@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,List,CentBet,Client,Admin,T,UI,Next,Doc,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,ServerBetfairsSession,Work,PrintfHelpers,console,Meetup,Utils,LocalStorage,EventCatalogue,View1,Operators,Date,JSON,window,Collections,MapModule,FSharpSet,BalancedTree,Slice,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,ServerBetfairsSession,Work,PrintfHelpers,console,Meetup,Utils,LocalStorage,EventCatalogue,View1,Operators,Date,JSON,window,Collections,MapModule,FSharpSet,BalancedTree,Slice,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -16,12 +16,11 @@
      }),
      Render:function()
      {
-      var arg00,arg20;
+      var arg20;
       arg20=Runtime.New(T,{
        $:0
       });
-      arg00=List.ofArray([Admin.RenderCommandPrompt(),(Admin.op_SpliceUntyped())(Doc.Element("br",[],arg20)),Admin.RenderRecords()]);
-      return Doc.Concat(arg00);
+      return Doc.Concat(List.ofArray([Admin.RenderCommandPrompt(),(Admin.op_SpliceUntyped())(Doc.Element("br",[],arg20)),Admin.RenderRecords()]));
      },
      RenderCommandPrompt:function()
      {
@@ -1625,14 +1624,14 @@
  });
  Runtime.OnInit(function()
  {
+  UI=Runtime.Safe(Global.WebSharper.UI);
+  Next=Runtime.Safe(UI.Next);
+  Doc=Runtime.Safe(Next.Doc);
   List=Runtime.Safe(Global.WebSharper.List);
   CentBet=Runtime.Safe(Global.CentBet);
   Client=Runtime.Safe(CentBet.Client);
   Admin=Runtime.Safe(Client.Admin);
   T=Runtime.Safe(List.T);
-  UI=Runtime.Safe(Global.WebSharper.UI);
-  Next=Runtime.Safe(UI.Next);
-  Doc=Runtime.Safe(Next.Doc);
   AttrModule=Runtime.Safe(Next.AttrModule);
   AttrProxy=Runtime.Safe(Next.AttrProxy);
   Key=Runtime.Safe(Next.Key);
@@ -1695,5 +1694,3 @@
   return;
  });
 }());
-
-//# sourceMappingURL=WebFace.map
