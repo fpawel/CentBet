@@ -226,16 +226,16 @@ module Status =
     let MarketsCatalogue = initStatus "MARKET-CATALOGUE" 
 
 let start = 
-    let mutable isstarted = false
+    let isstarted = ref false
     let lock' = obj()
     fun () -> 
         lock lock' <| fun () ->
-            if isstarted then () else
+            if !isstarted then () else
             start' Status.Inplay 0 0 Coupon.updateInplay
             start' Status.Today 0 0 Coupon.updateForeplay
             start'auth' Status.Events 0 0 Events.update
             start'auth' Status.MarketsCatalogue 0 0 MarketsCatalogue.update
-            isstarted <- true
+            isstarted := true
         
 
 type NewGame1 = Game * GameInfo * int
