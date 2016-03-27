@@ -56,3 +56,6 @@ module Site =
                         >> Content.WithHeaders  [
                             Http.Header.Custom "ContentType" "UTF-8"
                             Http.Header.Custom "AcceptEncoding" "gzip,deflate,sdch"] ))
+
+[<assembly:System.Web.UI.WebResource("https://fonts.googleapis.com/icon?family=Material+Icons", "text/css")>]
+do ()

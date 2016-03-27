@@ -10,3 +10,7 @@ type CouponCss() =
 
 type W3Css() =
     inherit BaseResource("http://www.w3schools.com/lib/w3.css")
+
+type MaterialIcons() = 
+    inherit BaseResource("material-icons.css")
+    

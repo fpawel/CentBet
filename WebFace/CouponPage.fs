@@ -160,32 +160,63 @@ let renderGamesHeaderRow = [
     thAttr [ attr.colspan "2" ] [text "2"] 
     th  [text "GPB"]  
     th  [] ] 
+
+let settingsDialog'id = "id-settings-dialog"
+let renderSettingsDialog = 
     
-    
+    divAttr[ 
+        attr.``class`` "w3-modal" 
+        attr.id settingsDialog'id] [
+        divAttr [ attr.``class`` "w3-modal-content w3-animate-zoom w3-card-8" ] [
+            headerAttr [ attr.``class`` "w3-container w3-teal" ] [
+                spanAttr [ 
+                    attr.``class`` "w3-closebtn" 
+                    Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='none'" settingsDialog'id)] 
+                    [ text "×" ] 
+                h2 [ text "Настройки" ] ]
+            divAttr [  attr.``class`` "w3-container" ] 
+                [ text "Some text" ]
+            footerAttr [ attr.``class`` "w3-container w3-teal" ] 
+                [ text "modal footer" ] ]]
+
+
 let renderPagination =  Doc.EmbedView <| View.Do{
+
+    let renderPageLink npage n  =
+        let aattrs = [
+            yield attr.href "#"
+            yield Attr.Handler "click" (fun e x -> 
+                varCurrentPageNumber.Value <- n  )
+            if n=npage then yield attr.``class`` "w3-green"]        
+        li[ aAttr aattrs [ text <| sprintf "Страница %d" (n+1) ] ] 
+
     let! pagescount = varPagesCount.View
     if pagescount<2 then return Doc.Empty else
     let! npage = varCurrentPageNumber.View
+
+    let aShowDialog = 
+        Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='block'" settingsDialog'id)
+
     return 
-        [   for n in 0..pagescount ->
-                let aattrs = [
-                    yield attr.href "#"
-                    yield Attr.Handler "click" (fun e x -> 
-                        varCurrentPageNumber.Value <- n  )
-                    if n=npage then yield attr.``class`` "w3-green"] 
-                let v = text <| sprintf "Страница %d" (n+1)
-                doc <| li[ aAttr aattrs [v] ] ]
+        [   for n in 0..pagescount-1 do                
+                yield renderPageLink npage n 
+            yield li[ aAttr [attr.href "#"; aShowDialog ] [ text "..." ] ] ]
+        |> List.map doc
         |> Doc.Concat }
 
 let renderСoupon = 
     divAttr [attr.``class`` "w3-container"][
         divAttr [ attr.``class`` "w3-center" ] [
-            ulAttr [attr.``class`` "w3-pagination"] [ renderPagination ] ]   
-        table[   
-            thead[ trAttr [ Attr.Class "coupon-header-row" ] ( Seq.map doc renderGamesHeaderRow) ]
-            tbody [
-                meetups.View |> View.Map( Seq.map (renderMeetup >> doc)  >> Doc.Concat )
-                |> Doc.EmbedView   ] ] ]
+            ulAttr [attr.``class`` "w3-pagination w3-border w3-round"] [ renderPagination ] ]   
+        divAttr [ attr.``class`` "w3-responsive" ][
+            tableAttr[ attr.``class`` "w3-table w3-bordered w3-striped w3-hoverable" ] [   
+                thead[ trAttr [ Attr.Class "coupon-header-row w3-pale-green" ] ( Seq.map doc renderGamesHeaderRow) ]
+                tbody [
+                    meetups.View |> View.Map( Seq.map (renderMeetup >> doc)  >> Doc.Concat )
+                    |> Doc.EmbedView ] ] ] 
+        renderSettingsDialog
+                    
+                    ]
     
     
 
@@ -226,7 +257,7 @@ let processCoupon() = async{
         |> Seq.toList
     let pagelen = 30
     let! newGms,updGms,outGms, gamesCount = CentBet.Remote.getCouponPage (request, varCurrentPageNumber.Value, pagelen)
-    let pagesCount = gamesCount / pagelen
+    let pagesCount = gamesCount / pagelen + 1
     if varPagesCount.Value <> pagesCount then
         varPagesCount.Value <- pagesCount
     if varCurrentPageNumber.Value  > pagesCount then
@@ -316,6 +347,7 @@ type Work =
 
 
 [<Require(typeof<Resources.W3Css>)>]
+[<Require(typeof<Resources.MaterialIcons>)>]
 [<Require(typeof<Resources.CouponCss>)>]
 [<Require(typeof<Resources.UtilsJs>)>]
 let Render() =

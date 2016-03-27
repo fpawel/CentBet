@@ -42,13 +42,15 @@ html, body {
     background : #72bbef;
 }
 
+.kef-lay {
+    background : #faa9ba;
+}
+
 tr:hover td.kef-back {
     background: #4F9BD0;
 }
 
-.kef-lay {
-    background : #faa9ba;
-}
+
 tr:hover td.kef-lay {
     background: #DF8397;
 }

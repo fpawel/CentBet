@@ -809,7 +809,7 @@
         outGms=_arg1[2];
         newGms=_arg1[0];
         gamesCount=_arg1[3];
-        pagesCount=gamesCount/30>>0;
+        pagesCount=(gamesCount/30>>0)+1;
         if(Var1.Get(Coupon.varPagesCount())!==pagesCount)
          {
           Var1.Set(Coupon.varPagesCount(),pagesCount);
@@ -1149,8 +1149,8 @@
      },
      renderPagination:Runtime.Field(function()
      {
-      var _builder_165_1,x,_arg00_;
-      _builder_165_1=View.get_Do();
+      var _builder_183_1,x,_arg00_;
+      _builder_183_1=View.get_Do();
       x=Coupon.varPagesCount().get_View();
       _arg00_=View1.Bind(function(_arg1)
       {
@@ -1164,12 +1164,14 @@
          x1=Coupon.varCurrentPageNumber().get_View();
          _=View1.Bind(function(_arg2)
          {
-          var arg00;
-          arg00=Seq.toList(Seq.delay(function()
+          var x2,aShowDialog,list,arg00;
+          x2="document.getElementById('"+PrintfHelpers.toSafe(Coupon["settingsDialog'id"]())+"').style.display='block'";
+          aShowDialog=AttrProxy.Create("onclick",x2);
+          list=Seq.toList(Seq.delay(function()
           {
-           return Seq.map(function(n)
+           return Seq.append(Seq.map(function(n)
            {
-            var aattrs,t,v,arg20,x3;
+            var aattrs,arg20,t;
             aattrs=Seq.toList(Seq.delay(function()
             {
              return Seq.append([AttrProxy.Create("href","#")],Seq.delay(function()
@@ -1187,12 +1189,19 @@
              }));
             }));
             t="\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u0430 "+Global.String(n+1);
-            v=Doc.TextNode(t);
-            arg20=List.ofArray([Doc.Element("a",aattrs,List.ofArray([v]))]);
-            x3=Doc.Element("li",[],arg20);
-            return Coupon.doc(x3);
-           },Operators.range(0,_arg1));
+            arg20=List.ofArray([Doc.Element("a",aattrs,List.ofArray([Doc.TextNode(t)]))]);
+            return Doc.Element("li",[],arg20);
+           },Operators.range(0,_arg1-1)),Seq.delay(function()
+           {
+            var arg20;
+            arg20=List.ofArray([Doc.Element("a",List.ofArray([AttrProxy.Create("href","#"),aShowDialog]),List.ofArray([Doc.TextNode("...")]))]);
+            return[Doc.Element("li",[],arg20)];
+           }));
           }));
+          arg00=List.map(function(x3)
+          {
+           return Coupon.doc(x3);
+          },list);
           return View1.Const(Doc.Concat(arg00));
          },x1);
         }
@@ -1200,11 +1209,23 @@
       },x);
       return Doc.EmbedView(_arg00_);
      }),
+     renderSettingsDialog:Runtime.Field(function()
+     {
+      var ats,ats1,ats2,arg10,arg20;
+      ats=List.ofArray([AttrProxy.Create("class","w3-modal"),AttrProxy.Create("id",Coupon["settingsDialog'id"]())]);
+      ats1=List.ofArray([AttrProxy.Create("class","w3-modal-content w3-animate-zoom w3-card-8")]);
+      ats2=List.ofArray([AttrProxy.Create("class","w3-container w3-teal")]);
+      arg10="document.getElementById('"+PrintfHelpers.toSafe(Coupon["settingsDialog'id"]())+"').style.display='none'";
+      arg20=List.ofArray([Doc.TextNode("\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438")]);
+      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",ats1,List.ofArray([Doc.Element("header",ats2,List.ofArray([Doc.Element("span",List.ofArray([AttrProxy.Create("class","w3-closebtn"),AttrProxy.Create("onclick",arg10)]),List.ofArray([Doc.TextNode("×")])),Doc.Element("h2",[],arg20)])),Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-container")]),List.ofArray([Doc.TextNode("Some text")])),Doc.Element("footer",List.ofArray([AttrProxy.Create("class","w3-container w3-teal")]),List.ofArray([Doc.TextNode("modal footer")]))]))]));
+     }),
      "render\u0421oupon":Runtime.Field(function()
      {
-      var ats,arg20,arg201,arg202,mapping,arg00,arg10,_arg00_;
+      var ats,ats1,ats2,arg20,arg201,mapping,arg00,arg10,_arg00_;
       ats=List.ofArray([AttrProxy.Create("class","w3-container")]);
-      arg201=List.ofArray([Doc.Element("tr",List.ofArray([AttrModule.Class("coupon-header-row")]),Seq.map(function(x)
+      ats1=List.ofArray([AttrProxy.Create("class","w3-responsive")]);
+      ats2=List.ofArray([AttrProxy.Create("class","w3-table w3-bordered w3-striped w3-hoverable")]);
+      arg20=List.ofArray([Doc.Element("tr",List.ofArray([AttrModule.Class("coupon-header-row w3-pale-green")]),Seq.map(function(x)
       {
        return Coupon.doc(x);
       },Coupon.renderGamesHeaderRow()))]);
@@ -1222,9 +1243,12 @@
       };
       arg10=Coupon.meetups().get_View();
       _arg00_=View.Map(arg00,arg10);
-      arg202=List.ofArray([Doc.EmbedView(_arg00_)]);
-      arg20=List.ofArray([Doc.Element("thead",[],arg201),Doc.Element("tbody",[],arg202)]);
-      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination")]),List.ofArray([Coupon.renderPagination()]))])),Doc.Element("table",[],arg20)]));
+      arg201=List.ofArray([Doc.EmbedView(_arg00_)]);
+      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.Element("div",ats1,List.ofArray([Doc.Element("table",ats2,List.ofArray([Doc.Element("thead",[],arg20),Doc.Element("tbody",[],arg201)]))])),Coupon.renderSettingsDialog()]));
+     }),
+     "settingsDialog'id":Runtime.Field(function()
+     {
+      return"id-settings-dialog";
      }),
      stvr:function(x,value)
      {
@@ -1679,7 +1703,9 @@
   Coupon.varPagesCount();
   Coupon.varDataRecived();
   Coupon.varCurrentPageNumber();
+  Coupon["settingsDialog'id"]();
   Coupon["render\u0421oupon"]();
+  Coupon.renderSettingsDialog();
   Coupon.renderPagination();
   Coupon.renderGamesHeaderRow();
   Coupon.meetups();
