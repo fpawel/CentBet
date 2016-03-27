@@ -44,11 +44,7 @@ module Site =
 
     [<Website>]
     let Main =
-        #if DEBUG
-
-        #else
         Betfair.Football.Coupon.start()
-        #endif        
         Application.MultiPage (fun ctx -> function
             | Coupon -> CouponPage ctx 
             | Console -> ConsolePage ctx 
