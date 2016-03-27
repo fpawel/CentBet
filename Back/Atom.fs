@@ -48,9 +48,7 @@ module Helpers =
 
     type M1<'T> = 
         | Get of AsyncReplyChannel<'T> 
-        | Set of 'T * AsyncReplyChannel<unit> 
-        | Upd of ('T -> 'T) * AsyncReplyChannel<unit>
-        | UpdAsync of ('T -> Async<'T> ) * AsyncReplyChannel<unit>
+        | Upd of ('T -> Async<'T> ) * AsyncReplyChannel<'T>
 
 module Logs = 
 
@@ -72,22 +70,20 @@ type Atom<'a> ( what, init, logs : Logs.Options<'a>   ) =
         | Get (r : AsyncReplyChannel<'a>) -> 
             r.Reply value         
             return value
-        | Set (newValue : 'a, r) -> 
-            r.Reply ()                
-            return newValue
-        | Upd (f,r) ->             
-            r.Reply ()
-            return f value 
-        | UpdAsync (f,r) ->             
-            r.Reply ()
-            let! value = f value
-            return value }
+        | Upd (f,r) ->        
+            try
+                let! newvalue = f value 
+                r.Reply newvalue
+                return newvalue 
+            with e ->
+                Logging.error "-atom-update-exception %A : %A" what e
+                return value }
 
     let mbox = MailboxProcessor.Start(fun agent ->  async {        
         Logging.debug "-atom-started %s" what 
         let rec loop (value) = async{            
             let! msg = agent.Receive()
-            let! value' = processMessage (msg, value)         
+            let! value' = processMessage (msg, value)
             if not <| logs.Equality value value' then
                 Logging.debug  "-atom-cahnged  %s : %s -> %s" what (logs.Format value) (logs.Format value')   
             return! loop value' }        
@@ -105,9 +101,13 @@ type Atom<'a> ( what, init, logs : Logs.Options<'a>   ) =
 
     member __.What = what
     member __.Get ()  = mbox.PostAndAsyncReply Get
-    member x.Set value = mbox.PostAndAsyncReply <| fun r -> Set (value,r) 
-    member x.Update f = mbox.PostAndAsyncReply <| fun r -> Upd (f,r) 
-    member x.UpdateAsync f = mbox.PostAndAsyncReply <| fun r -> UpdAsync (f,r) 
+    member x.UpdateAsync f = mbox.PostAndAsyncReply <| fun r -> Upd (f,r) 
+    member x.Update f = x.UpdateAsync (fun x -> async{ return f x  } )
+    member x.Set value = 
+        x.Update (fun _ -> value)
+        |> Async.map ignore
+    
+    
 
 let atom what init logs = Atom<'a> ( what, init, logs )
 
@@ -120,55 +120,40 @@ type Status(what,init) =
 
     member x.Atom = atom
 
-    member x.Set1<'a> (format : 'a -> string) (value : Either<string,'a> )  = 
+    member x.Set1 (value : string option )  = 
         match value with
-        | Left error -> DateTime.Now, Logging.Error, error
-        | Right value -> DateTime.Now,  Logging.Info, ( format value )
+        | Some error -> DateTime.Now, Logging.Error, error
+        | _ -> DateTime.Now,  Logging.Info, "Ok"
         |> atom.Set
 
-    member x.Set level value = 
+    member x.Set (level,value) = 
         atom.Set (DateTime.Now,  level, value)
 
-type TodayValue<'a> (what, request: unit -> Async< 'a option>, logs ) = 
 
-    let atom = atom what None logs
+type Temporary<'a> (what, validTime, logs) = 
+    let atom = atom what None logs    
 
-    let update() = async {
-        let! x = request()
-        do! atom.Set <|
-            match x with
-            | Some x -> Some (DateTime.Now, x)
-            | _ -> None        
-        return x }
+    let update f = atom.UpdateAsync <| fun value -> async{
+        let! (value : 'a option) = value |> Option.bind( fun (d, x) ->  if validTime d then Some x else None) |> f
+        return value |> Option.map( fun x -> DateTime.Now,x ) } 
 
     member __.Get() = 
-        async{
-            let! x = atom.Get()
-            match x with
-            | None  -> return! update()
-            | Some (d,_) when not (d.DateEquals DateTime.Now) -> return! update()
-            | Some(_,x) -> return Some x }
+        update Async.id |> Async.mapOption snd
 
-
-
-type TodayValueRef<'a > (what ,init : 'a, logs) = 
-    let atom = atom what None logs
-    member __.Get() = async{
-        let! x = atom.Get()
-        match x with
-        | None  -> return init
-        | Some (d,_) when not ( DateTime.dateEquals (d,DateTime.Now) ) -> return init
-        | Some(_,x) -> return x }
     member __.Set x = atom.Set (Some (DateTime.Now,x))
-    member __.UpdateAsync f = atom.UpdateAsync <| fun r -> async{        
-        let! x = f (match r with None -> init | Some (_,x) -> x)
-        return Some (DateTime.Now, x) }
-    member __.Update f = atom.Update <| fun r -> 
-        let x = f (match r with None -> init | Some (_,x) -> x)
-        Some (DateTime.Now, x) 
 
-let todayValue what init logs = TodayValue(what, init, logs)
-let todayValueRef what init logs = TodayValueRef(what, init, logs)
+    member __.Update f = 
+        update f 
+        |> Async.mapOption snd
+        |> Async.map ignore
+
+let temporary what logs validTime  = 
+    Temporary( what, validTime, logs)
+
+
+let today what logs = 
+    temporary what logs ( fun d -> d.DateEquals DateTime.Now)
+    
 let withLogsByValue<'a when 'a : equality> what (init : 'a ) = atom what init Logs.byValue
 let status what init = Status(what,init)
 

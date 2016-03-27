@@ -5,7 +5,6 @@ open System
 open WebSharper
 open WebSharper.JavaScript
 
-
 let rec trimEnd = function
     | "",_ -> ""
     | s, [] -> s
@@ -34,6 +33,14 @@ let getDatePart (x:JavaScript.Date) =
 
 [<Inline "createBlobFromString($arg)">]
 let createBlobFromString (arg : string) : Blob = failwith "n/a"
+
+
+let (|Left|Right|) = function
+    | Choice1Of2 a -> Left a
+    | Choice2Of2 b -> Right b
+
+let Left = Choice1Of2
+let Right = Choice2Of2
 
 module LocalStorage = 
     open WebSharper.UI.Next

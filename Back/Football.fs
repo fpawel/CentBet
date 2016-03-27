@@ -20,8 +20,6 @@ type Game =
         away        : string} 
     static member id x = x.gameId
 
-type xxx = decimal option
-
 type Kef = 
     {   back : decimal option
         lay : decimal option }

@@ -1,0 +1,55 @@
+*{
+    margin:0;
+    padding:0;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;    
+}
+
+.home-team {
+    color : RoyalBlue;    
+}
+
+.away-team {
+    color : SteelBlue;
+}
+
+.game-status {
+    color : #009900 ;
+}
+
+.game-gpb {
+    color : #009900 ;
+}
+
+.game-country {
+    color : #009900 ;
+}
+
+
+.kef {
+    text-align : center;
+    padding : 2px;
+    min-width : 10px;
+    font-family : Tahoma, Verdana, Arial, sans-serif;
+    font-size : 13px;
+    font-weight : bold;
+}
+
+.kef-back {
+    background : #72bbef;
+}
+
+tr:hover td.kef-back {
+    background: #4F9BD0;
+}
+
+.kef-lay {
+    background : #faa9ba;
+}
+tr:hover td.kef-lay {
+    background: #DF8397;
+}
+

@@ -13,8 +13,6 @@ open CentBet.Client.Utils
 let doc (x : Elt) = x :> Doc 
 let (~%%) = doc
 
-
-
 type RecordType = 
     | RResponseOk
     | RResponseError
@@ -37,9 +35,16 @@ type Cmd =  {
 let cmdKey x = x.Id
 
 let varCommandsHistory = 
-    ListModel.CreateWithStorage cmdKey (Storage.LocalStorage "CentBetConsoleCommandsHistory" Serializer.Default)
+    try
+        ListModel.CreateWithStorage cmdKey (Storage.LocalStorage "CentBetConsoleCommandsHistory" Serializer.Default)
+    with e ->
+        ListModel.Create cmdKey []
+
 let varConsole = 
-    ListModel.CreateWithStorage recordKey (Storage.LocalStorage "CentBetConsole" Serializer.Default)
+    try
+        ListModel.CreateWithStorage recordKey (Storage.LocalStorage "CentBetConsole" Serializer.Default)
+    with e ->
+        ListModel.Create recordKey []
 
 let ``cmd-input`` = "cmd-input"
 
@@ -74,7 +79,8 @@ let send (inputText : string) = async{
         | Success x -> addRecord RResponseOk x
         | Failure x -> addRecord RResponseError x
     with e ->
-        addRecord RResponseError e.Message  }
+        addRecord RResponseError e.Message  
+        }
 
 
 let mutable varCmd = None
@@ -98,7 +104,7 @@ let tryGetCommandFromHistory isnext =
             | _ -> 0
     Seq.nth n xs |> Some
 
-let renderInput () =         
+let renderInput () =
    
 
     let varInput = Var.Create ""
@@ -127,19 +133,16 @@ let renderInput () =
                 yield on.keyDown ( fun _ e -> 
                     let key : int = e?keyCode
                     match key with
-                    | 13 -> Async.Start doSend 
+                    | 13 -> 
+                        match varInput.Value.ToLower() with
+                        | "-clear-output" -> varConsole.Clear()
+                        | "-clear-hist" -> varCommandsHistory.Clear()
+                        | _ -> Async.Start doSend 
                     | 38 -> setCommandFromHistory true
                     | 40 -> setCommandFromHistory false 
                     | _ -> () )
                 ] varInput  :> Doc ]
-        |> Doc.Concat )
-                
-
-                
-                
-//            vHandleKeypressed |> View.Map (fun _ -> Doc.Empty) |> Doc.EmbedView 
-            
-         
+        |> Doc.Concat )         
     |> Doc.EmbedView
 
 let RenderCommandPrompt() = 
@@ -148,18 +151,6 @@ let RenderCommandPrompt() =
         %% labelAttr [ attr.``for`` ``cmd-input`` ] [ text "Input here:" ]
         renderInput ()  ] 
     |>  Doc.Concat 
-
-let RenderMenu() =     
-    [   aAttr [
-            yield attr.href "#"
-            yield Attr.Handler "click" (fun _ _ -> varConsole.Clear()  ) ]
-            [text "Clear console"]  
-        aAttr [
-            yield attr.href "#"
-            yield Attr.Handler "click" (fun _ _ -> varCommandsHistory.Clear()  ) ]
-            [text "Clear history"] ] 
-    |> List.map( fun x -> x :> Doc )
-    |> Doc.Concat 
 
 
 let RenderRecords() = varConsole.View |> Doc.BindSeqCachedView  ( fun r -> 

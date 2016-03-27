@@ -79,7 +79,7 @@ module Helpers =
             return Failure ``access denied`` }
 
 [<Rpc>]
-let getCoupon x = Betfair.Football.Coupon.getCoupon x
+let getCouponPage (games,npage,pagelen) = Betfair.Football.Coupon.getCouponPage (games,npage,pagelen)
   
 [<Rpc>]
 let perform (request : string )= 
@@ -95,24 +95,37 @@ let perform (request : string )=
         | Cmd (n,f)::args when args.Length = n -> 
             return! webprotected ctx <| f args 
         | _ -> return  Failure ``bad request`` }
+
+[<Rpc>]
+let hasServerBetfairsSession() = 
+    Betfair.Login.auth.Get()
+    |> Async.map Option.isSome
     
 [<Rpc>]
-let getEventsCatalogue ids = getEventsCatalogue ids
+let getEventsCatalogue ids = Events.get ids
 
-module MarketCatalogue = 
-    open MarketCatalogue 
+[<Rpc>]
+let getMarketsCatalogue gameId = async{    
+    let! m = Betfair.Football.Coupon.MarketsCatalogue.get gameId
+    return m |> Option.map ( fun m ->       
+        m |> List.map( fun x ->             
+            let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
+            x.marketId.marketId, x.marketName, runners, Option.map int x.totalMatched ) ) }
 
-    [<Rpc>]
-    let getTotalMatchedOfEvent gameId = getTotalMatchedOfEvent gameId
-        
-    [<Rpc>]
-    let getMemoized gameId = getMemoized gameId
+[<Rpc>]
+let getTotalMatched gameId = async{
+    let! m = Football.Coupon.MarketsCatalogue.get gameId
+    match m with
+    | None -> return Map.empty
+    | Some m ->
+        return 
+            m |> List.choose( fun x -> 
+                x.totalMatched |> Option.map ( fun v -> 
+                    x.marketId.marketId, int v ))
+            |> Map.ofList }
+    
+    
 
-    [<Rpc>]
-    let getNotMemoized gameId = getNotMemoized gameId
-
-    [<Rpc>]
-    let getWithTotalMatched gameId = getWithTotalMatched gameId
 
         
 

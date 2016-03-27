@@ -17,24 +17,12 @@ module Templating =
     open WebSharper.UI.Next.Html
 
     type MainTemplate = Templating.Template<"Main.html">
-    
-
-    // Compute a menubar where the menu item for the given endpoint is active
-    let NavBar (ctx: Context<EndPoint>) endpoint =
-        let refEndpoint a = 
-            [   yield attr.href (ctx.Link a) 
-                if endpoint = a then yield attr.``class`` "active" ]
-        [   match endpoint with 
-            | Coupon -> yield client <@ Coupon.RenderMenu() @>
-            | Console -> 
-                yield aAttr (refEndpoint Coupon) [text "Bact to coupon"] :> Doc 
-                yield client <@ Admin.RenderMenu() @> 
-            | _ -> yield Doc.Empty ]
+        
+        
     let Main ctx action title body =
        Content.Page(            
             MainTemplate.Doc(
-                title = title,
-                navbar = NavBar ctx action,
+                title = title,                
                 body = body ))
 
 module Site =
@@ -57,6 +45,7 @@ module Site =
     [<Website>]
     let Main =
         #if DEBUG
+
         #else
         Betfair.Football.Coupon.start()
         #endif        

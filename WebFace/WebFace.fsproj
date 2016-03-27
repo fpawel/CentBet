@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <WebSharperSourceMap>True</WebSharperSourceMap>
+    <OtherFlags>--quotations-debug</OtherFlags>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
@@ -43,18 +45,19 @@
   <ItemGroup>
     <Compile Include="Remote.fs" />
     <Compile Include="Api.fs" />
+    <Compile Include="Resources.fs" />
     <Compile Include="ClientUtils.fs" />
     <Compile Include="CouponPage.fs" />
     <Compile Include="AdminPage.fs" />
     <Compile Include="Main.fs" />
     <Content Include="PromptPassword.html" />
-    <Content Include="Main.html">
+    <Content Include="main.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Main.js">
+    <Content Include="utils.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Main.css">
+    <Content Include="coupon.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="favicon.ico">
@@ -73,10 +76,11 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="FSharp.Core">
+      <HintPath>..\..\CentBetLocalhost\packages\FSharp.Core.3.1.2.5\lib\net40\FSharp.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Data.DataSetExtensions.dll" />
     <Reference Include="System.Numerics" />
@@ -88,51 +92,51 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq.dll" />
     <Reference Include="WebSharper.Collections">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Collections.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Collections.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Control">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Control.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Control.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Core">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Core.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Core.JavaScript">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Core.JavaScript.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Core.JavaScript.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.InterfaceGenerator">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.InterfaceGenerator.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.InterfaceGenerator.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.JavaScript">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.JavaScript.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.JavaScript.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.JQuery">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.JQuery.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.JQuery.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Main">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Main.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Main.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Sitelets">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Sitelets.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Sitelets.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.UI.Next">
-      <HintPath>..\packages\WebSharper.UI.Next.3.6.8.204\lib\net40\WebSharper.UI.Next.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.UI.Next.3.6.8.204\lib\net40\WebSharper.UI.Next.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.UI.Next.Templating">
-      <HintPath>..\packages\WebSharper.UI.Next.3.6.8.204\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.UI.Next.3.6.8.204\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WebSharper.Web">
-      <HintPath>..\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Web.dll</HintPath>
+      <HintPath>..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\lib\net40\WebSharper.Web.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -214,5 +218,7 @@
       <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />
+    <Error Condition="!Exists('..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />
   </Target>
+  <Import Project="..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets" Condition="Exists('..\..\CentBetLocalhost\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" />
 </Project>

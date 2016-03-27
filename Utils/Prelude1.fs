@@ -127,6 +127,8 @@ module Async =
         match x' with
         | Left x -> return Left ( f x)
         | x -> return x }
+
+    let id<'a> (x:'a) = async{ return x } 
     
     
 

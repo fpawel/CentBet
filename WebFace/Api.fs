@@ -25,7 +25,7 @@ let fail x = async{ return x |> Left  |> serialize }
 
 type Action = 
     | LoginBetfair of string * string * string
-    | GetCoupon of ((GameId * int) list) * bool
+    | GetCouponPage of ((GameId * int) list) * int * int
 
     //| TestSet1 of ((GameId * int) list) * bool
     
@@ -36,8 +36,8 @@ let callAction = function
         if not <| Remote.isValidPassword adminpass then fail Remote.``access denied`` else
         Betfair.Login.login betuser betpass
         |> Async.map serialize 
-    | GetCoupon (x,y) ->
-        Coupon.getCoupon (x,y)
+    | GetCouponPage (x,y,z) ->
+        Coupon.getCouponPage (x,y,z)
         |> Async.map serialize
     
 let processInput (inputStream : System.IO.Stream) = 
@@ -67,8 +67,8 @@ let loginBetfair apiurl (adminpass, betuser, betpass) = async{
         | Right auth -> return  auth }
     
 
-let getCoupon apiurl (games, inplay) = async{    
-    let _,send = RestApi.makeRequest apiurl (serialize <| GetCoupon (games, inplay) )
+let getCoupon apiurl (games, npage, pagelen) = async{    
+    let _,send = RestApi.makeRequest apiurl (serialize <| GetCouponPage (games, npage, pagelen) )
     let! x,_ = send
     return 
         match x with
