@@ -275,10 +275,12 @@ let calcGamesDiff reqGames games =
 
 type CouponResponse = NewGame1 list * UpdGame1 list * Set<OutGame1> * int
 let getCouponPage (reqGames, npage, pagelen) : Async<CouponResponse> = async{
+    
     let! games = async{ 
         let! inplay = Coupon.Inplay.Get()
         let! foreplay = Coupon.Foreplay.Get()
         return inplay @ foreplay }
+    let pagelen = if pagelen < 1 then games.Length else pagelen
     let pages = 
         games 
         |> Seq.mapi( fun n x -> n,x)

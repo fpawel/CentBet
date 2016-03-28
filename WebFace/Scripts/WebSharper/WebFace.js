@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,ServerBetfairsSession,Work,PrintfHelpers,console,Meetup,Utils,LocalStorage,EventCatalogue,View1,Operators,Date,JSON,window,Collections,MapModule,FSharpSet,BalancedTree,Slice,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,Storage1,Json,Provider,Id,ListModel,Coupon,PageLen,Utils,LocalStorage,Work,ServerBetfairsSession,SettingsDialog,PrintfHelpers,console,Meetup,EventCatalogue,View1,Operators,Date,JSON,window,Collections,MapModule,FSharpSet,BalancedTree,Slice,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -492,6 +492,46 @@
        return x.game.gameId;
       }
      }),
+     PageLen:{
+      get:function()
+      {
+       return PageLen.validateValue(Var1.Get(PageLen["var"]()));
+      },
+      localStorageKey:Runtime.Field(function()
+      {
+       return"pageLen";
+      }),
+      set:function(value)
+      {
+       var value1,_;
+       value1=PageLen.validateValue(value);
+       if(value1!==Var1.Get(PageLen["var"]()))
+        {
+         Var1.Set(PageLen["var"](),value1);
+         _=LocalStorage.set(PageLen.localStorageKey(),value1);
+        }
+       else
+        {
+         _=null;
+        }
+       return _;
+      },
+      validateValue:function(v)
+      {
+       return v<10?10:v>40?40:v;
+      },
+      "var":Runtime.Field(function()
+      {
+       var v,arg00;
+       v=LocalStorage.getWithDef(PageLen.localStorageKey(),30);
+       arg00=PageLen.validateValue(v);
+       return Var.Create(arg00);
+      }),
+      view:Runtime.Field(function()
+      {
+       return PageLen["var"]().get_View();
+      })
+     },
      Render:function()
      {
       var tupledArg,arg00,arg01,arg02,arg10,tupledArg1,arg001,arg011,arg021,arg101,tupledArg2,arg002,arg012,arg022,arg102,tupledArg3,arg003,arg013,arg023,arg103,arg004,arg104,_arg00_1;
@@ -501,7 +541,7 @@
       arg02=tupledArg[2];
       arg10=function()
       {
-       return ServerBetfairsSession.check();
+       return Coupon.processCoupon();
       };
       Work["new"](arg00,arg01,arg02,arg10);
       tupledArg1=["CHECK-SERVER-BETFAIRS-SESSION",0,0];
@@ -510,7 +550,7 @@
       arg021=tupledArg1[2];
       arg101=function()
       {
-       return Coupon.processCoupon();
+       return ServerBetfairsSession.check();
       };
       Work["new"](arg001,arg011,arg021,arg101);
       tupledArg2=["EVENTS-CATALOGUE",0,0];
@@ -575,6 +615,92 @@
       hasServerBetfairsSession:Runtime.Field(function()
       {
        return true;
+      })
+     },
+     SettingsDialog:{
+      buttonDoc:function(n)
+      {
+       var x,arg00,_arg00_;
+       x=PageLen.view();
+       arg00=function(pageLen)
+       {
+        var _,x1;
+        if((n?pageLen===40:false)?true:!n?pageLen===10:false)
+         {
+          _=Doc.get_Empty();
+         }
+        else
+         {
+          x1=SettingsDialog.buttonElt(n,pageLen);
+          _=Coupon.doc(x1);
+         }
+        return _;
+       };
+       _arg00_=View.Map(arg00,x);
+       return Doc.EmbedView(_arg00_);
+      },
+      buttonElt:function(n,pageLen)
+      {
+       var t;
+       t=n?"+":"-";
+       return Doc.Element("button",List.ofArray([SettingsDialog.op_SpliceUntyped("w3-btn w3-teal"),AttrProxy.Create("style","margin: 10px; width: 50px; height: 50px;"),AttrModule.Handler("click",function()
+       {
+        return function()
+        {
+         var matchValue,_,_1,value,_2,value1;
+         matchValue=[n,pageLen];
+         if(matchValue[0])
+          {
+           if(matchValue[1]===40)
+            {
+             _1=null;
+            }
+           else
+            {
+             value=pageLen+(n?1:-1);
+             _1=PageLen.set(value);
+            }
+           _=_1;
+          }
+         else
+          {
+           if(matchValue[1]===10)
+            {
+             _2=null;
+            }
+           else
+            {
+             value1=pageLen+(n?1:-1);
+             _2=PageLen.set(value1);
+            }
+           _=_2;
+          }
+         return _;
+        };
+       })]),List.ofArray([Doc.TextNode(t)]));
+      },
+      "id'":Runtime.Field(function()
+      {
+       return"id-settings-dialog";
+      }),
+      op_SpliceUntyped:function(arg00)
+      {
+       return AttrProxy.Create("class",arg00);
+      },
+      render:Runtime.Field(function()
+      {
+       var ats,ats1,ats2,arg10,arg20,arg00,arg101;
+       ats=List.ofArray([SettingsDialog.op_SpliceUntyped("w3-modal"),AttrProxy.Create("id",SettingsDialog["id'"]())]);
+       ats1=List.ofArray([SettingsDialog.op_SpliceUntyped("w3-modal-content w3-animate-zoom w3-card-8")]);
+       ats2=List.ofArray([SettingsDialog.op_SpliceUntyped("w3-container w3-teal")]);
+       arg10="document.getElementById('"+PrintfHelpers.toSafe(SettingsDialog["id'"]())+"').style.display='none'";
+       arg20=List.ofArray([Doc.TextNode("\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e \u043c\u0430\u0442\u0447\u0435\u0439 \u043d\u0430 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435")]);
+       arg00=function(value)
+       {
+        return Global.String(value);
+       };
+       arg101=PageLen.view();
+       return Doc.Element("div",ats,List.ofArray([Doc.Element("div",ats1,List.ofArray([Doc.Element("header",ats2,List.ofArray([Doc.Element("span",List.ofArray([SettingsDialog.op_SpliceUntyped("w3-closebtn"),AttrProxy.Create("onclick",arg10)]),List.ofArray([Doc.TextNode("×")])),Doc.Element("h2",[],arg20)])),Doc.Element("div",List.ofArray([SettingsDialog.op_SpliceUntyped("w3-xxlarge"),AttrProxy.Create("style","margin : 10px; float : left;")]),List.ofArray([Doc.TextView(View.Map(arg00,arg101))])),SettingsDialog.buttonDoc(true),SettingsDialog.buttonDoc(false)]))]));
       })
      },
      Work:Runtime.Class({},{
@@ -793,7 +919,7 @@
      {
       return Concurrency.Delay(function()
       {
-       var mapping,source,source1,request,x;
+       var mapping,source,source1,request,pagelen,clo1,x;
        mapping=function(m)
        {
         return[m.game.gameId,m.hash];
@@ -801,7 +927,15 @@
        source=Var1.Get(Coupon.meetups().Var);
        source1=Seq.map(mapping,source);
        request=Seq.toList(source1);
-       x=AjaxRemotingProvider.Async("WebFace:0",[request,Var1.Get(Coupon.varCurrentPageNumber()),30]);
+       pagelen=PageLen.get();
+       clo1=function(_)
+       {
+        var s;
+        s="pagelen "+Global.String(_);
+        return console?console.log(s):undefined;
+       };
+       clo1(pagelen);
+       x=AjaxRemotingProvider.Async("WebFace:0",[request,Var1.Get(Coupon.varCurrentPageNumber()),pagelen]);
        return Concurrency.Bind(x,function(_arg1)
        {
         var updGms,outGms,newGms,gamesCount,pagesCount,a,_;
@@ -809,7 +943,7 @@
         outGms=_arg1[2];
         newGms=_arg1[0];
         gamesCount=_arg1[3];
-        pagesCount=(gamesCount/30>>0)+1;
+        pagesCount=(gamesCount/pagelen>>0)+1;
         if(Var1.Get(Coupon.varPagesCount())!==pagesCount)
          {
           Var1.Set(Coupon.varPagesCount(),pagesCount);
@@ -1149,8 +1283,8 @@
      },
      renderPagination:Runtime.Field(function()
      {
-      var _builder_183_1,x,_arg00_;
-      _builder_183_1=View.get_Do();
+      var _builder_228_1,x,_arg00_;
+      _builder_228_1=View.get_Do();
       x=Coupon.varPagesCount().get_View();
       _arg00_=View1.Bind(function(_arg1)
       {
@@ -1165,7 +1299,7 @@
          _=View1.Bind(function(_arg2)
          {
           var x2,aShowDialog,list,arg00;
-          x2="document.getElementById('"+PrintfHelpers.toSafe(Coupon["settingsDialog'id"]())+"').style.display='block'";
+          x2="document.getElementById('"+PrintfHelpers.toSafe(SettingsDialog["id'"]())+"').style.display='block'";
           aShowDialog=AttrProxy.Create("onclick",x2);
           list=Seq.toList(Seq.delay(function()
           {
@@ -1188,7 +1322,7 @@
               }));
              }));
             }));
-            t="\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u0430 "+Global.String(n+1);
+            t=Global.String(n+1);
             arg20=List.ofArray([Doc.Element("a",aattrs,List.ofArray([Doc.TextNode(t)]))]);
             return Doc.Element("li",[],arg20);
            },Operators.range(0,_arg1-1)),Seq.delay(function()
@@ -1208,16 +1342,6 @@
        return _;
       },x);
       return Doc.EmbedView(_arg00_);
-     }),
-     renderSettingsDialog:Runtime.Field(function()
-     {
-      var ats,ats1,ats2,arg10,arg20;
-      ats=List.ofArray([AttrProxy.Create("class","w3-modal"),AttrProxy.Create("id",Coupon["settingsDialog'id"]())]);
-      ats1=List.ofArray([AttrProxy.Create("class","w3-modal-content w3-animate-zoom w3-card-8")]);
-      ats2=List.ofArray([AttrProxy.Create("class","w3-container w3-teal")]);
-      arg10="document.getElementById('"+PrintfHelpers.toSafe(Coupon["settingsDialog'id"]())+"').style.display='none'";
-      arg20=List.ofArray([Doc.TextNode("\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438")]);
-      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",ats1,List.ofArray([Doc.Element("header",ats2,List.ofArray([Doc.Element("span",List.ofArray([AttrProxy.Create("class","w3-closebtn"),AttrProxy.Create("onclick",arg10)]),List.ofArray([Doc.TextNode("×")])),Doc.Element("h2",[],arg20)])),Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-container")]),List.ofArray([Doc.TextNode("Some text")])),Doc.Element("footer",List.ofArray([AttrProxy.Create("class","w3-container w3-teal")]),List.ofArray([Doc.TextNode("modal footer")]))]))]));
      }),
      "render\u0421oupon":Runtime.Field(function()
      {
@@ -1244,11 +1368,7 @@
       arg10=Coupon.meetups().get_View();
       _arg00_=View.Map(arg00,arg10);
       arg201=List.ofArray([Doc.EmbedView(_arg00_)]);
-      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.Element("div",ats1,List.ofArray([Doc.Element("table",ats2,List.ofArray([Doc.Element("thead",[],arg20),Doc.Element("tbody",[],arg201)]))])),Coupon.renderSettingsDialog()]));
-     }),
-     "settingsDialog'id":Runtime.Field(function()
-     {
-      return"id-settings-dialog";
+      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.Element("div",ats1,List.ofArray([Doc.Element("table",ats2,List.ofArray([Doc.Element("thead",[],arg20),Doc.Element("tbody",[],arg201)]))])),SettingsDialog.render()]));
      }),
      stvr:function(x,value)
      {
@@ -1606,7 +1726,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",8,18));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",8,18));
              }
             _4=_5;
            }
@@ -1677,13 +1797,15 @@
   Id=Runtime.Safe(Provider.Id);
   ListModel=Runtime.Safe(Next.ListModel);
   Coupon=Runtime.Safe(Client.Coupon);
-  ServerBetfairsSession=Runtime.Safe(Coupon.ServerBetfairsSession);
+  PageLen=Runtime.Safe(Coupon.PageLen);
+  Utils=Runtime.Safe(Client.Utils);
+  LocalStorage=Runtime.Safe(Utils.LocalStorage);
   Work=Runtime.Safe(Coupon.Work);
+  ServerBetfairsSession=Runtime.Safe(Coupon.ServerBetfairsSession);
+  SettingsDialog=Runtime.Safe(Coupon.SettingsDialog);
   PrintfHelpers=Runtime.Safe(Global.WebSharper.PrintfHelpers);
   console=Runtime.Safe(Global.console);
   Meetup=Runtime.Safe(Coupon.Meetup);
-  Utils=Runtime.Safe(Client.Utils);
-  LocalStorage=Runtime.Safe(Utils.LocalStorage);
   EventCatalogue=Runtime.Safe(Coupon.EventCatalogue);
   View1=Runtime.Safe(Next.View1);
   Operators=Runtime.Safe(Global.WebSharper.Operators);
@@ -1703,14 +1825,17 @@
   Coupon.varPagesCount();
   Coupon.varDataRecived();
   Coupon.varCurrentPageNumber();
-  Coupon["settingsDialog'id"]();
   Coupon["render\u0421oupon"]();
-  Coupon.renderSettingsDialog();
   Coupon.renderPagination();
   Coupon.renderGamesHeaderRow();
   Coupon.meetups();
   Coupon.eventsCatalogue();
+  SettingsDialog.render();
+  SettingsDialog["id'"]();
   ServerBetfairsSession.hasServerBetfairsSession();
+  PageLen.view();
+  PageLen["var"]();
+  PageLen.localStorageKey();
   Admin.varConsole();
   Admin.varCommandsHistory();
   Admin.varCmd();

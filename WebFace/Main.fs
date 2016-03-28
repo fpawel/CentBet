@@ -13,15 +13,11 @@ type EndPoint =
     | [<EndPoint "POST /api">] ApiCall
 
 
-module Templating =
+module CouponTemple =
     open WebSharper.UI.Next.Html
-
-    type MainTemplate = Templating.Template<"Main.html">
-        
-        
-    let Main ctx action title body =
+    let page ctx action title body =
        Content.Page(            
-            MainTemplate.Doc(
+            Templating.Template<"coupon.html">.Doc(
                 title = title,                
                 body = body ))
 
@@ -35,11 +31,11 @@ module Site =
 
     
     let CouponPage ctx =
-        Templating.Main ctx EndPoint.Coupon "Купон" [ client <@ Coupon.Render() @> ]
+        CouponTemple.page ctx EndPoint.Coupon "Купон" [ client <@ Coupon.Render() @> ]
 
     let ConsolePage ctx = async{         
         return!
-            Templating.Main ctx Console "Console" [ client <@ Admin.Render()@> ]
+            CouponTemple.page ctx Console "Console" [ client <@ Admin.Render()@> ]
         }
 
     [<Website>]

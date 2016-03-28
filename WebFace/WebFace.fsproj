@@ -43,21 +43,14 @@
   <ItemGroup>
     <Compile Include="Remote.fs" />
     <Compile Include="Api.fs" />
-    <Compile Include="Resources.fs" />
     <Compile Include="ClientUtils.fs" />
     <Compile Include="CouponPage.fs" />
     <Compile Include="AdminPage.fs" />
     <Compile Include="Main.fs" />
-    <Content Include="main.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="utils.js">
+    <Content Include="coupon.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="coupon.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="material-icons.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="favicon.ico">

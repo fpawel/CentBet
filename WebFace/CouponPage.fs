@@ -68,6 +68,28 @@ let varDataRecived = Var.Create false
 let varCurrentPageNumber = Var.Create 0
 let varPagesCount = Var.Create 1
 
+module PageLen =
+    let private localStorageKey = "pageLen"
+    let private validateValue v = 
+        if v < 10 then 10
+        elif v > 40 then 40 
+        else v
+
+    let private var = 
+        LocalStorage.getWithDef localStorageKey 30
+        |> validateValue 
+        |> Var.Create 
+
+    let set value =
+        let value = validateValue value
+        if value <> var.Value then
+            var.Value <- value 
+            LocalStorage.set localStorageKey value
+
+    let get() = validateValue var.Value
+
+    let view = var.View
+
 let updateTotalMatched gameId toltalMatched = 
     match meetups.TryFindByKey gameId with
     | Some game -> game.totalMatched.Value <- Some toltalMatched
@@ -122,7 +144,9 @@ let renderMeetup (x : Meetup) =
     let bck' = kef' true 
     let lay' = kef' false 
 
-    [   doc <| td[ x.order.View |> View.Map ( fun (page,n) -> sprintf "%d.%d" page n) |> textView ]
+    
+    [   doc <| td[ x.order.View |> View.Map ( fun (page,n) -> 
+            sprintf "%d.%d" page n) |> textView ]
         doc <| tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ] 
         View.Do{
                 let! playMinute = x.playMinute.View
@@ -161,24 +185,45 @@ let renderGamesHeaderRow = [
     th  [text "GPB"]  
     th  [] ] 
 
-let settingsDialog'id = "id-settings-dialog"
-let renderSettingsDialog = 
+module SettingsDialog = 
     
-    divAttr[ 
-        attr.``class`` "w3-modal" 
-        attr.id settingsDialog'id] [
-        divAttr [ attr.``class`` "w3-modal-content w3-animate-zoom w3-card-8" ] [
-            headerAttr [ attr.``class`` "w3-container w3-teal" ] [
-                spanAttr [ 
-                    attr.``class`` "w3-closebtn" 
-                    Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='none'" settingsDialog'id)] 
-                    [ text "×" ] 
-                h2 [ text "Настройки" ] ]
-            divAttr [  attr.``class`` "w3-container" ] 
-                [ text "Some text" ]
-            footerAttr [ attr.``class`` "w3-container w3-teal" ] 
-                [ text "modal footer" ] ]]
+    let id' = "id-settings-dialog"
+    let private (~%%) = attr.``class``
 
+    let private buttonElt n pageLen =             
+        buttonAttr [ 
+            %% "w3-btn w3-teal"
+            attr.style "margin: 10px; width: 50px; height: 50px;"
+            on.click (fun _ _ -> 
+                match n, pageLen with
+                | true, 40 -> ()
+                | false, 10 -> ()
+                | _ ->  PageLen.set <| pageLen + (if n then 1 else -1) ) ]
+            [text <| if n then "+" else "-"] 
+
+    let private buttonDoc n =            
+        PageLen.view |> View.Map( fun pageLen ->  
+            if n && pageLen = 40 || not n && pageLen = 10 then Doc.Empty else
+            doc <| buttonElt n pageLen )
+        |> Doc.EmbedView
+    
+    let render =    
+        divAttr[ 
+            %% "w3-modal" 
+            attr.id id'] [
+            divAttr [ %% "w3-modal-content w3-animate-zoom w3-card-8" ] [
+                headerAttr [ %% "w3-container w3-teal" ] [
+                    spanAttr [ 
+                        %% "w3-closebtn" 
+                        Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='none'" id')] 
+                        [ text "×" ] 
+                    h2 [ text "Количество матчей на странице" ] ]
+                divAttr [
+                    %% "w3-xxlarge"
+                    attr.style "margin : 10px; float : left;"] [ 
+                    Doc.TextView ( View.Map string  PageLen.view ) ]
+                buttonDoc true
+                buttonDoc false ] ] 
 
 let renderPagination =  Doc.EmbedView <| View.Do{
 
@@ -188,14 +233,14 @@ let renderPagination =  Doc.EmbedView <| View.Do{
             yield Attr.Handler "click" (fun e x -> 
                 varCurrentPageNumber.Value <- n  )
             if n=npage then yield attr.``class`` "w3-green"]        
-        li[ aAttr aattrs [ text <| sprintf "Страница %d" (n+1) ] ] 
+        li[ aAttr aattrs [ text <| sprintf "%d" (n+1) ] ] 
 
     let! pagescount = varPagesCount.View
     if pagescount<2 then return Doc.Empty else
     let! npage = varCurrentPageNumber.View
 
     let aShowDialog = 
-        Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='block'" settingsDialog'id)
+        Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='block'" SettingsDialog.id')
 
     return 
         [   for n in 0..pagescount-1 do                
@@ -214,11 +259,9 @@ let renderСoupon =
                 tbody [
                     meetups.View |> View.Map( Seq.map (renderMeetup >> doc)  >> Doc.Concat )
                     |> Doc.EmbedView ] ] ] 
-        renderSettingsDialog
+        SettingsDialog.render
                     
                     ]
-    
-    
 
 let stvr<'a when 'a : equality> (x:Var<'a>) (value : 'a) =
     if x.Value <> value then
@@ -255,7 +298,8 @@ let processCoupon() = async{
         meetups.Value 
         |> Seq.map(fun m -> m.game.gameId, m.hash)
         |> Seq.toList
-    let pagelen = 30
+    let pagelen = PageLen.get()
+    printfn "pagelen %d" pagelen
     let! newGms,updGms,outGms, gamesCount = CentBet.Remote.getCouponPage (request, varCurrentPageNumber.Value, pagelen)
     let pagesCount = gamesCount / pagelen + 1
     if varPagesCount.Value <> pagesCount then
@@ -343,16 +387,9 @@ type Work =
         do! Work.loop x
         printfn "task %A : terminated" x.what }
 
-
-
-
-[<Require(typeof<Resources.W3Css>)>]
-[<Require(typeof<Resources.MaterialIcons>)>]
-[<Require(typeof<Resources.CouponCss>)>]
-[<Require(typeof<Resources.UtilsJs>)>]
 let Render() =
-    Work.``new`` ("COUPON", 0, 0) ServerBetfairsSession.check    
-    Work.``new`` ("CHECK-SERVER-BETFAIRS-SESSION", 0, 0) processCoupon    
+    Work.``new`` ("COUPON", 0, 0) processCoupon 
+    Work.``new`` ("CHECK-SERVER-BETFAIRS-SESSION", 0, 0) ServerBetfairsSession.check        
     Work.``new`` ("EVENTS-CATALOGUE", 0, 0) processEvents
     Work.``new`` ("MARKETS-CATALOGUE", 0, 0) processMarkets
     varDataRecived.View |> View.Map ( function
