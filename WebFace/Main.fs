@@ -14,11 +14,10 @@ type EndPoint =
 
 
 module CouponTemple =
-    open WebSharper.UI.Next.Html
-    let page ctx action title body =
+    //open WebSharper.UI.Next.Html
+    let page ctx action body =
        Content.Page(            
             Templating.Template<"coupon.html">.Doc(
-                title = title,                
                 body = body ))
 
 module Site =
@@ -28,22 +27,14 @@ module Site =
 
     open Json
 
-
-    
-    let CouponPage ctx =
-        CouponTemple.page ctx EndPoint.Coupon "Купон" [ client <@ Coupon.Render() @> ]
-
-    let ConsolePage ctx = async{         
-        return!
-            CouponTemple.page ctx Console "Console" [ client <@ Admin.Render()@> ]
-        }
-
     [<Website>]
     let Main =
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
-            | Coupon -> CouponPage ctx 
-            | Console -> ConsolePage ctx 
+            | Coupon -> 
+                Content.Page(Templating.Template<"coupon.html">.Doc( [ client <@ Coupon.Render() @> ] ))
+            | Console -> 
+                Content.Page(Templating.Template<"console.html">.Doc( [ client <@ Admin.Render() @> ] ))
             | ApiCall -> 
                 CentBet.Api.processInput ctx.Request.Body
                 |> Async.bind
@@ -53,5 +44,3 @@ module Site =
                             Http.Header.Custom "ContentType" "UTF-8"
                             Http.Header.Custom "AcceptEncoding" "gzip,deflate,sdch"] ))
 
-[<assembly:System.Web.UI.WebResource("https://fonts.googleapis.com/icon?family=Material+Icons", "text/css")>]
-do ()

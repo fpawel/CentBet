@@ -22,6 +22,7 @@ type RunnerCatalog = {
 type MarketCatalogue = {   
     marketId : int
     marketName : string 
+    totalMatched : int option
     runners : RunnerCatalog list }
 
 type EventCatalogue = 
@@ -67,11 +68,13 @@ let meetups = ListModel.Create Meetup.id []
 let varDataRecived = Var.Create false
 let varCurrentPageNumber = Var.Create 0
 let varPagesCount = Var.Create 1
+let varColumnGpbVisible = Var.Create false
+let varColumnCountryVisible = Var.Create false
 
 module PageLen =
     let private localStorageKey = "pageLen"
     let private validateValue v = 
-        if v < 10 then 10
+        if v < 10 then 30
         elif v > 40 then 40 
         else v
 
@@ -95,13 +98,19 @@ let updateTotalMatched gameId toltalMatched =
     | Some game -> game.totalMatched.Value <- Some toltalMatched
     | _ -> ()
 
-
 let tryGetEvent gameId = eventsCatalogue.Value |> Seq.tryFind( fun {gameId = gameId'} -> gameId = gameId' )
 
 let tryGetCountry gameId  =
     tryGetEvent gameId  |> function
         | Some {country = Some country} -> country
         | _ -> ""
+
+let getLastTotakMatched gameId = 
+    eventsCatalogue.TryFindByKey gameId 
+    |> Option.bind( fun e -> 
+        match e.markets |> List.choose( fun m -> m.totalMatched ) with
+        | [] -> None
+        | v -> v |> List.sum |> Some )
 
 let addNewGames newGames = 
     let existedMeetups = meetups.Value |> Seq.toList                    
@@ -123,7 +132,7 @@ let addNewGames newGames =
             loseLay     = Var.Create i.loseLay
             hash = hash 
             country = Var.Create country 
-            totalMatched = Var.Create None} )
+            totalMatched = Var.Create <| getLastTotakMatched game.gameId} )
 
     |> Seq.append existedMeetups 
     |> Seq.sortBy ( fun x -> x.order.Value )  
@@ -165,25 +174,47 @@ let renderMeetup (x : Meetup) =
         lay' x.drawLay
         bck' x.loseBack
         lay' x.loseLay 
-        x.totalMatched.View |> View.Map( function 
-            | None -> td [] 
-            | Some totalMatched -> 
-                    tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]  ) 
-            |> Doc.EmbedView         
-        doc <| tdAttr [ attr.``class`` "game-country" ] [ Doc.TextView x.country.View ]  ] 
+        View.Do{
+            let! x1 = x.totalMatched.View
+            let! x2 = varColumnGpbVisible.View
+            return x1,x2 }  
+        |> View.Map( function 
+            | _,false -> Doc.Empty
+            | None,true -> doc <| td []             
+            | Some totalMatched,_ -> 
+                tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]
+                |> doc ) 
+        |> Doc.EmbedView 
+            
+        View.Do{
+            let! x1 = x.country.View
+            let! x2 = varColumnCountryVisible.View
+            return x1,x2 } 
+        |> View.Map( function 
+                | _,false -> Doc.Empty
+                | country,_ ->
+                    tdAttr [ attr.``class`` "game-country" ] [ Doc.TextView x.country.View ]
+                    |> doc )
+        |> Doc.EmbedView  ] 
     |> tr 
 
 let renderGamesHeaderRow = [   
-    th [text "№"]
-    th [text "1"]
-    th [] 
-    th [text "2"]
-    th []
-    thAttr [ attr.colspan "2" ] [text "1"]
-    thAttr [ attr.colspan "2" ] [text "×"]
-    thAttr [ attr.colspan "2" ] [text "2"] 
-    th  [text "GPB"]  
-    th  [] ] 
+    yield![   
+        th [text "№"]
+        th [text "Дома"]
+        th [] 
+        th [text "В гостях"]
+        th []
+        thAttr [ attr.colspan "2" ] [text "Победа"]
+        thAttr [ attr.colspan "2" ] [text "Ничья"]
+        thAttr [ attr.colspan "2" ] [text "Поражение"] ] |> List.map doc
+    
+    yield   
+        varColumnGpbVisible.View |> View.Map( function
+            | true -> doc <| th  [text "GPB"]   
+            | false -> Doc.Empty )
+        |> Doc.EmbedView
+    yield doc <| th [] ] 
 
 module SettingsDialog = 
     
@@ -236,12 +267,10 @@ let renderPagination =  Doc.EmbedView <| View.Do{
         li[ aAttr aattrs [ text <| sprintf "%d" (n+1) ] ] 
 
     let! pagescount = varPagesCount.View
-    if pagescount<2 then return Doc.Empty else
+    
     let! npage = varCurrentPageNumber.View
-
     let aShowDialog = 
         Attr.Create "onclick" (sprintf "document.getElementById('%s').style.display='block'" SettingsDialog.id')
-
     return 
         [   for n in 0..pagescount-1 do                
                 yield renderPageLink npage n 
@@ -255,7 +284,7 @@ let renderСoupon =
             ulAttr [attr.``class`` "w3-pagination w3-border w3-round"] [ renderPagination ] ]   
         divAttr [ attr.``class`` "w3-responsive" ][
             tableAttr[ attr.``class`` "w3-table w3-bordered w3-striped w3-hoverable" ] [   
-                thead[ trAttr [ Attr.Class "coupon-header-row w3-pale-green" ] ( Seq.map doc renderGamesHeaderRow) ]
+                thead[ trAttr [ Attr.Class "coupon-header-row w3-pale-green" ] renderGamesHeaderRow ]
                 tbody [
                     meetups.View |> View.Map( Seq.map (renderMeetup >> doc)  >> Doc.Concat )
                     |> Doc.EmbedView ] ] ] 
@@ -270,12 +299,11 @@ let stvr<'a when 'a : equality> (x:Var<'a>) (value : 'a) =
 let updateCoupon (newGms,updGms,outGms) = 
     
     if List.isEmpty newGms |> not then
-        printfn "adding new games %d" newGms.Length
         addNewGames newGms    
 
     if Seq.isEmpty outGms |> not then
         outGms |> Set.iter( meetups.RemoveByKey )
-        printfn "removing out games %d" ( Seq.length outGms)
+        
     
     updGms |> List.iter ( fun (gameId, i : GameInfo, hash) -> 
         match meetups.TryFindByKey gameId with
@@ -299,9 +327,8 @@ let processCoupon() = async{
         |> Seq.map(fun m -> m.game.gameId, m.hash)
         |> Seq.toList
     let pagelen = PageLen.get()
-    printfn "pagelen %d" pagelen
     let! newGms,updGms,outGms, gamesCount = CentBet.Remote.getCouponPage (request, varCurrentPageNumber.Value, pagelen)
-    let pagesCount = gamesCount / pagelen + 1
+    let pagesCount = gamesCount / pagelen + ( if gamesCount % pagelen = 0 then 0 else 1 )
     if varPagesCount.Value <> pagesCount then
         varPagesCount.Value <- pagesCount
     if varCurrentPageNumber.Value  > pagesCount then
@@ -318,47 +345,75 @@ module ServerBetfairsSession =
     let has() = hasServerBetfairsSession
     let hasNot() = not hasServerBetfairsSession
 
+let getGamesEvents() = 
+    let events = eventsCatalogue.Value
+    meetups.Value 
+    |> Seq.map( fun m -> 
+        m.game.gameId, events |> Seq.tryFind( fun e -> e.gameId = m.game.gameId ) ) 
+    |> Seq.toList
+
+let updateColumnCountryVisible() = 
+    let hasCountry = meetups.Value |> Seq.exists( fun x -> x.country.Value <> "")
+    if varColumnCountryVisible.Value <> hasCountry then
+        varColumnCountryVisible.Value <- hasCountry
+
 let processEvents() = async{
-    let events' = eventsCatalogue.Value
-    let request =
-        meetups.Value 
-        |> Seq.choose(fun m -> 
-            match events' |> Seq.tryFind( fun e -> e.gameId = m.game.gameId) with
-            | None -> Some m.game.gameId
-            | _ -> None )
-        |> Seq.toList
-    if request.IsEmpty || ServerBetfairsSession.hasNot() then () else
-    
-    let! newEvents =  CentBet.Remote.getEventsCatalogue request
-    
+    updateColumnCountryVisible()
+    let gamesWithoutEvent =
+        getGamesEvents()
+        |> List.choose ( function gameId, None -> Some gameId | _ -> None)
+    if gamesWithoutEvent.IsEmpty || ServerBetfairsSession.hasNot() then () else    
+    let! newEvents =  CentBet.Remote.getEventsCatalogue gamesWithoutEvent    
     for gameId, name, country in newEvents do
         eventsCatalogue.Add  { gameId = gameId; country = country; markets = []  } 
     for m in meetups.Value do
         m.country.Value <- tryGetCountry m.game.gameId } 
 
+let setMarket gameId values =
+    values 
+    |> List.choose( fun (_,_,_,x) -> x ) 
+    |> List.fold (+) 0
+    |> updateTotalMatched gameId
+
+
+    let markets = values |> List.map( fun (marketId, marketName, runners, totalMatched) -> 
+        {   marketName = marketName 
+            marketId = marketId            
+            totalMatched = totalMatched
+            runners = runners |> List.map( fun (runnerNamem, selectionId) -> 
+                {   selectionId = selectionId
+                    runnerName = runnerNamem } ) } )
+    eventsCatalogue.UpdateBy (fun x -> Some {x with markets = markets}) gameId
+
 let processMarkets() = async{
-    let events' = 
-        eventsCatalogue.Value |> Seq.filter( fun x -> x.markets.IsEmpty )
-        |> Seq.toList
-
-    if List.isEmpty events' || ServerBetfairsSession.hasNot() then () else  
-
-    for ev in events' do
-        let! m = CentBet.Remote.getMarketsCatalogue ev.gameId
+    let gamesWithoutMarkets = 
+        getGamesEvents()
+        |> List.choose ( function gameId, Some {markets = []} -> Some gameId | _ -> None)
+    if List.isEmpty gamesWithoutMarkets || ServerBetfairsSession.hasNot() then () else
+    for gameId in gamesWithoutMarkets do
+        let! m = CentBet.Remote.getMarketsCatalogue gameId
         match m with
         | None -> ()
-        | Some value ->             
-            value 
-            |> List.choose( fun (_,_,_,x) -> x ) 
-            |> List.fold (+) 0
-            |> updateTotalMatched ev.gameId
-            let markets = value |> List.map( fun (marketId, marketName, runners,_) -> 
-                {   marketId = marketId
-                    marketName = marketName 
-                    runners = runners |> List.map( fun (runnerNamem, selectionId) -> 
-                        {   selectionId = selectionId
-                            runnerName = runnerNamem } ) } )
-            eventsCatalogue.UpdateBy (fun x -> Some {x with markets = markets}) ev.gameId } 
+        | Some values -> setMarket gameId values  } 
+
+let updateColumnGpbVisible() = 
+    let hasGpb = meetups.Value |> Seq.exists( fun x -> x.totalMatched.Value.IsSome )
+    if varColumnGpbVisible.Value <> hasGpb then
+        varColumnGpbVisible.Value <- hasGpb
+
+let processTotalMatched() = async{
+    updateColumnGpbVisible()
+    let gamesWithMarkets = 
+        getGamesEvents()
+        |> List.choose ( function gameId, Some {markets = _::_} -> Some gameId | _ -> None)
+
+    if List.isEmpty gamesWithMarkets || ServerBetfairsSession.hasNot() then () else  
+
+    for gameId in gamesWithMarkets do
+        let! m = CentBet.Remote.getTotalMatched gameId
+        if m.IsEmpty then () else
+            m |> Map.fold( fun acc _ value -> acc + value ) 0
+            |> updateTotalMatched gameId } 
    
 type Work = 
     {   what : string
@@ -392,6 +447,7 @@ let Render() =
     Work.``new`` ("CHECK-SERVER-BETFAIRS-SESSION", 0, 0) ServerBetfairsSession.check        
     Work.``new`` ("EVENTS-CATALOGUE", 0, 0) processEvents
     Work.``new`` ("MARKETS-CATALOGUE", 0, 0) processMarkets
+    Work.``new`` ("TOTAL-MATCHED", 0, 0) processTotalMatched
     varDataRecived.View |> View.Map ( function
         | false -> h1 [ text "Данные загружаются с сервера. Пожалуйста, подождите."] 
         | _ -> renderСoupon )     

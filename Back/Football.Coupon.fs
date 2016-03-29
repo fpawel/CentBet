@@ -192,30 +192,38 @@ module TotalMatched =
             |> Map.ofList 
         return existed, missedIds }
 
-    let ofMarkets ((eventId:int, mainMarketId:int) as gameId) marketsIds = async{
-        let! (existed, missedIds) = getExisted gameId marketsIds
-        if missedIds.IsEmpty then return existed else
-        let! auth = Login.auth.Get()
-        match auth with
-        | None ->  return existed
-        | Some auth ->
-            let! r = ApiNG.Services.listMarketCatalogue auth eventId
-            do! status.Set1 ( leftSome r )
-            match r with
-            | Left _ -> return Map.empty
-            | Right r ->
-                let readed =
-                    r |> List.map( fun x -> 
-                        let k = eventId, mainMarketId, x.marketId.marketId
-                        let v = DateTime.Now, Option.fold (+) 0m x.totalMatched
-                        k, v)
-                do! state.Update ( fun m -> Map.union m ( Map.ofList readed) )
-                    |> Async.Ignore
-                return 
-                    readed 
-                    |> List.map( fun ((_,_,marketId),(_,v)) -> marketId, v)
-                    |> Map.ofList
-                    |> Map.union existed }
+    let get ( ( eventId, mainMarketId) as gameId ) = async{
+        let! markets = MarketsCatalogue.get gameId
+        match markets with 
+        | None -> return Map.empty
+        | Some markets ->
+            let marketsIds = markets |> List.map (fun m -> m.marketId.marketId)
+            let! (existed, missedIds) = getExisted gameId marketsIds
+            if missedIds.IsEmpty then return existed else
+            let! auth = Login.auth.Get()
+            match auth with
+            | None ->  return existed
+            | Some auth ->
+                let! r = ApiNG.Services.listMarketCatalogue auth eventId
+                do! status.Set1 ( leftSome r )
+                match r with
+                | Left _ -> return Map.empty
+                | Right r ->
+                    let readed =
+                        r |> List.map( fun x -> 
+                            let k = eventId, mainMarketId, x.marketId.marketId
+                            let ttm = 
+                                Option.map int x.totalMatched 
+                                |> Option.fold (+) 0 
+                            let v = DateTime.Now, ttm
+                            k, v)
+                    do! state.Update ( fun m -> Map.union m ( Map.ofList readed) )
+                        |> Async.Ignore
+                    return 
+                        readed 
+                        |> List.map( fun ((_,_,marketId),(_,v)) -> marketId, v)
+                        |> Map.ofList
+                        |> Map.union existed }
 
     
 

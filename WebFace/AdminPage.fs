@@ -35,16 +35,30 @@ type Cmd =  {
 let cmdKey x = x.Id
 
 let varCommandsHistory = 
-    try
-        ListModel.CreateWithStorage cmdKey (Storage.LocalStorage "CentBetConsoleCommandsHistory" Serializer.Default)
-    with e ->
-        ListModel.Create cmdKey []
+    let k = "CentBetConsoleCommandsHistory"
+    let x = 
+        try
+            printfn "restoring list - %A" k
+            let x = ListModel.CreateWithStorage cmdKey (Storage.LocalStorage k Serializer.Default)
+            printfn "%A - %d" k x.Length
+            x
+        with e  ->
+            printfn "error when restoring %A - %A" k e
+            ListModel.Create cmdKey []
+    x
 
 let varConsole = 
-    try
-        ListModel.CreateWithStorage recordKey (Storage.LocalStorage "CentBetConsole" Serializer.Default)
-    with e ->
-        ListModel.Create recordKey []
+    let k = "CentBetConsole"
+    let x = 
+        try
+            printfn "restoring list - %A" k
+            let x = ListModel.CreateWithStorage recordKey (Storage.LocalStorage k Serializer.Default)
+            printfn "%A - %d" k x.Length
+            x
+        with e  ->
+            printfn "error when restoring %A - %A" k e
+            ListModel.Create recordKey []
+    x
 
 let ``cmd-input`` = "cmd-input"
 
@@ -53,10 +67,15 @@ let focus (el : Dom.Element) = ()
 
 let renderRecord = 
     View.Map( fun r ->
-        let back,fore = RecordType.color r.RecordType
-        %% spanAttr 
-            [Attr.Style "color" fore; Attr.Style "background" back] 
-            [ text r.Text ]  )
+        try
+            let back,fore = RecordType.color r.RecordType
+            %% spanAttr 
+                [Attr.Style "color" fore; Attr.Style "background" back] 
+                [ text r.Text ]            
+        with e ->
+            varCommandsHistory.Clear()
+            varConsole.Clear()
+            Doc.Empty )
     >> Doc.EmbedView
 
 
@@ -104,9 +123,7 @@ let tryGetCommandFromHistory isnext =
             | _ -> 0
     Seq.nth n xs |> Some
 
-let renderInput () =
-   
-
+let renderInput () =   
     let varInput = Var.Create ""
     let rvFocusInput = Var.Create ()
     let varDisableInput = Var.Create false
@@ -146,17 +163,17 @@ let renderInput () =
     |> Doc.EmbedView
 
 let RenderCommandPrompt() = 
-    
     [   %% spanAttr [ Attr.Style "margin-left" "10px" ] []
         %% labelAttr [ attr.``for`` ``cmd-input`` ] [ text "Input here:" ]
         renderInput ()  ] 
     |>  Doc.Concat 
 
 
-let RenderRecords() = varConsole.View |> Doc.BindSeqCachedView  ( fun r -> 
-    [   renderRecord r
-        %% br [] ]
-    |> Doc.Concat )
+let RenderRecords() = 
+    varConsole.View |> Doc.BindSeqCachedView  ( fun r -> 
+        [   renderRecord r
+            %% br [] ]
+        |> Doc.Concat  )
 
 let Render() = 
     [   RenderCommandPrompt()

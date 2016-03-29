@@ -106,25 +106,19 @@ let getEventsCatalogue ids = Events.get ids
 
 [<Rpc>]
 let getMarketsCatalogue gameId = async{    
-    let! m = Betfair.Football.Coupon.MarketsCatalogue.get gameId
-    return m |> Option.map ( fun m ->       
-        m |> List.map( fun x ->             
-            let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
-            x.marketId.marketId, x.marketName, runners, Option.map int x.totalMatched ) ) }
+    try
+        let! m = Betfair.Football.Coupon.MarketsCatalogue.get gameId
+        return m |> Option.map ( fun m ->       
+            m |> List.map( fun x ->             
+                let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
+                x.marketId.marketId, x.marketName, runners, Option.map Decimal.ToInt32 x.totalMatched ) ) 
+    with e ->
+        Logging.error "getMarketsCatalogue - %A" e 
+        return None }
 
 [<Rpc>]
-let getTotalMatched gameId = async{
-    let! m = Football.Coupon.MarketsCatalogue.get gameId
-    match m with
-    | None -> return Map.empty
-    | Some m ->
-        return 
-            m |> List.choose( fun x -> 
-                x.totalMatched |> Option.map ( fun v -> 
-                    x.marketId.marketId, int v ))
-            |> Map.ofList }
-    
-    
+let getTotalMatched gameId = 
+    Football.Coupon.TotalMatched.get gameId    
 
 
         
