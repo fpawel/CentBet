@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,PrintfHelpers,console,Storage1,Json,Provider,Id,ListModel,Coupon,PageLen,Utils,LocalStorage,Work,ServerBetfairsSession,SettingsDialog,Meetup,EventCatalogue,Collections,MapModule,View1,Operators,Date,JSON,window,FSharpSet,BalancedTree,Slice,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,PrintfHelpers,console,Storage1,Json,Provider,Id,ListModel,Coupon,PageLen,Utils,LocalStorage,Work,ServerBetfairsSession,SettingsDialog,Football,Meetup,EventCatalogue,Collections,MapModule,Meetup1,View1,Operators,Date,JSON,window,FSharpSet,BalancedTree,Slice,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -169,8 +169,8 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var arg00;
-      arg00=function(r)
+      var _arg00_69_2;
+      _arg00_69_2=function(r)
       {
        var _,patternInput,fore,back,e;
        try
@@ -191,7 +191,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(arg00,x);
+       _arg00_=View.Map(_arg00_69_2,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -548,18 +548,6 @@
      })
     },
     Coupon:{
-     EventCatalogue:Runtime.Class({},{
-      id:function(x)
-      {
-       return x.gameId;
-      }
-     }),
-     Meetup:Runtime.Class({},{
-      id:function(x)
-      {
-       return x.game.gameId;
-      }
-     }),
      PageLen:{
       get:function()
       {
@@ -602,51 +590,37 @@
      },
      Render:function()
      {
-      var tupledArg,arg00,arg01,arg02,arg10,tupledArg1,arg001,arg011,arg021,arg101,tupledArg2,arg002,arg012,arg022,arg102,tupledArg3,arg003,arg013,arg023,arg103,tupledArg4,arg004,arg014,arg024,arg104,arg005,arg105,_arg00_1;
+      var varDataRecived,tupledArg,arg00,arg01,arg02,arg10,tupledArg1,arg001,arg011,arg021,arg101,tupledArg2,arg002,arg012,arg022,arg102,tupledArg3,arg003,arg013,arg023,arg103,tupledArg4,arg004,arg014,arg024,arg104,arg005,arg105,_arg00_;
+      varDataRecived=Var.Create(false);
       tupledArg=["COUPON",0,0];
       arg00=tupledArg[0];
       arg01=tupledArg[1];
       arg02=tupledArg[2];
-      arg10=function()
-      {
-       return Coupon.processCoupon();
-      };
+      arg10=Coupon.processCoupon(varDataRecived);
       Work["new"](arg00,arg01,arg02,arg10);
       tupledArg1=["CHECK-SERVER-BETFAIRS-SESSION",0,0];
       arg001=tupledArg1[0];
       arg011=tupledArg1[1];
       arg021=tupledArg1[2];
-      arg101=function()
-      {
-       return ServerBetfairsSession.check();
-      };
+      arg101=ServerBetfairsSession.check();
       Work["new"](arg001,arg011,arg021,arg101);
       tupledArg2=["EVENTS-CATALOGUE",0,0];
       arg002=tupledArg2[0];
       arg012=tupledArg2[1];
       arg022=tupledArg2[2];
-      arg102=function()
-      {
-       return Coupon.processEvents();
-      };
+      arg102=Coupon.processEvents();
       Work["new"](arg002,arg012,arg022,arg102);
       tupledArg3=["MARKETS-CATALOGUE",0,0];
       arg003=tupledArg3[0];
       arg013=tupledArg3[1];
       arg023=tupledArg3[2];
-      arg103=function()
-      {
-       return Coupon.processMarkets();
-      };
+      arg103=Coupon.processMarkets();
       Work["new"](arg003,arg013,arg023,arg103);
       tupledArg4=["TOTAL-MATCHED",0,0];
       arg004=tupledArg4[0];
       arg014=tupledArg4[1];
       arg024=tupledArg4[2];
-      arg104=function()
-      {
-       return Coupon.processTotalMatched();
-      };
+      arg104=Coupon.processTotalMatched();
       Work["new"](arg004,arg014,arg024,arg104);
       arg005=function(_arg1)
       {
@@ -662,12 +636,12 @@
         }
        return _;
       };
-      arg105=Coupon.varDataRecived().get_View();
-      _arg00_1=View.Map(arg005,arg105);
-      return Doc.EmbedView(_arg00_1);
+      arg105=varDataRecived.get_View();
+      _arg00_=View.Map(arg005,arg105);
+      return Doc.EmbedView(_arg00_);
      },
      ServerBetfairsSession:{
-      check:function()
+      check:Runtime.Field(function()
       {
        return Concurrency.Delay(function()
        {
@@ -680,7 +654,7 @@
          return Concurrency.Return(null);
         });
        });
-      },
+      }),
       has:function()
       {
        return ServerBetfairsSession.hasServerBetfairsSession();
@@ -788,7 +762,7 @@
         var a;
         a=Concurrency.Delay(function()
         {
-         return Concurrency.Bind(x.work.call(null,null),function()
+         return Concurrency.Bind(x.work,function()
          {
           return Concurrency.Bind(Concurrency.Sleep(x.sleepInterval),function()
           {
@@ -930,8 +904,8 @@
      },
      eventsCatalogue:Runtime.Field(function()
      {
-      var dt,x,_,arg00,arg10,enc,e,clo1,arg002,arg101,clo11;
-      dt=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
+      var _dt_18_1,_x_19_7,_,arg00,arg10,enc,e,clo1,arg002,arg101,clo11;
+      _dt_18_1=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
       try
       {
        arg00=function(arg001)
@@ -966,7 +940,7 @@
        });
        _=ListModel.Create(arg002,arg101);
       }
-      x=_;
+      _x_19_7=_;
       clo11=function(_1)
       {
        return function(_2)
@@ -979,8 +953,8 @@
         };
        };
       };
-      ((clo11("CentBetEventsCatalogue"))(x.get_Length()))(dt);
-      return x;
+      ((clo11("CentBetEventsCatalogue"))(_x_19_7.get_Length()))(_dt_18_1);
+      return _x_19_7;
      }),
      getGamesEvents:function()
      {
@@ -1033,17 +1007,17 @@
      },
      meetups:Runtime.Field(function()
      {
-      var arg00,arg10;
-      arg00=function(arg001)
+      var _arg00_31_3,_arg10_31_4;
+      _arg00_31_3=function(arg00)
       {
-       return Meetup.id(arg001);
+       return Meetup.id(arg00);
       };
-      arg10=Runtime.New(T,{
+      _arg10_31_4=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(arg00,arg10);
+      return ListModel.Create(_arg00_31_3,_arg10_31_4);
      }),
-     processCoupon:function()
+     processCoupon:function(varDataRecived)
      {
       return Concurrency.Delay(function()
       {
@@ -1056,7 +1030,7 @@
        source1=Seq.map(mapping,source);
        request=Seq.toList(source1);
        pagelen=PageLen.get();
-       x=AjaxRemotingProvider.Async("WebFace:0",[request,Var1.Get(Coupon.varCurrentPageNumber()),pagelen]);
+       x=AjaxRemotingProvider.Async("WebFace:0",[request,Var1.Get(Coupon.varTargetPageNumber()),pagelen]);
        return Concurrency.Bind(x,function(_arg1)
        {
         var updGms,outGms,newGms,gamesCount,pagesCount,a,_;
@@ -1078,9 +1052,9 @@
         return Concurrency.Combine(a,Concurrency.Delay(function()
         {
          var a1,_1;
-         if(Var1.Get(Coupon.varCurrentPageNumber())>pagesCount)
+         if(Var1.Get(Coupon.varTargetPageNumber())>pagesCount)
           {
-           Var1.Set(Coupon.varCurrentPageNumber(),0);
+           Var1.Set(Coupon.varTargetPageNumber(),0);
            _1=Concurrency.Return(null);
           }
          else
@@ -1090,27 +1064,42 @@
          a1=_1;
          return Concurrency.Combine(a1,Concurrency.Delay(function()
          {
-          var _2;
-          if(!Var1.Get(Coupon.varDataRecived()))
+          var a2,value,_2;
+          value=Var1.Get(varDataRecived);
+          if(!value)
            {
-            Var1.Set(Coupon.varDataRecived(),true);
+            Var1.Set(varDataRecived,true);
             _2=Concurrency.Return(null);
            }
           else
            {
             _2=Concurrency.Return(null);
            }
-          return Concurrency.Combine(_2,Concurrency.Delay(function()
+          a2=_2;
+          return Concurrency.Combine(a2,Concurrency.Delay(function()
           {
-           Coupon.updateCoupon(newGms,updGms,outGms);
-           return Concurrency.Return(null);
+           var _3;
+           if(Var1.Get(Coupon.varCurrentPageNumber())!==Var1.Get(Coupon.varTargetPageNumber()))
+            {
+             Var1.Set(Coupon.varCurrentPageNumber(),Var1.Get(Coupon.varTargetPageNumber()));
+             _3=Concurrency.Return(null);
+            }
+           else
+            {
+             _3=Concurrency.Return(null);
+            }
+           return Concurrency.Combine(_3,Concurrency.Delay(function()
+           {
+            Coupon.updateCoupon(newGms,updGms,outGms);
+            return Concurrency.Return(null);
+           }));
           }));
          }));
         }));
        });
       });
      },
-     processEvents:function()
+     processEvents:Runtime.Field(function()
      {
       return Concurrency.Delay(function()
       {
@@ -1178,8 +1167,8 @@
         }
        return _1;
       });
-     },
-     processMarkets:function()
+     }),
+     processMarkets:Runtime.Field(function()
      {
       return Concurrency.Delay(function()
       {
@@ -1239,8 +1228,8 @@
         });
        });
       });
-     },
-     processTotalMatched:function()
+     }),
+     processTotalMatched:Runtime.Field(function()
      {
       return Concurrency.Delay(function()
       {
@@ -1312,214 +1301,22 @@
         });
        });
       });
-     },
-     renderGamesHeaderRow:Runtime.Field(function()
-     {
-      return Seq.toList(Seq.delay(function()
-      {
-       var list,arg20,arg201,arg202,arg203,arg204;
-       arg20=List.ofArray([Doc.TextNode("\u2116")]);
-       arg201=List.ofArray([Doc.TextNode("\u0414\u043e\u043c\u0430")]);
-       arg202=Runtime.New(T,{
-        $:0
-       });
-       arg203=List.ofArray([Doc.TextNode("\u0412 \u0433\u043e\u0441\u0442\u044f\u0445")]);
-       arg204=Runtime.New(T,{
-        $:0
-       });
-       list=List.ofArray([Doc.Element("th",[],arg20),Doc.Element("th",[],arg201),Doc.Element("th",[],arg202),Doc.Element("th",[],arg203),Doc.Element("th",[],arg204),Doc.Element("th",List.ofArray([AttrProxy.Create("colspan","2")]),List.ofArray([Doc.TextNode("\u041f\u043e\u0431\u0435\u0434\u0430")])),Doc.Element("th",List.ofArray([AttrProxy.Create("colspan","2")]),List.ofArray([Doc.TextNode("\u041d\u0438\u0447\u044c\u044f")])),Doc.Element("th",List.ofArray([AttrProxy.Create("colspan","2")]),List.ofArray([Doc.TextNode("\u041f\u043e\u0440\u0430\u0436\u0435\u043d\u0438\u0435")]))]);
-       return Seq.append(List.map(function(x)
-       {
-        return Coupon.doc(x);
-       },list),Seq.delay(function()
-       {
-        var arg00,arg10,_arg00_;
-        arg00=function(_arg1)
-        {
-         var _,arg205,x;
-         if(_arg1)
-          {
-           arg205=List.ofArray([Doc.TextNode("GPB")]);
-           x=Doc.Element("th",[],arg205);
-           _=Coupon.doc(x);
-          }
-         else
-          {
-           _=Doc.get_Empty();
-          }
-         return _;
-        };
-        arg10=Coupon.varColumnGpbVisible().get_View();
-        _arg00_=View.Map(arg00,arg10);
-        return Seq.append([Doc.EmbedView(_arg00_)],Seq.delay(function()
-        {
-         var arg205,x;
-         arg205=Runtime.New(T,{
-          $:0
-         });
-         x=Doc.Element("th",[],arg205);
-         return[Coupon.doc(x)];
-        }));
-       }));
-      }));
      }),
-     renderMeetup:function(x)
+     renderMeetup:Runtime.Field(function()
      {
-      var _kef_,_bck_,_lay_,ch,arg20,arg001,arg101,v2,x2,x3,_builder_,x4,_arg00_,xa,xb,xc,arg002,_arg00_1,xd,arg003,_arg00_2;
-      _kef_=function(back)
+      var tupledArg,viewColumnGpbVisible,viewColumnCountryVisible;
+      tupledArg=[Coupon.varColumnGpbVisible().get_View(),Coupon.varColumnCountryVisible().get_View()];
+      viewColumnGpbVisible=tupledArg[0];
+      viewColumnCountryVisible=tupledArg[1];
+      return function(x)
       {
-       return function(v)
-       {
-        var x1,arg00,arg10,v1;
-        arg00=function(_arg1)
-        {
-         return Utils.formatDecimalOption(_arg1);
-        };
-        arg10=v.get_View();
-        v1=View.Map(arg00,arg10);
-        x1=Doc.Element("td",List.ofArray([AttrProxy.Create("class",back?"kef kef-back":"kef kef-lay")]),List.ofArray([Doc.TextView(v1)]));
-        return Coupon.doc(x1);
-       };
+       return Meetup1.renderMeetup(viewColumnGpbVisible,viewColumnCountryVisible,x);
       };
-      _bck_=_kef_(true);
-      _lay_=_kef_(false);
-      arg001=function(tupledArg)
-      {
-       var page,n;
-       page=tupledArg[0];
-       n=tupledArg[1];
-       return Global.String(page)+"."+Global.String(n);
-      };
-      arg101=x.order.get_View();
-      v2=View.Map(arg001,arg101);
-      arg20=List.ofArray([Doc.TextView(v2)]);
-      x2=Doc.Element("td",[],arg20);
-      x3=Doc.Element("td",List.ofArray([AttrProxy.Create("class","home-team")]),List.ofArray([Doc.TextNode(x.game.home)]));
-      _builder_=View.get_Do();
-      x4=x.playMinute.get_View();
-      _arg00_=View1.Bind(function(_arg1)
-      {
-       var x1;
-       x1=x.summary.get_View();
-       return View1.Bind(function(_arg2)
-       {
-        var _,_1,x5,_2,x6,arg201,x7,_3,x8,arg202,x9;
-        if(_arg1.$==1)
-         {
-          if(_arg2!=="")
-           {
-            x5=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
-            _1=Coupon.doc(x5);
-           }
-          else
-           {
-            if(_arg2!=="")
-             {
-              x6=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
-              _2=Coupon.doc(x6);
-             }
-            else
-             {
-              arg201=Runtime.New(T,{
-               $:0
-              });
-              x7=Doc.Element("td",[],arg201);
-              _2=Coupon.doc(x7);
-             }
-            _1=_2;
-           }
-          _=_1;
-         }
-        else
-         {
-          if(_arg2!=="")
-           {
-            x8=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
-            _3=Coupon.doc(x8);
-           }
-          else
-           {
-            arg202=Runtime.New(T,{
-             $:0
-            });
-            x9=Doc.Element("td",[],arg202);
-            _3=Coupon.doc(x9);
-           }
-          _=_3;
-         }
-        return View1.Const(_);
-       },x1);
-      },x4);
-      xa=Doc.Element("td",List.ofArray([AttrProxy.Create("class","away-team")]),List.ofArray([Doc.TextNode(x.game.away)]));
-      xb=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextView(x.status.get_View())]));
-      View.get_Do();
-      xc=View1.Bind(function(_arg3)
-      {
-       return View1.Bind(function(_arg4)
-       {
-        return View1.Const([_arg3,_arg4]);
-       },Coupon.varColumnGpbVisible().get_View());
-      },x.totalMatched.get_View());
-      arg002=function(_arg5)
-      {
-       var _,_1,totalMatched,x1,t,arg201,x5;
-       if(_arg5[1])
-        {
-         if(_arg5[0].$==1)
-          {
-           totalMatched=_arg5[0].$0;
-           t=Global.String(totalMatched);
-           x1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-gpb")]),List.ofArray([Doc.TextNode(t)]));
-           _1=Coupon.doc(x1);
-          }
-         else
-          {
-           arg201=Runtime.New(T,{
-            $:0
-           });
-           x5=Doc.Element("td",[],arg201);
-           _1=Coupon.doc(x5);
-          }
-         _=_1;
-        }
-       else
-        {
-         _=Doc.get_Empty();
-        }
-       return _;
-      };
-      _arg00_1=View.Map(arg002,xc);
-      View.get_Do();
-      xd=View1.Bind(function(_arg6)
-      {
-       return View1.Bind(function(_arg7)
-       {
-        return View1.Const([_arg6,_arg7]);
-       },Coupon.varColumnCountryVisible().get_View());
-      },x.country.get_View());
-      arg003=function(_arg8)
-      {
-       var _,x1;
-       if(_arg8[1])
-        {
-         _arg8[0];
-         x1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-country")]),List.ofArray([Doc.TextView(x.country.get_View())]));
-         _=Coupon.doc(x1);
-        }
-       else
-        {
-         _=Doc.get_Empty();
-        }
-       return _;
-      };
-      _arg00_2=View.Map(arg003,xd);
-      ch=List.ofArray([Coupon.doc(x2),Coupon.doc(x3),Doc.EmbedView(_arg00_),Coupon.doc(xa),Coupon.doc(xb),_bck_(x.winBack),_lay_(x.winLay),_bck_(x.drawBack),_lay_(x.drawLay),_bck_(x.loseBack),_lay_(x.loseLay),Doc.EmbedView(_arg00_1),Doc.EmbedView(_arg00_2)]);
-      return Doc.Element("tr",[],ch);
-     },
+     }),
      renderPagination:Runtime.Field(function()
      {
-      var _builder_,x,_arg00_;
-      _builder_=View.get_Do();
+      var _builder_158_3,x,_arg00_;
+      _builder_158_3=View.get_Do();
       x=Coupon.varPagesCount().get_View();
       _arg00_=View1.Bind(function(_arg1)
       {
@@ -1543,11 +1340,11 @@
             {
              return function()
              {
-              return Var1.Set(Coupon.varCurrentPageNumber(),n);
+              return Var1.Set(Coupon.varTargetPageNumber(),n);
              };
             })],Seq.delay(function()
             {
-             return n===_arg2?[AttrProxy.Create("class","w3-green")]:Seq.empty();
+             return n===_arg2?[AttrProxy.Create("class","w3-teal")]:Seq.empty();
             }));
            }));
           }));
@@ -1572,27 +1369,51 @@
      }),
      "render\u0421oupon":Runtime.Field(function()
      {
-      var ats,ats1,ats2,arg20,arg201,mapping,arg00,arg10,_arg00_;
-      ats=List.ofArray([AttrProxy.Create("class","w3-container")]);
-      ats1=List.ofArray([AttrProxy.Create("class","w3-responsive")]);
-      ats2=List.ofArray([AttrProxy.Create("class","w3-table w3-bordered w3-striped w3-hoverable")]);
-      arg20=List.ofArray([Doc.Element("tr",List.ofArray([AttrModule.Class("coupon-header-row w3-pale-green")]),Coupon.renderGamesHeaderRow())]);
-      mapping=function(x)
+      var ats,arg20,ats1,arg201,arg202,x,f,mapping,arg00,x3,_etable_183_4,ats2,_builder_195_2,x4,_arg00_;
+      ats=List.ofArray([AttrProxy.Create("class","w3-responsive")]);
+      ats1=List.ofArray([AttrProxy.Create("class","w3-table w3-bordered w3-striped w3-hoverable")]);
+      arg201=List.ofArray([Doc.Element("tr",List.ofArray([AttrModule.Class("coupon-header-row w3-teal")]),Meetup1.renderGamesHeaderRow(Coupon.varColumnGpbVisible().get_View()))]);
+      x=Coupon.meetups().get_View();
+      f=Coupon.renderMeetup();
+      mapping=function(x1)
       {
-       var x1;
-       x1=Coupon.renderMeetup(x);
-       return Coupon.doc(x1);
+       var x2;
+       x2=f(x1);
+       return Coupon.doc(x2);
       };
-      arg00=function(x)
+      arg00=function(x1)
       {
        var arg001;
-       arg001=Seq.map(mapping,x);
+       arg001=Seq.map(mapping,x1);
        return Doc.Concat(arg001);
       };
-      arg10=Coupon.meetups().get_View();
-      _arg00_=View.Map(arg00,arg10);
-      arg201=List.ofArray([Doc.EmbedView(_arg00_)]);
-      return Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.Element("div",ats1,List.ofArray([Doc.Element("table",ats2,List.ofArray([Doc.Element("thead",[],arg20),Doc.Element("tbody",[],arg201)]))])),SettingsDialog.render()]));
+      x3=View.Map(arg00,x);
+      arg202=List.ofArray([Doc.EmbedView(x3)]);
+      arg20=List.ofArray([Doc.Element("table",ats1,List.ofArray([Doc.Element("thead",[],arg201),Doc.Element("tbody",[],arg202)]))]);
+      _etable_183_4=Doc.Element("div",ats,arg20);
+      ats2=List.ofArray([AttrProxy.Create("class","w3-container")]);
+      _builder_195_2=View.get_Do();
+      x4=Coupon.varCurrentPageNumber().get_View();
+      _arg00_=View1.Bind(function(_arg1)
+      {
+       return View1.Bind(function(_arg2)
+       {
+        var x1,_,arg203,t;
+        if(_arg1===_arg2)
+         {
+          _=_etable_183_4;
+         }
+        else
+         {
+          t="\u0412\u044b\u043f\u043e\u043b\u043d\u044f\u0435\u0442\u0441\u044f \u043f\u0435\u0440\u0435\u0445\u043e\u0434 \u043a \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435 \u2116 "+Global.String(_arg2+1)+"...";
+          arg203=List.ofArray([Doc.TextNode(t)]);
+          _=Doc.Element("h1",[],arg203);
+         }
+        x1=_;
+        return View1.Const(Coupon.doc(x1));
+       },Coupon.varTargetPageNumber().get_View());
+      },x4);
+      return Doc.Element("div",ats2,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.EmbedView(_arg00_),SettingsDialog.render()]));
      }),
      setMarket:function(_,_1,_2)
      {
@@ -1777,7 +1598,9 @@
         }
        return _1;
       };
-      return Seq.iter(action1,updGms);
+      Seq.iter(action1,updGms);
+      Coupon.updateColumnCountryVisible();
+      return Coupon.updateColumnGpbVisible();
      },
      updateTotalMatched:function(_,_1,_2)
      {
@@ -1810,14 +1633,241 @@
      {
       return Var.Create(0);
      }),
-     varDataRecived:Runtime.Field(function()
-     {
-      return Var.Create(false);
-     }),
      varPagesCount:Runtime.Field(function()
      {
       return Var.Create(1);
+     }),
+     varTargetPageNumber:Runtime.Field(function()
+     {
+      return Var.Create(0);
      })
+    },
+    Football:{
+     EventCatalogue:Runtime.Class({},{
+      id:function(x)
+      {
+       return x.gameId;
+      }
+     }),
+     Meetup:Runtime.Class({},{
+      id:function(x)
+      {
+       return x.game.gameId;
+      }
+     })
+    },
+    Meetup:{
+     doc:function(x)
+     {
+      return x;
+     },
+     renderGamesHeaderRow:function(viewColumnGpbVisible)
+     {
+      return Seq.toList(Seq.delay(function()
+      {
+       var list,arg20,arg201,arg202,arg203,arg204;
+       arg20=List.ofArray([Doc.TextNode("\u2116")]);
+       arg201=List.ofArray([Doc.TextNode("\u0414\u043e\u043c\u0430")]);
+       arg202=Runtime.New(T,{
+        $:0
+       });
+       arg203=List.ofArray([Doc.TextNode("\u0412 \u0433\u043e\u0441\u0442\u044f\u0445")]);
+       arg204=Runtime.New(T,{
+        $:0
+       });
+       list=List.ofArray([Doc.Element("th",[],arg20),Doc.Element("th",[],arg201),Doc.Element("th",[],arg202),Doc.Element("th",[],arg203),Doc.Element("th",[],arg204),Doc.Element("th",List.ofArray([AttrProxy.Create("colspan","2")]),List.ofArray([Doc.TextNode("\u041f\u043e\u0431\u0435\u0434\u0430")])),Doc.Element("th",List.ofArray([AttrProxy.Create("colspan","2")]),List.ofArray([Doc.TextNode("\u041d\u0438\u0447\u044c\u044f")])),Doc.Element("th",List.ofArray([AttrProxy.Create("colspan","2")]),List.ofArray([Doc.TextNode("\u041f\u043e\u0440\u0430\u0436\u0435\u043d\u0438\u0435")]))]);
+       return Seq.append(List.map(function(x)
+       {
+        return Meetup1.doc(x);
+       },list),Seq.delay(function()
+       {
+        var arg00,_arg00_;
+        arg00=function(_arg1)
+        {
+         var _,arg205,x;
+         if(_arg1)
+          {
+           arg205=List.ofArray([Doc.TextNode("GPB")]);
+           x=Doc.Element("th",[],arg205);
+           _=Meetup1.doc(x);
+          }
+         else
+          {
+           _=Doc.get_Empty();
+          }
+         return _;
+        };
+        _arg00_=View.Map(arg00,viewColumnGpbVisible);
+        return Seq.append([Doc.EmbedView(_arg00_)],Seq.delay(function()
+        {
+         var arg205,x;
+         arg205=Runtime.New(T,{
+          $:0
+         });
+         x=Doc.Element("th",[],arg205);
+         return[Meetup1.doc(x)];
+        }));
+       }));
+      }));
+     },
+     renderMeetup:function(viewColumnGpbVisible,viewColumnCountryVisible,x)
+     {
+      var _kef_,_bck_,_lay_,ch,arg20,arg002,arg101,v2,x2,x3,_builder_,x4,_arg00_,xa,xb,xc,arg003,_arg00_1,xd,arg004,_arg00_2;
+      _kef_=function(back)
+      {
+       return function(sel)
+       {
+        return function(v)
+        {
+         var x1,_,arg00,arg001,arg10,v1;
+         _=back?"back":"lay";
+         arg00="kef "+PrintfHelpers.toSafe(sel)+" "+PrintfHelpers.toSafe(_);
+         arg001=function(_arg1)
+         {
+          return Utils.formatDecimalOption(_arg1);
+         };
+         arg10=v.get_View();
+         v1=View.Map(arg001,arg10);
+         x1=Doc.Element("td",List.ofArray([AttrProxy.Create("class",arg00)]),List.ofArray([Doc.TextView(v1)]));
+         return Meetup1.doc(x1);
+        };
+       };
+      };
+      _bck_=_kef_(true);
+      _lay_=_kef_(false);
+      arg002=function(tupledArg)
+      {
+       var page,n;
+       page=tupledArg[0];
+       n=tupledArg[1];
+       return Global.String(page)+"."+Global.String(n);
+      };
+      arg101=x.order.get_View();
+      v2=View.Map(arg002,arg101);
+      arg20=List.ofArray([Doc.TextView(v2)]);
+      x2=Doc.Element("td",[],arg20);
+      x3=Doc.Element("td",List.ofArray([AttrProxy.Create("class","home-team")]),List.ofArray([Doc.TextNode(x.game.home)]));
+      _builder_=View.get_Do();
+      x4=x.playMinute.get_View();
+      _arg00_=View1.Bind(function(_arg1)
+      {
+       var x1;
+       x1=x.summary.get_View();
+       return View1.Bind(function(_arg2)
+       {
+        var _,_1,x5,_2,x6,arg201,x7,_3,x8,arg202,x9;
+        if(_arg1.$==1)
+         {
+          if(_arg2!=="")
+           {
+            x5=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
+            _1=Meetup1.doc(x5);
+           }
+          else
+           {
+            if(_arg2!=="")
+             {
+              x6=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
+              _2=Meetup1.doc(x6);
+             }
+            else
+             {
+              arg201=Runtime.New(T,{
+               $:0
+              });
+              x7=Doc.Element("td",[],arg201);
+              _2=Meetup1.doc(x7);
+             }
+            _1=_2;
+           }
+          _=_1;
+         }
+        else
+         {
+          if(_arg2!=="")
+           {
+            x8=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
+            _3=Meetup1.doc(x8);
+           }
+          else
+           {
+            arg202=Runtime.New(T,{
+             $:0
+            });
+            x9=Doc.Element("td",[],arg202);
+            _3=Meetup1.doc(x9);
+           }
+          _=_3;
+         }
+        return View1.Const(_);
+       },x1);
+      },x4);
+      xa=Doc.Element("td",List.ofArray([AttrProxy.Create("class","away-team")]),List.ofArray([Doc.TextNode(x.game.away)]));
+      xb=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextView(x.status.get_View())]));
+      View.get_Do();
+      xc=View1.Bind(function(_arg3)
+      {
+       return View1.Bind(function(_arg4)
+       {
+        return View1.Const([_arg3,_arg4]);
+       },viewColumnGpbVisible);
+      },x.totalMatched.get_View());
+      arg003=function(_arg5)
+      {
+       var _,_1,totalMatched,x1,t,arg201,x5;
+       if(_arg5[1])
+        {
+         if(_arg5[0].$==1)
+          {
+           totalMatched=_arg5[0].$0;
+           t=Global.String(totalMatched);
+           x1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-gpb")]),List.ofArray([Doc.TextNode(t)]));
+           _1=Meetup1.doc(x1);
+          }
+         else
+          {
+           arg201=Runtime.New(T,{
+            $:0
+           });
+           x5=Doc.Element("td",[],arg201);
+           _1=Meetup1.doc(x5);
+          }
+         _=_1;
+        }
+       else
+        {
+         _=Doc.get_Empty();
+        }
+       return _;
+      };
+      _arg00_1=View.Map(arg003,xc);
+      View.get_Do();
+      xd=View1.Bind(function(_arg6)
+      {
+       return View1.Bind(function(_arg7)
+       {
+        return View1.Const([_arg6,_arg7]);
+       },viewColumnCountryVisible);
+      },x.country.get_View());
+      arg004=function(_arg8)
+      {
+       var _,x1;
+       if(_arg8[1])
+        {
+         _arg8[0];
+         x1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-country")]),List.ofArray([Doc.TextView(x.country.get_View())]));
+         _=Meetup1.doc(x1);
+        }
+       else
+        {
+         _=Doc.get_Empty();
+        }
+       return _;
+      };
+      _arg00_2=View.Map(arg004,xd);
+      ch=List.ofArray([Meetup1.doc(x2),Meetup1.doc(x3),Doc.EmbedView(_arg00_),Meetup1.doc(xa),Meetup1.doc(xb),(_bck_("win"))(x.winBack),(_lay_("win"))(x.winLay),(_bck_("draw"))(x.drawBack),(_lay_("draw"))(x.drawLay),(_bck_("lose"))(x.loseBack),(_lay_("lose"))(x.loseLay),Doc.EmbedView(_arg00_1),Doc.EmbedView(_arg00_2)]);
+      return Doc.Element("tr",[],ch);
+     }
     },
     Utils:{
      Left:function(arg0)
@@ -2020,7 +2070,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",8,18));
+              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\CentBet\\CentBet\\WebFace\\ClientUtils.fs",8,18));
              }
             _4=_5;
            }
@@ -2099,10 +2149,12 @@
   Work=Runtime.Safe(Coupon.Work);
   ServerBetfairsSession=Runtime.Safe(Coupon.ServerBetfairsSession);
   SettingsDialog=Runtime.Safe(Coupon.SettingsDialog);
-  Meetup=Runtime.Safe(Coupon.Meetup);
-  EventCatalogue=Runtime.Safe(Coupon.EventCatalogue);
+  Football=Runtime.Safe(Client.Football);
+  Meetup=Runtime.Safe(Football.Meetup);
+  EventCatalogue=Runtime.Safe(Football.EventCatalogue);
   Collections=Runtime.Safe(Global.WebSharper.Collections);
   MapModule=Runtime.Safe(Collections.MapModule);
+  Meetup1=Runtime.Safe(Client.Meetup);
   View1=Runtime.Safe(Next.View1);
   Operators=Runtime.Safe(Global.WebSharper.Operators);
   Date=Runtime.Safe(Global.Date);
@@ -2116,19 +2168,23 @@
  Runtime.OnLoad(function()
  {
   LocalStorage.strg();
+  Coupon.varTargetPageNumber();
   Coupon.varPagesCount();
-  Coupon.varDataRecived();
   Coupon.varCurrentPageNumber();
   Coupon.varColumnGpbVisible();
   Coupon.varColumnCountryVisible();
   Coupon["render\u0421oupon"]();
   Coupon.renderPagination();
-  Coupon.renderGamesHeaderRow();
+  Coupon.renderMeetup();
+  Coupon.processTotalMatched();
+  Coupon.processMarkets();
+  Coupon.processEvents();
   Coupon.meetups();
   Coupon.eventsCatalogue();
   SettingsDialog.render();
   SettingsDialog["id'"]();
   ServerBetfairsSession.hasServerBetfairsSession();
+  ServerBetfairsSession.check();
   PageLen.view();
   PageLen["var"]();
   PageLen.localStorageKey();

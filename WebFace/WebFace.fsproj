@@ -119,6 +119,8 @@
     <Compile Include="Remote.fs" />
     <Compile Include="Api.fs" />
     <Compile Include="ClientUtils.fs" />
+	<Compile Include="Football.fs" />
+	<Compile Include="Meetup.fs" />
     <Compile Include="CouponPage.fs" />
     <Compile Include="AdminPage.fs" />
     <Compile Include="Main.fs" />

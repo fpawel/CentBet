@@ -213,7 +213,8 @@ module TotalMatched =
                         r |> List.map( fun x -> 
                             let k = eventId, mainMarketId, x.marketId.marketId
                             let ttm = 
-                                Option.map int x.totalMatched 
+                                x.totalMatched 
+                                |> Option.bind decimalToInt32Safety
                                 |> Option.fold (+) 0 
                             let v = DateTime.Now, ttm
                             k, v)

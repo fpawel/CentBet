@@ -55,13 +55,6 @@ module List =
     let inline ids<'T,'a when 'a:comparison> (x : 'T list)  (getid : 'T -> 'a)  =
         Seq.ids<'T,'a> x getid
 
-
-
-
-
-
-
-
 let md5hash (input : string) =
     use md5 = System.Security.Cryptography.MD5.Create()
     input
@@ -138,6 +131,12 @@ let catchInetErrors<'T> (work : Async< Either<string,'T>>) =  async {
         return Left <| sprintf "http error - %s" message                
     | RootException exn ->            
         return Left  <| sprintf  "unhandled exection when reading web - %A" exn    } 
+
+let decimalToInt32Safety d = 
+    if d <= 2147483647m  && d >= -2147483648m then
+        Decimal.ToInt32 d |> Some 
+    else
+        None
 
 
 

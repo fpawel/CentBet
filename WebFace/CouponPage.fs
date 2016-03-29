@@ -8,28 +8,10 @@ open WebSharper.JavaScript
 open WebSharper.UI.Next
 open WebSharper.UI.Next.Client
 open WebSharper.UI.Next.Html
-
-open Betfair.Football
-
     
 open Utils
-
-///Information about the Runners (selections) in a market
-type RunnerCatalog = {   
-    selectionId : int 
-    runnerName : string }
-
-type MarketCatalogue = {   
-    marketId : int
-    marketName : string 
-    totalMatched : int option
-    runners : RunnerCatalog list }
-
-type EventCatalogue = 
-    {   gameId : GameId
-        country : string option  
-        markets : MarketCatalogue list }
-    static member id x = x.gameId
+open Betfair.Football
+open CentBet.Client.Football
 
 let eventsCatalogue = 
     let k = "CentBetEventsCatalogue"
@@ -45,31 +27,24 @@ let eventsCatalogue =
 
 type VarKef = Var<decimal option>
 
-type Meetup =
-    {   game : Game
-        
-        playMinute  : Var<int option>
-        status      : Var<string>
-        summary     : Var<string>
-        order       : Var<int * int>
-        winBack     : VarKef
-        winLay      : VarKef
-        drawBack    : VarKef
-        drawLay     : VarKef
-        loseBack    : VarKef
-        loseLay     : VarKef
-        country : Var<string>
-        totalMatched : Var<int option>
-        mutable hash : int }
-    static member id x = x.game.gameId
-
 type Meetups = ListModel<GameId,Meetup>
 let meetups = ListModel.Create Meetup.id []
-let varDataRecived = Var.Create false
+
 let varCurrentPageNumber = Var.Create 0
+let varTargetPageNumber = Var.Create 0
 let varPagesCount = Var.Create 1
 let varColumnGpbVisible = Var.Create false
 let varColumnCountryVisible = Var.Create false
+
+let updateColumnGpbVisible() = 
+    let hasGpb = meetups.Value |> Seq.exists( fun x -> x.totalMatched.Value.IsSome )
+    if varColumnGpbVisible.Value <> hasGpb then
+        varColumnGpbVisible.Value <- hasGpb
+
+let updateColumnCountryVisible() = 
+    let hasCountry = meetups.Value |> Seq.exists( fun x -> x.country.Value <> "")
+    if varColumnCountryVisible.Value <> hasCountry then
+        varColumnCountryVisible.Value <- hasCountry
 
 module PageLen =
     let private localStorageKey = "pageLen"
@@ -140,82 +115,6 @@ let addNewGames newGames =
 
 let doc (x :Elt) = x :> Doc
 
-let renderMeetup (x : Meetup) = 
-    let tx x = td[ x ]
-    let tx0 x = td[ Doc.TextNode x ]
-        
-    let span' ``class`` x = 
-        spanAttr [ attr.``class`` ``class`` ] [x]
-    
-    let kef' back v = 
-        doc <| tdAttr [attr.``class`` (if back then  "kef kef-back" else "kef kef-lay" ) ] [             
-            View.FromVar v |> View.Map formatDecimalOption |> textView   ] 
-    let bck' = kef' true 
-    let lay' = kef' false 
-
-    
-    [   doc <| td[ x.order.View |> View.Map ( fun (page,n) -> 
-            sprintf "%d.%d" page n) |> textView ]
-        doc <| tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ] 
-        View.Do{
-                let! playMinute = x.playMinute.View
-                let! summary = x.summary.View
-                
-                return 
-                    match playMinute with
-                    | Some _ | _ when summary <> "" -> 
-                        doc <| tdAttr [ attr.``class`` "game-status"] [ text summary ]  
-                    | _ -> doc <| td [] } |> Doc.EmbedView
-        doc <| tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ] 
-        doc <| tdAttr [ attr.``class`` "game-status"] [ textView x.status.View ] 
-        bck' x.winBack
-        lay' x.winLay
-        bck' x.drawBack
-        lay' x.drawLay
-        bck' x.loseBack
-        lay' x.loseLay 
-        View.Do{
-            let! x1 = x.totalMatched.View
-            let! x2 = varColumnGpbVisible.View
-            return x1,x2 }  
-        |> View.Map( function 
-            | _,false -> Doc.Empty
-            | None,true -> doc <| td []             
-            | Some totalMatched,_ -> 
-                tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatched ]
-                |> doc ) 
-        |> Doc.EmbedView 
-            
-        View.Do{
-            let! x1 = x.country.View
-            let! x2 = varColumnCountryVisible.View
-            return x1,x2 } 
-        |> View.Map( function 
-                | _,false -> Doc.Empty
-                | country,_ ->
-                    tdAttr [ attr.``class`` "game-country" ] [ Doc.TextView x.country.View ]
-                    |> doc )
-        |> Doc.EmbedView  ] 
-    |> tr 
-
-let renderGamesHeaderRow = [   
-    yield![   
-        th [text "№"]
-        th [text "Дома"]
-        th [] 
-        th [text "В гостях"]
-        th []
-        thAttr [ attr.colspan "2" ] [text "Победа"]
-        thAttr [ attr.colspan "2" ] [text "Ничья"]
-        thAttr [ attr.colspan "2" ] [text "Поражение"] ] |> List.map doc
-    
-    yield   
-        varColumnGpbVisible.View |> View.Map( function
-            | true -> doc <| th  [text "GPB"]   
-            | false -> Doc.Empty )
-        |> Doc.EmbedView
-    yield doc <| th [] ] 
-
 module SettingsDialog = 
     
     let id' = "id-settings-dialog"
@@ -262,8 +161,8 @@ let renderPagination =  Doc.EmbedView <| View.Do{
         let aattrs = [
             yield attr.href "#"
             yield Attr.Handler "click" (fun e x -> 
-                varCurrentPageNumber.Value <- n  )
-            if n=npage then yield attr.``class`` "w3-green"]        
+                varTargetPageNumber.Value <- n  )
+            if n=npage then yield attr.``class`` "w3-teal"]        
         li[ aAttr aattrs [ text <| sprintf "%d" (n+1) ] ] 
 
     let! pagescount = varPagesCount.View
@@ -278,19 +177,30 @@ let renderPagination =  Doc.EmbedView <| View.Do{
         |> List.map doc
         |> Doc.Concat }
 
+let renderMeetup = Meetup.renderMeetup (varColumnGpbVisible.View, varColumnCountryVisible.View)
+
 let renderСoupon = 
+    let etable = 
+        divAttr [ attr.``class`` "w3-responsive" ][
+            tableAttr[ attr.``class`` "w3-table w3-bordered w3-striped w3-hoverable" ] [   
+                thead[ trAttr [ Attr.Class "coupon-header-row w3-teal" ] (Meetup.renderGamesHeaderRow varColumnGpbVisible.View)  ]
+                tbody [
+                    meetups.View |> View.Map( Seq.map (renderMeetup  >> doc)  >> Doc.Concat )
+                    |> Doc.EmbedView ] ] ] 
+
     divAttr [attr.``class`` "w3-container"][
         divAttr [ attr.``class`` "w3-center" ] [
             ulAttr [attr.``class`` "w3-pagination w3-border w3-round"] [ renderPagination ] ]   
-        divAttr [ attr.``class`` "w3-responsive" ][
-            tableAttr[ attr.``class`` "w3-table w3-bordered w3-striped w3-hoverable" ] [   
-                thead[ trAttr [ Attr.Class "coupon-header-row w3-pale-green" ] renderGamesHeaderRow ]
-                tbody [
-                    meetups.View |> View.Map( Seq.map (renderMeetup >> doc)  >> Doc.Concat )
-                    |> Doc.EmbedView ] ] ] 
-        SettingsDialog.render
-                    
-                    ]
+
+        View.Do{
+            let! currentPageNumber = varCurrentPageNumber.View
+            let! targetPageNumber = varTargetPageNumber.View
+            return 
+                if currentPageNumber = targetPageNumber then etable else 
+                    h1 [ text <| sprintf "Выполняется переход к странице № %d..." (targetPageNumber + 1) ]
+                |> doc }
+        |> Doc.EmbedView
+        SettingsDialog.render ]
 
 let stvr<'a when 'a : equality> (x:Var<'a>) (value : 'a) =
     if x.Value <> value then
@@ -321,25 +231,30 @@ let updateCoupon (newGms,updGms,outGms) =
             stvr x.loseLay i.loseLay
         | _ -> () )
 
-let processCoupon() = async{
+    updateColumnCountryVisible()
+    updateColumnGpbVisible()
+
+let processCoupon varDataRecived  = async{
     let request =
         meetups.Value 
         |> Seq.map(fun m -> m.game.gameId, m.hash)
         |> Seq.toList
     let pagelen = PageLen.get()
-    let! newGms,updGms,outGms, gamesCount = CentBet.Remote.getCouponPage (request, varCurrentPageNumber.Value, pagelen)
+    let! newGms,updGms,outGms, gamesCount = CentBet.Remote.getCouponPage (request, varTargetPageNumber.Value, pagelen)
     let pagesCount = gamesCount / pagelen + ( if gamesCount % pagelen = 0 then 0 else 1 )
     if varPagesCount.Value <> pagesCount then
         varPagesCount.Value <- pagesCount
-    if varCurrentPageNumber.Value  > pagesCount then
-        varCurrentPageNumber.Value <- 0
-    if not varDataRecived.Value then
-        varDataRecived.Value <- true
+    if varTargetPageNumber.Value  > pagesCount then
+        varTargetPageNumber.Value <- 0
+    if Var.Get varDataRecived |> not then
+        Var.Set varDataRecived true
+    if varCurrentPageNumber.Value <> varTargetPageNumber.Value then
+        varCurrentPageNumber.Value <- varTargetPageNumber.Value
     updateCoupon (newGms,updGms,outGms) } 
 
 module ServerBetfairsSession = 
     let mutable private hasServerBetfairsSession = true
-    let check() = async{ 
+    let check = async{ 
         let! x = CentBet.Remote.hasServerBetfairsSession()
         hasServerBetfairsSession <- x }
     let has() = hasServerBetfairsSession
@@ -352,12 +267,7 @@ let getGamesEvents() =
         m.game.gameId, events |> Seq.tryFind( fun e -> e.gameId = m.game.gameId ) ) 
     |> Seq.toList
 
-let updateColumnCountryVisible() = 
-    let hasCountry = meetups.Value |> Seq.exists( fun x -> x.country.Value <> "")
-    if varColumnCountryVisible.Value <> hasCountry then
-        varColumnCountryVisible.Value <- hasCountry
-
-let processEvents() = async{
+let processEvents = async{
     updateColumnCountryVisible()
     let gamesWithoutEvent =
         getGamesEvents()
@@ -385,7 +295,7 @@ let setMarket gameId values =
                     runnerName = runnerNamem } ) } )
     eventsCatalogue.UpdateBy (fun x -> Some {x with markets = markets}) gameId
 
-let processMarkets() = async{
+let processMarkets = async{
     let gamesWithoutMarkets = 
         getGamesEvents()
         |> List.choose ( function gameId, Some {markets = []} -> Some gameId | _ -> None)
@@ -396,12 +306,9 @@ let processMarkets() = async{
         | None -> ()
         | Some values -> setMarket gameId values  } 
 
-let updateColumnGpbVisible() = 
-    let hasGpb = meetups.Value |> Seq.exists( fun x -> x.totalMatched.Value.IsSome )
-    if varColumnGpbVisible.Value <> hasGpb then
-        varColumnGpbVisible.Value <- hasGpb
 
-let processTotalMatched() = async{
+
+let processTotalMatched = async{
     updateColumnGpbVisible()
     let gamesWithMarkets = 
         getGamesEvents()
@@ -419,7 +326,7 @@ type Work =
     {   what : string
         sleepInterval : int
         sleepErrorInterval : int 
-        work : unit -> Async<unit> }
+        work : Async<unit> }
     
     static member ``new`` (what,sleepInterval,sleepErrorInterval) work =
         {   what = what
@@ -430,7 +337,7 @@ type Work =
                     
     static member loop x = async{        
         try
-            do! x.work()
+            do! x.work
             do! Async.Sleep x.sleepInterval 
         with e ->
             printfn "task error %A : %A" x.what e
@@ -443,7 +350,8 @@ type Work =
         printfn "task %A : terminated" x.what }
 
 let Render() =
-    Work.``new`` ("COUPON", 0, 0) processCoupon 
+    let varDataRecived = Var.Create false
+    Work.``new`` ("COUPON", 0, 0) (processCoupon varDataRecived)
     Work.``new`` ("CHECK-SERVER-BETFAIRS-SESSION", 0, 0) ServerBetfairsSession.check        
     Work.``new`` ("EVENTS-CATALOGUE", 0, 0) processEvents
     Work.``new`` ("MARKETS-CATALOGUE", 0, 0) processMarkets

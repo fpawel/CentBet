@@ -40,22 +40,40 @@ html, body {
     color : #009900 ;
 }
 
-.w3-table td.kef {
+.kef {
     text-align : center;    
 }
 
-.kef-back {
+.back {
     color : DarkBlue ;
 }
 
-.kef-lay {
+.lay {
     color : #009900 ;    
 }
 
-tr:hover td.kef-back {
+tr:hover td.back {
     color:  blue;
 }
 
+
+
+.kef.win.back, .kef.draw.back, .kef.lose.back, .kef.lose.lay   {
+    border-style: solid;
+    border-color: lightgrey;
+}
+
+.kef.lose.lay {
+    border-width: 0 1px 0 0;    
+}
+
+.kef.win.back, .kef.draw.back, .kef.lose.back   {
+    border-width: 0 0 0 1px;    
+}
+
+tr:hover .kef.win.back, tr:hover .kef.draw.back, tr:hover .kef.lose.back, tr:hover .kef.lose.lay {
+    border-color: white;
+}
     </style>
     
 </head>

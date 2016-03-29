@@ -111,7 +111,7 @@ let getMarketsCatalogue gameId = async{
         return m |> Option.map ( fun m ->       
             m |> List.map( fun x ->             
                 let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
-                x.marketId.marketId, x.marketName, runners, Option.map Decimal.ToInt32 x.totalMatched ) ) 
+                x.marketId.marketId, x.marketName, runners, Option.bind decimalToInt32Safety x.totalMatched ) ) 
     with e ->
         Logging.error "getMarketsCatalogue - %A" e 
         return None }
