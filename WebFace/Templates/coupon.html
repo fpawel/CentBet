@@ -16,16 +16,32 @@ html, body {
     margin: 0;    
 }
 
+.header-content-football {
+    color : white;
+    background: transparent url(/Images/matchheader_sprite_2.png);
+    background-size : 100%;
+}
+
 .w3-table td, .w3-table th, .w3-table-all td, .w3-table-all th {
     padding : 3px;
 }
 
 .home-team {
-    color : RoyalBlue;    
+    color : RoyalBlue;
 }
 
 .away-team {
     color : SteelBlue;
+}
+
+td.home-team a, td.away-team a, ul.w3-ul li a {
+    display: block;
+    text-decoration: none;
+}
+
+ul.w3-ul li {
+    border-right : 1px solid #ddd;
+    border-bottom : none;
 }
 
 .game-status {

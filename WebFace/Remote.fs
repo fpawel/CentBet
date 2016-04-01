@@ -80,6 +80,9 @@ module Helpers =
 
 [<Rpc>]
 let getCouponPage (games,npage,pagelen) = Betfair.Football.Coupon.getCouponPage (games,npage,pagelen)
+
+[<Rpc>]
+let getGame gameId = Betfair.Football.Coupon.getGame gameId
   
 [<Rpc>]
 let perform (request : string )= 

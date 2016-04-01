@@ -40,7 +40,16 @@ type Meetup =
         drawLay     : VarKef
         loseBack    : VarKef
         loseLay     : VarKef
-        country : Var<string>
+        country     : Var<string>        
         totalMatched : Var<int option>
         mutable hash : int }
     static member id x = x.game.gameId
+
+type GameDetail = {
+    Meetup : Meetup
+    Market : Var<MarketCatalogue option> }
+    
+type PageMode = 
+    | PageModeCoupon
+    | PageModeGameDetail of GameDetail
+

@@ -116,18 +116,30 @@
   </Target>
   <Import Project="..\packages\WebSharper.3.6.10.230\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" />
   <ItemGroup>
+	<Content Include="Images/matchheader_sprite_1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+	<Content Include="Images/matchheader_sprite_2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+	
+	<Content Include="Templates/coupon.html" />
+    <Content Include="Templates/console.html" />
+	
     <Compile Include="Remote.fs" />
     <Compile Include="Api.fs" />
     <Compile Include="ClientUtils.fs" />
-	<Compile Include="Football.fs" />
-	<Compile Include="Meetup.fs" />
+    <Compile Include="Football.fs" />
+    <Compile Include="Games.fs" />
+    <Compile Include="Meetup.fs" />
+    <Compile Include="GameDetail.fs" />
     <Compile Include="CouponPage.fs" />
     <Compile Include="AdminPage.fs" />
     <Compile Include="Main.fs" />
-    <Content Include="coupon.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="console.html" />
+	
+	
+	
+    
     <Content Include="favicon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

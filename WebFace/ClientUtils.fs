@@ -85,3 +85,63 @@ module LocalStorage =
             printfn "local storage %A of %A is inspired" key  creationDate
             now
         else creationDate
+
+open WebSharper.UI.Next
+open WebSharper.UI.Next.Client
+open WebSharper.UI.Next.Html
+
+let updateVarValue<'a when 'a : equality> (x:Var<'a>) (value : 'a) =
+    if x.Value <> value then
+        x.Value <- value
+
+
+let private initializeModalVar = 
+    let hs = ref []
+    let onclick (e:Dom.Event) = 
+        if e.Target ? className = "w3-modal" then                    
+            !hs |> List.iter( fun h ->  h() )
+    JS.Window.AddEventListener( "click", onclick, false)
+    fun h -> 
+        hs := h :: !hs
+
+
+let createModal viewVisible close = 
+    let doc (x :Elt) = x :> Doc
+    let (~%%) = attr.``class``
+    do
+        initializeModalVar close
+
+    
+    
+
+    let renderModalContent content =
+        doc <| divAttr[ 
+            %% "w3-modal"
+            attr.style "display : block;"] [
+            divAttr [ 
+                %% "w3-modal-content w3-animate-zoom w3-card-8"  ] content ]
+
+    let render content =
+        viewVisible |> View.Map( function
+            | false -> Doc.Empty
+            | _ -> renderModalContent content)
+        |> Doc.EmbedView    
+
+    render
+
+let titleAndCloseButton title close =        
+    let (~%%) = attr.``class``
+    let doc (x :Elt) = x :> Doc
+    headerAttr [ %% "w3-row w3-teal" ] [
+        h4Attr [ 
+            %% "w3-col s11 w3-center"
+            attr.style "padding-left : 10px;" ] [ 
+            text title ] 
+            
+        divAttr [%% "w3-col s1 w3-center"] [
+            spanAttr [ 
+                %% "w3-closebtn" 
+                attr.style "padding-right : 5px;"
+                on.click ( fun _ _ ->                     
+                    close() ) ] 
+                [ text "×" ] ] ]

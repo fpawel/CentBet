@@ -1,6 +1,7 @@
 ﻿[<WebSharper.Pervasives.JavaScript>]
 module CentBet.Client.Meetup 
 
+open CentBet.Client
 open CentBet.Client.Football
 
 open WebSharper.UI.Next
@@ -43,20 +44,30 @@ let renderMeetup (viewColumnGpbVisible, viewColumnCountryVisible) (x : Meetup) =
     let bck' = kef' true 
     let lay' = kef' false 
 
-    
+    let showGameDetailOnClick = 
+        on.click ( fun _ _ -> 
+            Games.varMode.Value <- PageModeGameDetail( {Meetup = x; Market = Var.Create None} ))
+
+    let renderMarketsLink text' =         
+        doc <| aAttr [ attr.href "#"; showGameDetailOnClick ] [text text']
+
     [   doc <| td[ x.order.View |> View.Map ( fun (page,n) -> 
             sprintf "%d.%d" page n) |> textView ]
-        doc <| tdAttr [ attr.``class`` "home-team" ]  [Doc.TextNode x.game.home ] 
+
+        doc <| tdAttr [ attr.``class`` "home-team" ] [ renderMarketsLink x.game.home ]
+        
         View.Do{
                 let! playMinute = x.playMinute.View
-                let! summary = x.summary.View
-                
+                let! summary = x.summary.View                
                 return 
                     match playMinute with
                     | Some _ | _ when summary <> "" -> 
                         doc <| tdAttr [ attr.``class`` "game-status"] [ text summary ]  
                     | _ -> doc <| td [] } |> Doc.EmbedView
-        doc <| tdAttr [ attr.``class`` "away-team"]   [Doc.TextNode x.game.away ] 
+
+        doc <| tdAttr [ attr.``class`` "away-team" ] [ renderMarketsLink x.game.away]
+
+
         doc <| tdAttr [ attr.``class`` "game-status"] [ textView x.status.View ] 
         bck' "win" x.winBack
         lay' "win" x.winLay

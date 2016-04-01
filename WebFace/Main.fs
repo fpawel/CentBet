@@ -13,12 +13,12 @@ type EndPoint =
     | [<EndPoint "POST /api">] ApiCall
 
 
-module CouponTemple =
-    //open WebSharper.UI.Next.Html
-    let page ctx action body =
-       Content.Page(            
-            Templating.Template<"coupon.html">.Doc(
-                body = body ))
+//module CouponTemple =
+//    //open WebSharper.UI.Next.Html
+//    let page ctx action body =
+//       Content.Page(            
+//            Templating.Template<"Templates/coupon.html">.Doc(
+//                body = body ))
 
 module Site =
     open WebSharper.Sitelets.ActionEncoding
@@ -32,9 +32,9 @@ module Site =
         Betfair.Football.Coupon.start()
         Application.MultiPage (fun ctx -> function
             | Coupon -> 
-                Content.Page(Templating.Template<"coupon.html">.Doc( [ client <@ Coupon.Render() @> ] ))
+                Content.Page(Templating.Template<"Templates/coupon.html">.Doc( [ client <@ Coupon.Render() @> ] ))
             | Console -> 
-                Content.Page(Templating.Template<"console.html">.Doc( [ client <@ Admin.Render() @> ] ))
+                Content.Page(Templating.Template<"Templates/console.html">.Doc( [ client <@ Admin.Render() @> ] ))
             | ApiCall -> 
                 CentBet.Api.processInput ctx.Request.Body
                 |> Async.bind

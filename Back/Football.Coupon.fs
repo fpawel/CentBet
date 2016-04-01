@@ -303,7 +303,17 @@ let getCouponPage (reqGames, npage, pagelen) : Async<CouponResponse> = async{
     return new', upd', out', games.Length }
 
 
-
+let getGame gameId = async{
+    
+    let! games = async{ 
+        let! inplay = Coupon.Inplay.Get()
+        let! foreplay = Coupon.Foreplay.Get()
+        return inplay @ foreplay }
+    return 
+        games 
+        |> List.tryFind( function {gameId = gameId'},_ when gameId' = gameId -> true | _ -> false)
+        |> Option.map snd 
+        |> Option.map ( fun x -> x, x.GetHash() ) }
 
 //let getCoupon ( (reqGames,inplayOnly) as request) = async {
 //    let reqIds, reqGames = List.ids reqGames fst
