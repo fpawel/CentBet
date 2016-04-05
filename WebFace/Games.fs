@@ -207,7 +207,7 @@ module private Helpers3 =
             zipMeetupsWithEvents()
             |> List.choose ( function gameId, None -> Some gameId | _ -> None)
         if gamesWithoutEvent.IsEmpty || ServerBetfairsSession.hasNot() then () else    
-        let! newEvents =  CentBet.Remote.getEventsCatalogue gamesWithoutEvent    
+        let! newEvents = CentBet.Remote.getEventsCatalogue gamesWithoutEvent
         for gameId, name, country in newEvents do
             eventsCatalogue.Add  { gameId = gameId; country = country; markets = []  } 
         for m in meetups.Value do
@@ -239,7 +239,7 @@ module private Helpers3 =
             if notCouponMode() then () else
             let! m = CentBet.Remote.getTotalMatched gameId
             if m.IsEmpty then () else
-                m |> Map.fold( fun acc _ value -> acc + value ) 0
+                m |> List.fold( fun acc (_,value) -> acc + value ) 0
                 |> updateTotalMatched gameId 
         updateColumnGpbVisible() }   
 

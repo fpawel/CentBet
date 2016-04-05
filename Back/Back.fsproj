@@ -52,18 +52,19 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Prelude.fs" />
-    <Compile Include="Atom.fs" />
-    <Compile Include="Config.fs" />
+    <Compile Include="Concurency.fs" />
     <Compile Include="RestApi.fs" />
     <Compile Include="ApiNg.fs" />
     <Compile Include="ApiNgServices.fs" />
-    <Compile Include="Login.fs" />
+    <Compile Include="LoginBerfair.fs" />
     <Compile Include="Football.fs" />
     <Compile Include="Football.Parsing.fs" />
     <Compile Include="Football.Service.fs" />
     <Compile Include="Football.Coupon.fs" />
     <None Include="ApiNg.Serialization.Testing.fsx" />
     <None Include="Logging.Testing.fsx" />
+    <None Include="Script1.fsx" />
+    <None Include="Script2.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

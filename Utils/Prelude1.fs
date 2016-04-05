@@ -9,11 +9,7 @@ let (|Left|Right|) = function
     | Choice2Of2 b -> Right b
 
 let Left = Choice1Of2
-let Right = Choice2Of2
-
-
-
-            
+let Right = Choice2Of2    
 
 [<AutoOpen>]
 module Either =

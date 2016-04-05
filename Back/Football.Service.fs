@@ -58,24 +58,22 @@ module private Helpers  =
         #endif 
 
 module CouponId = 
-    open Atom
+    open Concurency
+    let status = Status ("COUPON-ID")
+    let state = todayRef()
 
-    let status = status "COUPON-ID-STATUS" "initialized"
-    let state = today "COUPON-ID" Logs.none
-
-    let private get() = async{             
-        let! ext = state.Get()
-        match ext with
+    let private get() = async{                     
+        match state.Value with
         | Some x -> return Right x
         | _ ->
             let! x = downloadUrl couponIdUrl (Parsing.firstPageId)
             match x with
             | Left x -> 
-                do! status.Set (Logging.Error, x)
+                status.Set Logging.Error "%s" x
                 return Left x
             | Right x -> 
-                do! status.Set (Logging.Info, sprintf "%d" x)
-                do! state.Set x
+                status.Set Logging.Info "%d" x
+                state.Set x
                 return Right x }
 
     let do' f = async {
@@ -85,24 +83,12 @@ module CouponId =
         | Right couponId -> return! f couponId }
 
 module Coupon = 
-    open Atom
-
+    open Concurency    
+    let state = Status ("WEB-COUPON")
+    let inplay = atom []
+    let foreplay = atom []    
+    let nextPageId = atom None
     
-    let Inplay = withListLogs "INPLAY-LIST" []
-    let Foreplay = withListLogs "FOREPLAY-LIST" []    
-    let NextPageId = withNoLogs "NEXT-PAGE-ID" None
-    
-    
-//    let private setInplay (games,nextPage) = async{
-//        do! Inplay.Set games        
-//        do! NextPage.Set nextPage }
-//
-//    let set2 =
-//        List.filter( function 
-//            | _, {playMinute = None} -> true 
-//            | _ -> false)
-//        >> Today2.Set 
-
     let ``no next id``   = Logging.Warn, "no next id"
     let ``ok`` = Logging.Info, "Ok"
 
@@ -111,21 +97,20 @@ module Coupon =
     let updateInplay = CouponId.do' <| fun couponId -> async {
         let! gs = readGamesList couponId false 1
         match gs with
-        | Right ((games, nextPageId) as x) ->                 
-            do! Inplay.Set games
-            do! NextPageId.Set nextPageId
+        | Right ((games, nextPageId') as x) ->                 
+            inplay.Set games
+            nextPageId.Set nextPageId'
             return ``ok``
         | Left error -> return Logging.Error, error }
 
     let updateForeplay = CouponId.do' <| fun couponId -> async {
-        let! nextPageId = NextPageId.Get()
-        match nextPageId with 
+        match nextPageId.Value with 
         | None -> return ``no next id``
         | Some nextPage ->
             let! games = readGamesList couponId true nextPage 
             match games with
             | Right (today2,n) -> 
-                do! Foreplay.Set today2  
+                foreplay.Set today2  
                 return ``ok``
             | Left error -> return Logging.Error, error  }
         

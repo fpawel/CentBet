@@ -53,7 +53,7 @@ module SettingsDialog =
         
         let renderDialog = createModal varVisible.View close
 
-    let elt = renderDialog content
+    let elt = renderDialog [] content
 
     let show() = varVisible.Value <- true
 

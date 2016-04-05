@@ -54,9 +54,10 @@ module Helpers =
         | Left x -> return Failure x
         | Right x -> return Success <| f x }
 
-    let map1<'a> (x : Async<'a>) = async{
-        let! (x : 'a) = x
-        return Success <| sprintf "%A" x }
+    let map1<'a> (x : 'a) =
+        sprintf "%A" x
+        |> Success
+        |> Async.id
 
     
 
@@ -66,8 +67,10 @@ module Helpers =
     
     let consoleCommands = [ 
         "-login-betfair", 2, fun [user;pass] -> Betfair.Login.login user pass |> resultOf
-        "-atoms-names", 0, fun [] -> Atom.Trace.getNames() |> map1 
-        "-atom", 1, fun [x] -> Atom.Trace.getAtomValue x |> map1  ] |> List.map( fun (x,y,z) -> x, (y,z)) 
+        "-atoms-names", 0, fun [] -> 
+            Concurency.Status.getNames() 
+            |> map1
+        "-atom", 1, fun [x] -> Concurency.Status.getValue |> map1  ] |> List.map( fun (x,y,z) -> x, (y,z)) 
                                                                                      |> Map.ofList
     let (|Cmd|_|) = consoleCommands.TryFind 
 
@@ -82,7 +85,7 @@ module Helpers =
 let getCouponPage (games,npage,pagelen) = Betfair.Football.Coupon.getCouponPage (games,npage,pagelen)
 
 [<Rpc>]
-let getGame gameId = Betfair.Football.Coupon.getGame gameId
+let getGame gameId = Async.id <| Betfair.Football.Coupon.getGame gameId
   
 [<Rpc>]
 let perform (request : string )= 
@@ -100,24 +103,21 @@ let perform (request : string )=
         | _ -> return  Failure ``bad request`` }
 
 [<Rpc>]
-let hasServerBetfairsSession() = 
-    Betfair.Login.auth.Get()
-    |> Async.map Option.isSome
+let hasServerBetfairsSession() = async{
+        return adminBetafirAuth.Value.IsSome
+    }
     
 [<Rpc>]
-let getEventsCatalogue ids = Events.get ids
+let getEventsCatalogue ids = Async.id <| Events.get ids 
 
 [<Rpc>]
-let getMarketsCatalogue gameId = async{    
-    try
-        let! m = Betfair.Football.Coupon.MarketsCatalogue.get gameId
-        return m |> Option.map ( fun m ->       
-            m |> List.map( fun x ->             
-                let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
-                x.marketId.marketId, x.marketName, runners, Option.bind decimalToInt32Safety x.totalMatched ) ) 
-    with e ->
-        Logging.error "getMarketsCatalogue - %A" e 
-        return None }
+let getMarketsCatalogue gameId = 
+    Betfair.Football.Coupon.MarketsCatalogue.get gameId |> Option.map ( 
+        List.map( fun x ->             
+            let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
+            x.marketId.marketId, x.marketName, runners, Option.bind decimalToInt32Safety x.totalMatched ) ) 
+    |> Async.id
+    
 
 [<Rpc>]
 let getTotalMatched gameId = 

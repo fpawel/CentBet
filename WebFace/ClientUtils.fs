@@ -114,17 +114,19 @@ let createModal viewVisible close =
     
     
 
-    let renderModalContent content =
+    let renderModalContent attrs content =
         doc <| divAttr[ 
             %% "w3-modal"
             attr.style "display : block;"] [
             divAttr [ 
-                %% "w3-modal-content w3-animate-zoom w3-card-8"  ] content ]
+                //attr.style "border-radius: 10px;"
+                yield! attrs
+                yield %% "w3-modal-content w3-animate-zoom w3-card-8"  ] content ]
 
-    let render content =
+    let render attrs content =
         viewVisible |> View.Map( function
             | false -> Doc.Empty
-            | _ -> renderModalContent content)
+            | _ -> renderModalContent attrs content)
         |> Doc.EmbedView    
 
     render

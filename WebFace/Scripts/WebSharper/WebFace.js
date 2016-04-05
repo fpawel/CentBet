@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,PrintfHelpers,console,Storage1,Json,Provider,Id,ListModel,Games,Coupon,GameDetail,PageLen,SettingsDialog,Helpers,Utils,Work,Meetup,View1,Operators,Helpers1,Football,Meetup1,Helpers11,LocalStorage,EventCatalogue,Helpers2,Helpers3,Work1,ServerBetfairsSession,Collections,MapModule,Date,JSON,window,FSharpSet,BalancedTree,Slice,MatchFailureException;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,PrintfHelpers,console,Storage1,Json,Provider,Id,ListModel,Games,Coupon,GameDetail,PageLen,SettingsDialog,Helpers,Utils,Work,Meetup,View1,Operators,Helpers1,Football,Meetup1,Helpers11,LocalStorage,EventCatalogue,Helpers2,Helpers3,Work1,ServerBetfairsSession,Date,JSON,window,Collections,MapModule,FSharpSet,BalancedTree,Slice,MatchFailureException;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -690,7 +690,9 @@
       },
       elt:Runtime.Field(function()
       {
-       return(Helpers.renderDialog())(Helpers.content());
+       return((Helpers.renderDialog())(Runtime.New(T,{
+        $:0
+       })))(Helpers.content());
       }),
       show:function()
       {
@@ -1019,13 +1021,15 @@
       },
       renderMeetupMarkets:function(meetup,varMarket)
       {
-       var render,tupledArg,_arg00_,_arg01_,x2,matchValue,_,_1,_2,_3,xs1,xs2,xs3,ats,x3,xs11,xs21,ats1,x4,markets;
+       var render,a1,a2,tupledArg,_arg00_,_arg01_,x2,matchValue,_,_1,_2,_3,xs1,xs2,xs3,ats,x3,xs11,xs21,ats1,x4,markets;
        render=function(x)
        {
         var x1;
         x1=Helpers1.renderMarketsList(varMarket,meetup,x);
         return GameDetail.doc(x1);
        };
+       a1=AttrProxy.Create("style","border-right : 1px solid #ddd;");
+       a2=AttrProxy.Create("style","border-radius: 0 0 10px 10px;");
        tupledArg=meetup.game.gameId;
        _arg00_=tupledArg[0];
        _arg01_=tupledArg[1];
@@ -1042,8 +1046,8 @@
                xs1=matchValue.$0;
                xs2=matchValue.$1.$0;
                xs3=matchValue.$1.$1.$0;
-               ats=List.ofArray([GameDetail.op_SpliceUntyped("w3-row w3-sand")]);
-               x3=Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4")]),List.ofArray([render(xs1)])),Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4")]),List.ofArray([render(xs2)])),Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4")]),List.ofArray([render(xs3)]))]));
+               ats=List.ofArray([GameDetail.op_SpliceUntyped("w3-row w3-sand"),a2]);
+               x3=Doc.Element("div",ats,List.ofArray([Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4"),a1]),List.ofArray([render(xs1)])),Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4"),a1]),List.ofArray([render(xs2)])),Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4")]),List.ofArray([render(xs3)]))]));
                _3=GameDetail.doc(x3);
               }
              else
@@ -1056,8 +1060,8 @@
             {
              xs11=matchValue.$0;
              xs21=matchValue.$1.$0;
-             ats1=List.ofArray([GameDetail.op_SpliceUntyped("w3-row w3-sand")]);
-             x4=Doc.Element("div",ats1,List.ofArray([Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s6")]),List.ofArray([render(xs11)])),Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s6")]),List.ofArray([render(xs21)]))]));
+             ats1=List.ofArray([GameDetail.op_SpliceUntyped("w3-row w3-sand"),a2]);
+             x4=Doc.Element("div",ats1,List.ofArray([Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s6"),a1]),List.ofArray([render(xs11)])),Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s6")]),List.ofArray([render(xs21)]))]));
              _2=GameDetail.doc(x4);
             }
            _1=_2;
@@ -1122,7 +1126,7 @@
      {
       var x;
       x=game.Meetup;
-      return(Helpers1.renderDialog())(List.ofArray([Helpers1.renderGameInfo(x.game.home,x.game.away,x.status.get_View(),x.summary.get_View()),Helpers1.renderContent(game)]));
+      return((Helpers1.renderDialog())(List.ofArray([AttrProxy.Create("style","border-radius: 10px;")])))(List.ofArray([Helpers1.renderGameInfo(x.game.home,x.game.away,x.status.get_View(),x.summary.get_View()),Helpers1.renderContent(game)]));
      },
      varError:Runtime.Field(function()
      {
@@ -1702,7 +1706,7 @@
              _1=Concurrency.Bind(x,function(_arg3)
              {
               var _2,folder,_arg00_1,_arg01_1,toltalMatched;
-              if(_arg3.get_IsEmpty())
+              if(_arg3.$==0)
                {
                 _2=Concurrency.Return(null);
                }
@@ -1710,17 +1714,17 @@
                {
                 folder=function(acc)
                 {
-                 return function()
+                 return function(tupledArg)
                  {
-                  return function(value)
-                  {
-                   return acc+value;
-                  };
+                  var value;
+                  tupledArg[0];
+                  value=tupledArg[1];
+                  return acc+value;
                  };
                 };
                 _arg00_1=_arg2[0];
                 _arg01_1=_arg2[1];
-                toltalMatched=MapModule.Fold(folder,0,_arg3);
+                toltalMatched=Seq.fold(folder,0,_arg3);
                 Games.updateTotalMatched(_arg00_1,_arg01_1,toltalMatched);
                 _2=Concurrency.Return(null);
                }
@@ -2487,7 +2491,7 @@
      },
      createModal:function(viewVisible,close)
      {
-      var doc,op_SpliceUntyped,renderModalContent,render;
+      var doc,op_SpliceUntyped,render;
       doc=function(x)
       {
        return x;
@@ -2497,19 +2501,24 @@
        return AttrProxy.Create("class",arg00);
       };
       (Utils.initializeModalVar())(close);
-      renderModalContent=function(content)
+      render=function(attrs)
       {
-       return doc(Doc.Element("div",List.ofArray([op_SpliceUntyped("w3-modal"),AttrProxy.Create("style","display : block;")]),List.ofArray([Doc.Element("div",List.ofArray([op_SpliceUntyped("w3-modal-content w3-animate-zoom w3-card-8")]),content)])));
-      };
-      render=function(content)
-      {
-       var arg00,_arg00_;
-       arg00=function(_arg1)
+       return function(content)
        {
-        return _arg1?renderModalContent(content):Doc.get_Empty();
+        var arg00,_arg00_;
+        arg00=function(_arg1)
+        {
+         return _arg1?doc(Doc.Element("div",List.ofArray([op_SpliceUntyped("w3-modal"),AttrProxy.Create("style","display : block;")]),List.ofArray([Doc.Element("div",Seq.toList(Seq.delay(function()
+         {
+          return Seq.append(attrs,Seq.delay(function()
+          {
+           return[op_SpliceUntyped("w3-modal-content w3-animate-zoom w3-card-8")];
+          }));
+         })),content)]))):Doc.get_Empty();
+        };
+        _arg00_=View.Map(arg00,viewVisible);
+        return Doc.EmbedView(_arg00_);
        };
-       _arg00_=View.Map(arg00,viewVisible);
-       return Doc.EmbedView(_arg00_);
       };
       return render;
      },
@@ -2643,7 +2652,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\User\\Docs\\Visual Studio 2015\\Projects\\CentBet\\CentBet\\WebFace\\ClientUtils.fs",8,18));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\User\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\CentBet\\WebFace\\ClientUtils.fs",8,18));
              }
             _4=_5;
            }
@@ -2740,11 +2749,11 @@
   Helpers3=Runtime.Safe(Games.Helpers3);
   Work1=Runtime.Safe(Helpers3.Work);
   ServerBetfairsSession=Runtime.Safe(Games.ServerBetfairsSession);
-  Collections=Runtime.Safe(Global.WebSharper.Collections);
-  MapModule=Runtime.Safe(Collections.MapModule);
   Date=Runtime.Safe(Global.Date);
   JSON=Runtime.Safe(Global.JSON);
   window=Runtime.Safe(Global.window);
+  Collections=Runtime.Safe(Global.WebSharper.Collections);
+  MapModule=Runtime.Safe(Collections.MapModule);
   FSharpSet=Runtime.Safe(Collections.FSharpSet);
   BalancedTree=Runtime.Safe(Collections.BalancedTree);
   Slice=Runtime.Safe(Global.WebSharper.Slice);

@@ -7,6 +7,8 @@ open System.IO
 
 open Json
 
+let enableApiNgDebugLogs = Concurency.atom (fun () -> false)
+
 [<AutoOpen>]
 module private Helpers =
     let formatPrety = Json.formatWith JsonFormattingOptions.Pretty
@@ -93,8 +95,7 @@ let callUntyped auth service requestArgsJson =
 
         
         let! (xresponseJson,_) = sendAndGetResponse 
-        let! canDebugLogging = Config.enableApiNgDebugLogs.Get()
-        if canDebugLogging then
+        if enableApiNgDebugLogs.Value() then
             let level,s = 
                 match xresponseJson with 
                 | Left error -> Logging.Error, "no answer"

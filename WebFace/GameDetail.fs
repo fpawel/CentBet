@@ -80,17 +80,21 @@ module private Helpers =
 
     let renderMeetupMarkets meetup varMarket =
         let render = renderMarketsList varMarket meetup >> doc
+
+        let a1 = attr.style "border-right : 1px solid #ddd;"
+        let a2 = attr.style "border-radius: 0 0 10px 10px;"
+
         match Games.getMarkets meetup.game.gameId |> window 3 with        
         | [ markets ] -> render markets 
         | [ xs1; xs2 ] -> 
-            divAttr [%% "w3-row w3-sand"] [    
-                divAttr [ %% "w3-col s6" ] [ render xs1 ]
+            divAttr [%% "w3-row w3-sand"; a2] [    
+                divAttr [ %% "w3-col s6"; a1 ] [ render xs1 ]
                 divAttr [ %% "w3-col s6" ] [ render xs2 ] ]
             |> doc
         | [ xs1; xs2; xs3 ] -> 
-            divAttr [%% "w3-row w3-sand"] [    
-                divAttr [ %% "w3-col s4" ] [ render xs1 ]
-                divAttr [ %% "w3-col s4" ] [ render xs2 ] 
+            divAttr [%% "w3-row w3-sand"; a2] [    
+                divAttr [ %% "w3-col s4"; a1 ] [ render xs1 ]
+                divAttr [ %% "w3-col s4"; a1 ] [ render xs2 ] 
                 divAttr [ %% "w3-col s4" ] [ render xs3 ] ]
             |> doc
         | _ -> Doc.Empty
@@ -107,7 +111,8 @@ module private Helpers =
 
 let renderExploreMarkets (game : GameDetail) =     
     let x = game.Meetup
-    renderDialog         
+    renderDialog       
+        [ attr.style "border-radius: 10px;" ]  
         [   renderGameInfo x.game.home x.game.away x.status.View x.summary.View            
             renderContent game ]
 

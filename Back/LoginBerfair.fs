@@ -8,9 +8,6 @@ open System.Text
 open System.Text.RegularExpressions
 open System.IO
 
-
-let auth = 
-    Atom.withLogsByValue "BETFAIR-SESSION-TOKEN-APP-KEY" None
 let login user pass = 
     let uri = 
         sprintf "https://identitysso.betfair.com/api/login?username=%s&password=%s&login=true&redirectMethod=POST&product=home.betfair.int&url=https://www.betfair.com/" user pass
@@ -34,7 +31,6 @@ let login user pass =
         | Left error -> return Left <| sprintf "error reciving app key : %s" error
         | Right appKey -> 
             let x = { RestApi.Auth.SessionToken = sessionToken; RestApi.Auth.AppKey = appKey }
-            do! auth.Set (Some x)
             return Right x } )
     
 
