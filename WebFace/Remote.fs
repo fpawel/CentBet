@@ -66,7 +66,14 @@ module Helpers =
     
     
     let consoleCommands = [ 
-        "-login-betfair", 2, fun [user;pass] -> Betfair.Login.login user pass |> resultOf
+        "-login-betfair", 2, fun [user;pass] -> async{
+            let! x  = Betfair.Login.login user pass 
+            match x with
+            | Left x -> return Failure x
+            | Right auth -> 
+                Coupon.adminBetafirAuth.Set <| Some auth
+                return Success <| sprintf "%A" auth }
+
         "-atoms-names", 0, fun [] -> 
             Concurency.Status.getNames() 
             |> map1
