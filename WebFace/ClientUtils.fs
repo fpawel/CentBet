@@ -21,10 +21,10 @@ let formatDecimalOption = function
 [<Direct "dateTimeToString($s)">]
 let dateTimeToString (s: int64) : string = failwith "n/a"
 
-let mkids<'T,'a when 'a:comparison> (x : 'T list)  (getid : 'T -> 'a)  =
-    let m = x |> List.map(fun g -> (getid g), g) |> Map.ofList
-    let s = x |> List.map( getid ) |> Set.ofList
-    s,m
+//let mkids<'T,'a when 'a:comparison> (x : 'T list)  (getid : 'T -> 'a)  =
+//    let m = x |> List.map(fun g -> (getid g), g) |> Map.ofList
+//    let s = x |> List.map( getid ) |> Set.ofList
+//    s,m
 
 let getDatePart (x:JavaScript.Date) = 
     let y = Date(x.GetTime())
@@ -41,6 +41,13 @@ let (|Left|Right|) = function
 
 let Left = Choice1Of2
 let Right = Choice2Of2
+
+module Option = 
+    
+    let getWith def x =
+        match x with
+        | Some x' -> x'
+        | None -> def
 
 module LocalStorage = 
     open WebSharper.UI.Next

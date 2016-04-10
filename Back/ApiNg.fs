@@ -465,37 +465,13 @@ and Runner =
         orders : Order list
         [<Description("List of matches (i.e, orders that have been fully or partially executed)")>]
         matches : Match list}
+
+    static member exchangePrice side x = 
+        x.ex 
+        |> Option.bind( ExchangePrices.get0 side  )
+        |> Option.map( fun (p : PriceSize) -> p.price, p.size)
+        
     
-    static member bestPriceBack x = 
-        match x.ex with
-        | None -> None
-        | Some ex ->
-            match ex.availableToBack with
-            | {price=Some price}::_ -> Some price
-            | _ -> None
-    static member bestPriceLay x = 
-        match x.ex with
-        | None -> None
-        | Some ex ->
-            match ex.availableToLay with
-            | {price=Some price}::_ -> Some price
-            | _ -> None
-    static member bestSizeBack x = 
-        match x.ex with
-        | None -> None
-        | Some ex ->
-            match ex.availableToBack with
-            | {size=Some size}::_ -> Some size
-            | _ -> None
-    static member bestSizeLay x = 
-        match x.ex with
-        | None -> None
-        | Some ex ->
-            match ex.availableToLay with
-            | {size=Some size}::_ -> Some size
-            | _ -> None
-
-
 ///Information about the Betfair Starting Price. Only available in BSP markets
 and StartingPrices =
     {   [<Description("What the starting price would be if the market was reconciled now taking into account the SP bets as well as unmatched exchange bets on the same selection in the exchange.")>]
@@ -513,6 +489,13 @@ and ExchangePrices =
     {   availableToBack : PriceSize list
         availableToLay : PriceSize list
         tradedVolume : PriceSize list}
+    static member get0 side (x : ExchangePrices) = 
+        match side with
+        | BACK -> x.availableToBack
+        | LAY -> x.availableToLay
+        |> function
+            | [] -> None
+            | y ::_ -> Some y
 
 ///Event
 and Event =
