@@ -75,12 +75,12 @@ module private Helpers1 =
 
     let (~&&) (type':Type) = type'.Name
 
-type SerializationResult = Either<string,Json>    
+type SerializationResult = Result<Json,string>    
 
 module private Serialization =  
     let (==>) x y = x, y |> decimal |> Number
     let plain' (x : obj) = 
-        let (~%%) = Right >> Some    
+        let (~%%) = Ok >> Some    
         match x with
         | :? string as x -> %% Json.String x 
         | :? decimal as x -> %% Number x
@@ -105,18 +105,18 @@ module private Serialization =
                 "Minute" ==> x.Minute
                 "Second" ==> x.Second
                 "Millisecond" ==> x.Millisecond ] 
-            |> Json.obj |> Right |> Some 
+            |> Json.obj |> Ok |> Some 
         | :? TimeSpan as x ->             
             [   "Days" ==> x.Days
                 "Hours" ==> x.Hours
                 "Minutes" ==> x.Minutes
                 "Seconds" ==> x.Seconds
                 "Milliseconds" ==> x.Milliseconds ] 
-            |> Json.obj |> Right |> Some
+            |> Json.obj |> Ok |> Some
         | _ -> None
 
     let rec serializeUntyped (x : obj) : SerializationResult  = 
-        if x=null then Right (Null ()) else
+        if x=null then Ok (Null ()) else
         let type' = x.GetType()
         match plain' x with
         | Some json -> json
@@ -143,25 +143,25 @@ module private Serialization =
                     null )
         
         if toJsonUntyped <> null then            
-            toJsonUntyped.Invoke(null, [| box x |] ) :?> Json |> Right |> Some 
+            toJsonUntyped.Invoke(null, [| box x |] ) :?> Json |> Ok |> Some 
         else None
     and returnSeq rs = 
-        let oks, fails = List.partition ( isRight ) rs
+        let oks, fails = List.partition Result.isOk rs
         match fails with
         | [] -> 
             oks 
-            |> List.map right
-            |> Right 
+            |> List.map Result.Unwrap.ok
+            |> Ok 
         | _ -> 
             fails
-            |> List.map left 
+            |> List.map Result.Unwrap.err 
             |> listToStr ";\n" id
             |> sprintf "error serializing sequence to json: %s"
-            |> Left
+            |> Err
     and returnSeqWith f rs =
         rs
         |> returnSeq 
-        |> Either.mapRight f
+        |> Result.map f
 
     and seq' (x:obj) =        
         x :?> System.Collections.IEnumerable 
@@ -177,9 +177,9 @@ module private Serialization =
             let kvpKey = string ( keyProp.GetValue(keyValueObject, null) )
             let kvpValue = keyValueObjectType.GetProperty("Value").GetValue(keyValueObject, null)
             match serializeUntyped kvpValue with
-            | Left error -> Left error
-            | Right json -> 
-                Right (kvpKey, json) )
+            | Err error -> Err error
+            | Ok json -> 
+                Ok (kvpKey, json) )
         |> returnSeqWith ( Map.ofList >> Json.Object )
 
     and map' (x:obj) = 
@@ -192,24 +192,24 @@ module private Serialization =
             Activator.CreateInstance(keyValuePairType, [|kvpKey; kvpValue|]) 
             |> serializeUntyped )
         |> returnSeq 
-        |> Either.mapRight Json.Array        
+        |> Result.map Json.Array        
 
     and array' (x:obj) = 
         [ for y in (x :?> Array) -> serializeUntyped y ] 
         |> returnSeq 
-        |> Either.mapRight Json.Array
+        |> Result.map Json.Array
         
     and tuple' (x:obj) = 
         FSharpValue.GetTupleFields x 
         |> Array.toList
         |> List.map serializeUntyped
         |> returnSeq 
-        |> Either.mapRight Json.Array
+        |> Result.map Json.Array
         
     and option' (x:obj) =  
         let type' = x.GetType()
         match type'.GetProperty("Value").GetValue(x, null) with
-        | null -> Null () |> Right 
+        | null -> Null () |> Ok 
         | value -> serializeUntyped value 
           
     and union' (x:obj) =  
@@ -217,18 +217,19 @@ module private Serialization =
         let case, vals =  FSharpValue.GetUnionFields(x, type') 
         if vals |> Array.isEmpty then
             Json.String case.Name  
-            |> Right
+            |> Ok
         else
             vals
             |> Array.toList
             |> List.map serializeUntyped
             |> returnSeq 
-            |> Either.map2 
-                ( fun error -> sprintf "error serializing discriminated union to json: %A : %A, %s" x (&& type') error  )
-                ( fun fields ->
+            |> function
+                | Err error -> Err <| sprintf "error serializing discriminated union to json: %A : %A, %s" x (&& type') error  
+                | Ok fields ->
                     [ case.Name, Json.Array fields ]
                     |> Map.ofList 
-                    |> Json.Object  )        
+                    |> Json.Object
+                    |> Ok
 
     and record' (x:obj) =
         let type' = x.GetType()
@@ -245,19 +246,19 @@ module private Serialization =
                 else
                     (y.Name, FSharpValue.GetRecordField(x,y) |> serializeUntyped )
                     |> Some  ) 
-            |> List.partition( snd >> isRight)
+            |> List.partition( snd >> Result.isOk)
         if fails.IsEmpty then 
             oks 
-            |> List.map ( fun (k,v) -> k, right v)
+            |> List.map ( fun (k,v) -> k, Result.Unwrap.ok v)
             |> Map.ofList
             |> Json.Object
-            |> Right
+            |> Ok
         else
             fails 
-            |> List.map ( fun (k,v) -> sprintf "%s: %s" k (left v) )
+            |> List.map ( fun (k,v) -> sprintf "%s: %s" k (Result.Unwrap.err v) )
             |> listToStr ";\n" id
             |> sprintf "error serializing record to json: %A : %A, %s" x (&& type')
-            |> Left   
+            |> Err   
 
     and trySerializeByKnownType (x : obj) : SerializationResult option = 
         let type' = x.GetType()
@@ -293,43 +294,43 @@ module private Deserialization =
     let int' integerNumberType = function
         | Number x -> 
             changeType (Math.Round x) integerNumberType
-            |> Right
+            |> Ok
         | Bool x -> 
             changeType (if x then 1 else 0) integerNumberType
-            |> Right
+            |> Ok
         | String x -> 
             let b,x = Int64.TryParse x
-            if b then changeType x integerNumberType |> Right else 
-            Left <| sprintf "error deserialize JSON, %A is not json integer number value %A" x (&& integerNumberType)
+            if b then changeType x integerNumberType |> Ok else 
+            Err <| sprintf "error deserialize JSON, %A is not json integer number value %A" x (&& integerNumberType)
         | json -> 
             stringify json
             |> sprintf "error deserialize JSON, not a json integer number value %A : %s" (&& integerNumberType)
-            |> Left
+            |> Err
 
     let float' floatNumberType = function
-        | Number x -> changeType x floatNumberType |> Right
-        | Bool x -> changeType (if x then 1 else 0) floatNumberType |> Right
+        | Number x -> changeType x floatNumberType |> Ok
+        | Bool x -> changeType (if x then 1 else 0) floatNumberType |> Ok
         | String x -> 
             let b,x = Decimal.TryParse x
-            if b then changeType x floatNumberType |> Right else 
-            Left <| sprintf "%A is not json float number value %A" x (&& floatNumberType)
+            if b then changeType x floatNumberType |> Ok else 
+            Err <| sprintf "%A is not json float number value %A" x (&& floatNumberType)
         | json -> 
             stringify json
             |> sprintf "not a json integer number value %A : %s" (&& floatNumberType)
-            |> Left
+            |> Err
 
     let bool' = function
-        | Number x -> Right ( x <> 0m )
-        | Bool x -> Right x
+        | Number x -> Ok ( x <> 0m )
+        | Bool x -> Ok x
         | String x -> 
             match x.ToLower() with 
-            | "true" -> Right true
-            | "false" -> Right false
-            | value -> sprintf "error deserialize JSON, not a boolean value %A" value |> Left             
+            | "true" -> Ok true
+            | "false" -> Ok false
+            | value -> sprintf "error deserialize JSON, not a boolean value %A" value |> Err             
         | json -> 
             stringify json
             |> sprintf "error deserialize JSON, not a boolean value %A : %s" json
-            |> Left
+            |> Err
 
     let integerTypes = 
         [ typeof<int8> ; typeof<int16>; typeof<int>; typeof<int64>;        
@@ -349,15 +350,15 @@ module private Deserialization =
             NumProp "Minute" minute & 
             NumProp "Second" second & 
             NumProp "Millisecond" millisecond ->                    
-                DateTime( int year, int month, int day, int hour, int minute, int second, int millisecond) |> box |> Right 
+                DateTime( int year, int month, int day, int hour, int minute, int second, int millisecond) |> box |> Ok 
         | String s ->
             match DateTime.TryParse(s) with
-            | true, x -> x |> box |> Right 
-            | _ -> sprintf "not date time %A" s |> Left 
+            | true, x -> x |> box |> Ok 
+            | _ -> sprintf "not date time %A" s |> Err 
         | json -> 
             stringify json
             |> sprintf "not date time value %s"
-            |> Left
+            |> Err
 
     let timespan' = function
         | NumProp "Days" days &  
@@ -365,15 +366,15 @@ module private Deserialization =
           NumProp "Minutes" minutes & 
           NumProp "Seconds" seconds & 
           NumProp "Milliseconds" milliseconds ->
-            TimeSpan(int days, int hours, int minutes, int seconds, int milliseconds) |> box |> Right 
+            TimeSpan(int days, int hours, int minutes, int seconds, int milliseconds) |> box |> Ok 
         | json -> 
             stringify json
             |> sprintf "not time span value %s"
-            |> Left
+            |> Err
         
     let plain' type' json  = 
         if type'= typeof<string> then 
-            str' json |> box |> Right |> Some 
+            str' json |> box |> Ok |> Some 
 
         elif type'= typeof<DateTime> then
             datetime' json |> Some 
@@ -385,28 +386,28 @@ module private Deserialization =
         elif List.tryFind ( (=) type') floatTypes |> Option.isSome   then 
             float' type' json |> Some
         elif type'=typeof<bool> then 
-            bool' json |> Either.mapRight( box ) |> Some
+            bool' json |> Result.map( box ) |> Some
 
         elif type'=typeof<unit> then 
             match json with
-            | Null () -> box () |> Right 
+            | Null () -> box () |> Ok 
             | _ -> 
                 stringify json
                 |> sprintf "error deserialize JSON, not null %A : %s" (&& type')
-                |> Left
+                |> Err
             |> Some
 
         else None
             
     let returnList' valuetype (xs: _ list) = 
         xs         
-        |> List.map ( snd >> right ) 
+        |> List.map ( snd >> Result.Unwrap.ok ) 
         |> makeListOf valuetype 
-        |> Right
+        |> Ok
 
     let returnOfList' type' valuetype (xs: _ list) = 
         Activator.CreateInstance ( type', returnList' valuetype xs)
-        |> Right
+        |> Ok
 
     let list' (type':Type) deserialize json  = 
         let valueType = type'.GetGenericArguments().[0]
@@ -415,15 +416,15 @@ module private Deserialization =
             let oks,fails = 
                 List.map ( deserialize valueType ) jsons 
                 |> List.zip jsons
-                |> List.partition ( snd >> isRight )
+                |> List.partition ( snd >> Result.isOk )
             if fails.IsEmpty then  returnList' valueType oks else
                 fails 
                 |> List.map ( fun (json, xleft) -> 
-                    sprintf "%s: %s" (stringify json) (left xleft) )
+                    sprintf "%s: %s" (stringify json) (Result.Unwrap.err xleft) )
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to list %A, %s" (&& type')
-                |> Left   
-        | _ -> Left <| sprintf "error deserializing json to list %A, %s" (&& type') (stringify json)
+                |> Err   
+        | _ -> Err <| sprintf "error deserializing json to list %A, %s" (&& type') (stringify json)
 
     let stringMap' (type':Type) deserialize json = 
         let valuetype = type'.GetGenericArguments().[1]
@@ -433,23 +434,23 @@ module private Deserialization =
             let oks,fails = 
                 jsonProps |> Map.toList |> List.map ( fun ( key,jsonValue) -> 
                     ( key,jsonValue), deserialize valuetype jsonValue )
-                |> List.partition ( snd >> isRight )
+                |> List.partition ( snd >> Result.isOk )
             if fails.IsEmpty then   
                 let kvs = 
                     oks 
                     |> List.map ( fun ((key,_),xright) ->                     
-                        Activator.CreateInstance( keyValuePairType, [| box key; right xright|] ) )  
+                        Activator.CreateInstance( keyValuePairType, [| box key; Result.Unwrap.ok xright|] ) )  
                     |> makeListOf keyValuePairType                    
                 Activator.CreateInstance ( type', kvs )
-                |> Right
+                |> Ok
             else
                 fails 
                 |> List.map ( fun ((k,json), xleft) -> 
-                    sprintf "key %s, %s, %s" k (left xleft) (stringify json) )
+                    sprintf "key %s, %s, %s" k (Result.Unwrap.err xleft) (stringify json) )
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to string map %A, %s" (&& type')
-                |> Left   
-         | _ -> Left <| sprintf "error deserializing json to string map %A, %s" (&& type') (stringify json)
+                |> Err   
+         | _ -> Err <| sprintf "error deserializing json to string map %A, %s" (&& type') (stringify json)
 
     let map' (type':Type) deserialize json = 
         let keyValuePairType = typedefof<System.Tuple<_,_>>.MakeGenericType( type'.GetGenericArguments() )
@@ -459,24 +460,24 @@ module private Deserialization =
                 jsons 
                 |> List.map ( fun xjson -> 
                     (keyValuePairType, xjson), deserialize keyValuePairType xjson ) 
-               |> List.partition ( snd >> isRight )
+               |> List.partition ( snd >> Result.isOk )
 
             if fails.IsEmpty then 
                 let kvs =
                     oks         
-                    |> List.map ( snd >> right ) 
+                    |> List.map ( snd >> Result.Unwrap.ok ) 
                     |> makeListOf keyValuePairType 
                 Activator.CreateInstance ( type', kvs )
-                |> Right                
+                |> Ok                
             else
                 fails 
                 |> List.map ( fun ((k,json), xleft) -> 
-                    sprintf "key type is %A, %s, %s" k (left xleft) (stringify json)  )
+                    sprintf "key type is %A, %s, %s" k (Result.Unwrap.err xleft) (stringify json)  )
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to map %A, %s" (&& type')
-                |> Left 
+                |> Err 
         | _ -> 
-            Left <| sprintf "error deserializing json to map %A, %s" (&& type') (stringify json)
+            Err <| sprintf "error deserializing json to map %A, %s" (&& type') (stringify json)
 
     let set' (type':Type) deserialize json = 
         let valueType = type'.GetGenericArguments().[0]
@@ -485,23 +486,23 @@ module private Deserialization =
             let oks,fails = 
                 jsons 
                 |> List.map ( fun xjson -> xjson, deserialize valueType xjson ) 
-                |> List.partition ( snd >> isRight )
+                |> List.partition ( snd >> Result.isOk )
 
             if fails.IsEmpty then 
                 let kvs =
                     oks         
-                    |> List.map ( snd >> right )                     
+                    |> List.map ( snd >> Result.Unwrap.ok )                     
                 Activator.CreateInstance ( type', makeListOf valueType  kvs )
-                |> Right
+                |> Ok
             else
                 fails 
                 |> List.map ( fun (json, xleft) -> 
-                    sprintf "%s, %s" (left xleft) (stringify json)  )
+                    sprintf "%s, %s" (Result.Unwrap.err xleft) (stringify json)  )
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to set %A, %s" (&& type')
-                |> Left 
+                |> Err 
         | _ -> 
-            Left <| sprintf "error deserializing json to set %A, %s" (&& type') (stringify json)
+            Err <| sprintf "error deserializing json to set %A, %s" (&& type') (stringify json)
 
     let array' (type':Type) deserialize json = 
         let valueType = type'.GetElementType()       
@@ -511,21 +512,21 @@ module private Deserialization =
             let oks,fails = 
                 jsons 
                 |> List.mapi ( fun n xjson -> (xjson,n), deserialize valueType xjson ) 
-                |> List.partition ( snd >> isRight )
+                |> List.partition ( snd >> Result.isOk )
             if fails.IsEmpty then
                 oks                
                 |> List.iter( fun ((_,n),xright) ->  
-                    result.SetValue( right xright, n ) )
-                box result |> Right
+                    result.SetValue( Result.Unwrap.ok xright, n ) )
+                box result |> Ok
             else
                 fails 
                 |> List.map ( fun ((json,n), xleft) -> 
-                    sprintf "[%d] - %s, %s" n (left xleft) (stringify json)  )
+                    sprintf "[%d] - %s, %s" n (Result.Unwrap.err xleft) (stringify json)  )
                 |> listToStr ";\n" id
                 |> sprintf "error deserializing json to array %A, %s" (&& type')
-                |> Left 
+                |> Err 
         | _ -> 
-            Left <| sprintf "error deserializing json to array %A, %s" (&& type') (stringify json)
+            Err <| sprintf "error deserializing json to array %A, %s" (&& type') (stringify json)
 
     let tuple' (type':Type) deserialize json = 
         let tes = FSharpType.GetTupleElements(type')
@@ -536,27 +537,27 @@ module private Deserialization =
                 |> Seq.take tes.Length 
                 |> Seq.toArray |> Array.zip tes 
                 |> Array.map( fun (te,jsonx) -> (te,jsonx), deserialize te jsonx )
-                |> Array.partition (snd >> isRight)
+                |> Array.partition (snd >> Result.isOk)
 
             if Array.isEmpty fails then 
-                FSharpValue.MakeTuple( oks |> Array.map ( snd >> right ), type' )
-                |> Right
+                FSharpValue.MakeTuple( oks |> Array.map ( snd >> Result.Unwrap.ok ), type' )
+                |> Ok
             else 
                 fails |> Array.map ( fun ((t,json), xleft) -> 
-                    sprintf "%A : %s, %s" t (left xleft) (stringify json)  )
+                    sprintf "%A : %s, %s" t (Result.Unwrap.err xleft) (stringify json)  )
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to tuple %A, %s" (&& type')
-                |> Left 
+                |> Err 
         | _ -> 
-            Left <| sprintf "error deserializing json to tuple %A, %s" (&& type') (stringify json)
+            Err <| sprintf "error deserializing json to tuple %A, %s" (&& type') (stringify json)
 
     let option' (type':Type) deserialize json = 
         let cases =  FSharpType.GetUnionCases type' |> Array.toList 
         match json with
-        | Null () -> FSharpValue.MakeUnion(cases.[0], [||]) |> Right
+        | Null () -> FSharpValue.MakeUnion(cases.[0], [||]) |> Ok
         | _ -> 
             deserialize (type'.GetGenericArguments().[0]) json
-            |> Either.mapRight( fun x -> 
+            |> Result.map( fun x -> 
                 FSharpValue.MakeUnion(cases.[1], [|x|]) )
 
     let (|GetCase|_|) cases x = 
@@ -570,29 +571,29 @@ module private Deserialization =
         let cases =  FSharpType.GetUnionCases type' |> Array.toList
         match json with
         | String ( GetCase cases (case,fields) ) when fields.IsEmpty  ->
-            FSharpValue.MakeUnion(case, [||]) |> Right
+            FSharpValue.MakeUnion(case, [||]) |> Ok
         | Object ( MapToList [ GetCase cases (case,fields), Array jsons] ) when fields.Length = jsons.Length ->
             let oks,fails = 
                 jsons |> List.zip fields
                 |> List.map( fun ((field,xjson) as k) -> 
                     k, deserialize field.PropertyType xjson )
-                |> List.partition (snd >> isRight)
+                |> List.partition (snd >> Result.isOk)
             if fails.IsEmpty then
-                let xs = oks |> List.map( snd >> right ) |> List.toArray
+                let xs = oks |> List.map( snd >> Result.Unwrap.ok ) |> List.toArray
                 FSharpValue.MakeUnion(case, xs) 
-                |> Right
+                |> Ok
             else                
-                fails |> List.map ( fun ((p,json), xleft) -> 
+                fails |> List.map ( fun ((p,json), xerr) -> 
                     sprintf 
                         "union case %A : %A - %s, %s" 
                         p.Name p.PropertyType 
-                        (left xleft) 
+                        (Result.Unwrap.err xerr) 
                         (stringify json)  )
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to union %A, %s" (&& type')
-                |> Left 
+                |> Err 
         | _ -> 
-            Left <| sprintf "error deserializing json to union %A, %s" (&& type') (stringify json)
+            Err <| sprintf "error deserializing json to union %A, %s" (&& type') (stringify json)
 
     let recordFieldNone' (type':Type) =
         let gtype' = type'.GetGenericTypeDefinition()
@@ -615,31 +616,30 @@ module private Deserialization =
         match Map.tryFind prop.Name jprops with
         | None when propType.IsGenericType ->
             match recordFieldNone' propType with
-            | Some x -> Right x
-            | _ -> sprintf "missing value of property %A" prop.Name |> Left
-        | None -> sprintf "missing value of property %A" prop.Name |> Left
+            | Some x -> Ok x
+            | _ -> sprintf "missing value of property %A" prop.Name |> Err
+        | None -> sprintf "missing value of property %A" prop.Name |> Err
         | Some xjson -> 
             deserialize propType xjson 
-            |> Either.map2
-                ( fun error -> sprintf "%s - %s, %s" prop.Name error (stringify xjson) )
-                id
+            |> Result.mapErr( fun error -> sprintf "%s - %s, %s" prop.Name error (stringify xjson)  )
 
     let record' (type':Type) deserialize json = 
         match json with
         | Object jprops ->
             let oks,fails = 
                 FSharpType.GetRecordFields(type') |> Array.map (recordField' jprops deserialize)
-                |> Array.partition isRight
+                |> Array.partition Result.isOk
             if Array.isEmpty fails then 
-                FSharpValue.MakeRecord( type', oks |> Array.map right )
-                |> Right
+                FSharpValue.MakeRecord( type', oks |> Array.map Result.Unwrap.ok )
+                |> Ok
             else 
-                fails |> Array.map left
+                fails 
+                |> Array.map Result.Unwrap.err
                 |> listToStr ";\n\t" id
                 |> sprintf "error deserializing json to record %A, %s" (&& type')
-                |> Left 
+                |> Err 
         | _ -> 
-            Left <| sprintf "error deserializing json to record %A, %s" (&& type') (stringify json)
+            Err <| sprintf "error deserializing json to record %A, %s" (&& type') (stringify json)
 
     let deserializerFor' (t:Type) = 
         if isList t then Some list' 
@@ -651,11 +651,9 @@ module private Deserialization =
         elif isOption t then Some option'
         elif FSharpType.IsUnion t then Some union'
         elif FSharpType.IsRecord t then Some record'
-        else None
-        //else failwithf "can't find json deserializer for %A" t
-        
+        else None        
 
-    let rec deserializeUntyped (type':Type) (json : Json) : Either<string,obj>  =
+    let rec deserializeUntyped (type':Type) (json : Json) : Result<obj,string>  =
         
         match tryDeserializeCustomFromJson type' json with
         | Some x -> x
@@ -678,16 +676,16 @@ module private Deserialization =
                     [| typeof<Json> |],
                     null )
 
-        let rtype' = typeof<Either<string,obj>>
+        let rtype' = typeof<Result<obj,string>>
         
         if fromJson <> null then 
             if fromJson.ReturnType <> rtype' then
                 failwithf "return type of %A.FromJsonUntyped must be %A, but is %A" 
                     type'.Name rtype'.Name fromJson.ReturnType.Name
             try
-                fromJson.Invoke(null, [|json|] ) :?> Either<string,obj>                                
+                fromJson.Invoke(null, [|json|] ) :?> Result<obj,string>                                
             with e ->
-                Left <| sprintf "error calling %A.FromJsonUntyped on %A : %A" type'.Name (stringify json) e.Message
+                Err <| sprintf "error calling %A.FromJsonUntyped on %A : %A" type'.Name (stringify json) e.Message
             |> Some
         else None
 
@@ -695,13 +693,20 @@ let serializeUntyped = Serialization.serializeUntyped
 
 let serialize<'a> (x:'a) = 
     match serializeUntyped x with
-    | Left e -> failwithf "error serialize JSON %A : %A - %s" x (&& x.GetType()) e
-    | Right x -> x
+    | Err e -> failwithf "error serialize JSON %A : %A - %s" x (&& x.GetType()) e
+    | Ok x -> x
 
 let deserializeUntyped = Deserialization.deserializeUntyped
 
 let deserialize<'T> json = 
     deserializeUntyped typeof<'T> json 
-    |> Either.mapRight( fun x -> x :?> 'T)
+    |> Result.map( fun x -> x :?> 'T)
 
+let parse<'T> = 
+    Json.parse 
+    >> Result.mapErr ( sprintf "can't parse %A - %s" (&& typeof<'T>)  ) 
+    >> Result.bind( 
+        deserialize<'T> 
+        >> Result.mapErr ( sprintf "can't deserialize %A - %s" (&& typeof<'T>)  ) )
 
+let stringify<'a> = serialize<'a> >> stringify

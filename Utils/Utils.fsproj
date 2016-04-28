@@ -55,7 +55,7 @@
   <ItemGroup>
     <Compile Include="Prelude1.fs" />
     <Compile Include="Json.fs" />
-    <Compile Include="Json.Serialization.fs" />
+    <Compile Include="JsonSerialization.fs" />
     <None Include="Json.Serialization.Testing.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>

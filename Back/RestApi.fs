@@ -67,9 +67,6 @@ module private Helpers1 =
 type Auth1 = { 
     SessionToken : string
     AppKey : string option }
-        
-
-
 
     
 let callUntyped auth service requestArgsJson = 
@@ -98,19 +95,19 @@ let callUntyped auth service requestArgsJson =
         if enableApiNgDebugLogs.Value() then
             let level,s = 
                 match xresponseJson with 
-                | Left error -> Logging.Error, "no answer"
-                | Right json -> Logging.Debug, formatPrety json
+                | Err error -> Logging.Error, "no answer"
+                | Ok json -> Logging.Debug, formatPrety json
             Logging.write level "rest api - %A, %A, %s -> %s" auth service (formatPrety requestJson) s
 
         return 
             xresponseJson 
-            |> Either.bindRight ( fun responseJson -> 
+            |> Result.bind ( fun responseJson -> 
                 match responseJson with 
                 | ApiError (exceptionname, errorCode, errorDetails) ->                     
-                    Left <| sprintf "%A, exceptionname - %A, errorCode - %A " errorDetails exceptionname errorCode
-                | P "result" json -> Right json
-                | _ -> Left "missing property \"result\" in response" )            
-            |> Either.mapLeft (fun error -> 
+                    Err <| sprintf "%A, exceptionname - %A, errorCode - %A " errorDetails exceptionname errorCode
+                | P "result" json -> Ok json
+                | _ -> Err "missing property \"result\" in response" )            
+            |> Result.mapErr (fun error -> 
                 sprintf "rest api error - %s, service %s" (ApiService.what service) error ) }
 
 
@@ -127,17 +124,21 @@ type Auth = {
 let callWithAppKey auth service requestArgsJson =
     callUntyped { SessionToken = auth.SessionToken; AppKey = Some auth.AppKey} service requestArgsJson
 
-let call auth service (parseResult : _ -> Either<string,_> ) (request : _ ) : Async<_> = async{
-    let! x = callUntyped {SessionToken = auth.SessionToken; AppKey = Some auth.AppKey} service (Json.Serialization.serialize request)     
-    return x |> Either.bindRight ( fun json -> 
-        Json.Serialization.deserialize json
-        |> Either.mapLeft ( sprintf "rest api : error deserealizing response, %A, %A - %s" auth service )
-        |> Either.bindRight( fun r -> 
+let call<'Req, 'Resp, 'T> auth service (parseResult : 'Resp -> Result<'T,string> ) (request : 'Req )  = 
+    
+    callUntyped {SessionToken = auth.SessionToken; AppKey = Some auth.AppKey} 
+        service 
+        (Json.Serialization.serialize<'Req> request)     
+    |> Result.Async.bind ( fun json -> 
+        Json.Serialization.deserialize<'Resp> json
+        |> Result.mapErr ( sprintf "rest api : error deserealizing response, %A, %A - %s" auth service )
+        |> Result.bind ( fun r -> 
             parseResult r
-            |> Either.mapLeft 
-                ( sprintf "rest api : error parsing result, %A, %A, %s - %s" auth service (formatPrety json ) ) ) ) }  
+            |> Result.mapErr
+                ( sprintf "rest api : error parsing result, %A, %A, %s - %s" auth service (formatPrety json ) ) )
+        |> Async.return' ) 
 
-let callForType<'a> auth service request : Async<Either<string,'a>> = call auth service Right request
+let callForType<'a> auth service request : Async<Result<'a,string>> = call auth service Ok request
 
     
     

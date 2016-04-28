@@ -9,6 +9,9 @@
 password.txt
 localhost.fsx
 
+#paket
+.paket/paket.exe
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -19,7 +22,7 @@ localhost.fsx
 [Rr]eleases/
 x64/
 x86/
-build/
+[Bb]uild/
 bld/
 [Bb]in/
 [Oo]bj/

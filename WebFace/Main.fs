@@ -29,7 +29,7 @@ module Site =
 
     [<Website>]
     let Main =
-        Betfair.Football.Coupon.start()
+        
         Application.MultiPage (fun ctx -> function
             | Coupon -> 
                 Content.Page(Templating.Template<"Templates/coupon.html">.Doc( [ client <@ Coupon.Render() @> ] ))

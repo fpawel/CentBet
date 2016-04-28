@@ -35,12 +35,12 @@ let getDatePart (x:JavaScript.Date) =
 let createBlobFromString (arg : string) : Blob = failwith "n/a"
 
 
-let (|Left|Right|) = function
-    | Choice1Of2 a -> Left a
-    | Choice2Of2 b -> Right b
+let (|Err|Ok|) = function
+    | Choice1Of2 a -> Err a
+    | Choice2Of2 b -> Ok b
 
-let Left = Choice1Of2
-let Right = Choice2Of2
+let Err = Choice1Of2
+let Ok = Choice2Of2
 
 module Option = 
     

@@ -18,7 +18,7 @@ let (|Admin|) = function
     | Prop "password" ( Json.String password) when Remote.isValidPassword password -> true
     | _ -> false
 
-let fail x = async{ return x |> Left  |> serialize }
+let fail x = async{ return x |> Err  |> serialize }
 
 
 
@@ -44,15 +44,15 @@ let processInput (inputStream : System.IO.Stream) =
     use tr = new System.IO.StreamReader(inputStream)
     let input = tr.ReadToEnd()
     match Json.parse input with
-    | Left error -> 
+    | Err error -> 
         sprintf "reest api can't parse json from %A"  input
         |> fail
-    | Right inputJson -> 
+    | Ok inputJson -> 
         match deserialize<Action> inputJson with
-        | Left error -> 
+        | Err error -> 
             sprintf "reest api can't deserialize action from %A"  input
             |> fail
-        | Right action -> callAction action
+        | Ok action -> callAction action
     |> Async.map( Json.formatWith JsonFormattingOptions.Compact )
     
 
@@ -60,11 +60,11 @@ let loginBetfair apiurl (adminpass, betuser, betpass) = async{
     let _,send = RestApi.makeRequest apiurl (serialize <| LoginBetfair (adminpass, betuser, betpass) )
     let! x,_ = send
     match x with
-    | Left error -> return Left error 
-    | Right x -> 
-        match deserialize< Either<string, RestApi.Auth> > x with
-        | Left error -> return Left error 
-        | Right auth -> return  auth }
+    | Err error -> return Err error 
+    | Ok x -> 
+        match deserialize< Result<RestApi.Auth,string> > x with
+        | Err error -> return Err error 
+        | Ok auth -> return  auth }
     
 
 let getCoupon apiurl (games, npage, pagelen) = async{    
@@ -72,5 +72,5 @@ let getCoupon apiurl (games, npage, pagelen) = async{
     let! x,_ = send
     return 
         match x with
-        | Left error -> Left error 
-        | Right x -> deserialize< Coupon.CouponResponse > x }
+        | Err error -> Err error 
+        | Ok x -> deserialize< Coupon.CouponResponse > x }

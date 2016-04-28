@@ -143,11 +143,11 @@ let events npage (htmlEvents:HtmlNodeCollection) =
 let coupon npage source  = 
     let doc = new HtmlDocument()    
     doc.LoadHtml(source)
-    if doc.DocumentNode=null then Left "Ошибка формата купона 1" else
+    if doc.DocumentNode=null then Err "Ошибка формата купона 1" else
         
     let htmlEvents = doc.DocumentNode.SelectNodes("//tbody[@data-marketid and @data-eventid]") 
-    if htmlEvents=null then Left "Ошибка формата купона 2" 
-    elif Seq.isEmpty htmlEvents then Left "Ошибка формата купона 3" else
+    if htmlEvents=null then Err "Ошибка формата купона 2" 
+    elif Seq.isEmpty htmlEvents then Err "Ошибка формата купона 3" else
         let events = events npage htmlEvents
         let nextPageUrl = 
             let x = doc.DocumentNode.SelectSingleNode( "//a[@class=\"next-page\"]"  ) 
@@ -155,7 +155,7 @@ let coupon npage source  =
             let x = x.Attributes.["href"]
             if x=null then None else
             parseInt "fdcPage=(\\d+)" x.Value 
-        Right(events,nextPageUrl)
+        Ok(events,nextPageUrl)
 
 let firstPageId source  = 
         
@@ -167,14 +167,14 @@ let firstPageId source  =
     let doc = new HtmlDocument()    
     //doc.Load(@"d:\Projects\betfair\bethlpr\website.html")
     doc.LoadHtml(source)
-    if doc.DocumentNode=null then Left "Ошибка формата купона 4" else
+    if doc.DocumentNode=null then Err "Ошибка формата купона 4" else
 
 
     let x = doc.DocumentNode.SelectSingleNode( "//a[contains(@class,'more-events')]"  ) 
-    if x=null then Left "не удалось получить id первой страницы купона 1" else 
+    if x=null then Err "не удалось получить id первой страницы купона 1" else 
     let x = x.Attributes.["href"]
-    if x=null then Left "не удалось получить id первой страницы купона 2" else
+    if x=null then Err "не удалось получить id первой страницы купона 2" else
     match  x.Value with
-    | ParseInt "id=(\\d+)" id -> Right id
-    | _ -> Left "не удалось получить id первой страницы купона 3"
+    | ParseInt "id=(\\d+)" id -> Ok id
+    | _ -> Err "не удалось получить id первой страницы купона 3"
     

@@ -1,11 +1,11 @@
 ﻿#I "../packages"
 #r "FParsec.1.0.2/lib/net40-client/FParsecCS.dll"
 #r "FParsec.1.0.2/lib/net40-client/FParsec.dll"
-#r "FsCheck.2.2.4/lib/net45/FsCheck.dll"
+#r "FsCheck/lib/net45/FsCheck.dll"
 
 #load "Prelude1.fs"
 #load "Json.fs"
-#load "Json.Serialization.fs"
+#load "JsonSerialization.fs"
 
 open System
 
@@ -37,9 +37,9 @@ let test<'a when 'a : equality> ( x: 'a ) =
     |> serialize      
     |> Json.formatWith JsonFormattingOptions.Pretty
     |> Json.parse
-    |> right
+    |> Result.Unwrap.ok
     |> deserialize<'a>
-    |> right
+    |> Result.Unwrap.ok
     |> (=) x
 
 let validcahrs = 
@@ -71,9 +71,9 @@ let d = DateTime.Now
 serialize () 
 |> Json.formatWith JsonFormattingOptions.Pretty
 |> Json.parse
-|> right
+|> Result.Unwrap.ok
 |> deserialize<unit>
-|> right
+|> Result.Unwrap.ok
 
 test "3"
 

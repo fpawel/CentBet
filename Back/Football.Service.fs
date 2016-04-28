@@ -37,7 +37,7 @@ module private Helpers  =
         downloadUrl url (Parsing.coupon npage )
 
     let readGamesList couponId isAllToday =
-        let rec loop acc npage = asyncEiter{
+        let rec loop acc npage = Result.Async.async{
             let! (newPortion, xnextPage ) = downloadCouponPage couponId npage 
             let games = acc @ newPortion
             match xnextPage with
@@ -62,25 +62,23 @@ module CouponId =
     let status = Status ("COUPON-ID")
     let state = todayRef()
 
-    let private get() = async{                     
+    let private get() = async{
         match state.Value with
-        | Some x -> return Right x
+        | Some x -> return Ok x
         | _ ->
             let! x = downloadUrl couponIdUrl (Parsing.firstPageId)
             match x with
-            | Left x -> 
-                status.Set Logging.Error "%s" x
-                return Left x
-            | Right x -> 
+            | Err x ->  status.Set Logging.Error "%s" x                
+            | Ok x -> 
                 status.Set Logging.Info "%d" x
-                state.Set x
-                return Right x }
+                state.Set x  
+            return x }
 
     let do' f = async {
         let! couponId = get() 
         match couponId with 
-        | Left x -> return Logging.Error, sprintf "can't get coupon id : %s" x
-        | Right couponId -> return! f couponId }
+        | Err x -> return Logging.Error, sprintf "can't get coupon id : %s" x
+        | Ok couponId -> return! f couponId }
 
 module Coupon = 
     open Concurency    
@@ -91,17 +89,15 @@ module Coupon =
     
     let ``no next id``   = Logging.Warn, "no next id"
     let ``ok`` = Logging.Info, "Ok"
-
-
         
     let updateInplay = CouponId.do' <| fun couponId -> async {
         let! gs = readGamesList couponId false 1
         match gs with
-        | Right ((games, nextPageId') as x) ->                 
+        | Ok ((games, nextPageId') as x) ->                 
             inplay.Set games
             nextPageId.Set nextPageId'
             return ``ok``
-        | Left error -> return Logging.Error, error }
+        | Err error -> return Logging.Error, error }
 
     let updateForeplay = CouponId.do' <| fun couponId -> async {
         match nextPageId.Value with 
@@ -109,9 +105,9 @@ module Coupon =
         | Some nextPage ->
             let! games = readGamesList couponId true nextPage 
             match games with
-            | Right (today2,n) -> 
+            | Ok (today2,n) -> 
                 foreplay.Set today2  
                 return ``ok``
-            | Left error -> return Logging.Error, error  }
+            | Err error -> return Logging.Error, error  }
         
         

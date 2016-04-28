@@ -34,14 +34,14 @@ module private Helpers =
                 
                 divAttr[
                     %% "w3-col s4" 
-                    attr.style "text-align: right;" ][
+                    attr.style "text-align: right; margin : 10px;" ][
                     meetup.country.View 
                         |> View.Map( Option.map text >> Option.getWith Doc.Empty )
                         |> Doc.EmbedView ] 
 
                 divAttr[
                     %% "w3-col s2"  
-                    attr.style "color : #b4e500;" ][
+                    attr.style "color : #b4e500; margin : 0 10px;" ][
                         meetup.totalMatched.View|> View.Map( fun totalMatchs -> 
                             let totalMatchs = totalMatchs |> List.map snd |> Seq.fold (+) 0
                             if totalMatchs=0 then Doc.Empty else 
@@ -70,11 +70,7 @@ module private Helpers =
                 attr.style "width : 100%;"][
                 h2Attr [                    
                     attr.style "text-align: center;" ][ 
-                    Doc.TextView meetup.status.View ]
-                    
-                ]
-                    
-                    ]
+                    Doc.TextView meetup.status.View ] ] ]
        
     let renderPrice back ends v  = 
         tdAttr  [   

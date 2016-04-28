@@ -1,0 +1,14 @@
+source https://www.nuget.org/api/v2
+framework >= net45
+
+nuget FAKE
+nuget Microsoft.Owin 
+nuget Microsoft.Owin.Host.SystemWeb 
+nuget Microsoft.Owin.Hosting 
+nuget Mono.Cecil 
+nuget Owin 
+nuget WebSharper 
+nuget WebSharper.Owin
+nuget WebSharper.Warp 
+nuget WebSharper.UI.Next 
+nuget FsCheck

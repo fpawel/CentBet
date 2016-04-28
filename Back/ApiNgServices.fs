@@ -53,23 +53,27 @@ module private Helpers =
         | JAppKey y ->  Some y
         | _ ->  None 
 
-    let ``bad format``<'a> : Either<string,'a> = Left "bad format"
-    let ``no instruction report``<'a> : Either<string,'a> = Left "no instruction report"
-    let ``missing id``<'a> : Either<string,'a> = Left "missing id"
+    let ``bad format``<'a> : Result<'a,string> = Err "bad format"
+    let ``no instruction report``<'a> : Result<'a,string> = Err "no instruction report"
+    let ``missing id``<'a> : Result<'a,string> = Err "missing id"
 
     
 let requestDevelopersAppKey sessionToken =
-    let createNewDeveloperAppKey() = async{
+    let createNewDeveloperAppKey() = 
         let args = Json.Object <| Map.ofList ["appName", Json.String (System.Guid.NewGuid().ToString()) ]
-        let! r = RestApi.callWithoutAppKey  sessionToken Accaunt.createDeveloperAppKeys args
-        return r |> Either.bindRight( function
-            | JsonAppKey appKey -> Right appKey
-            | json -> Left <| sprintf "there is no developer app key in response %A" ( Json.formatWith JsonFormattingOptions.Pretty json) ) }
-    async{
-        let! x = RestApi.callWithoutAppKey sessionToken Accaunt.getDeveloperAppKeys Json.empty 
-        match x with        
-        | Right (JsonAppKey y) -> return Right y
-        | _ -> return! createNewDeveloperAppKey()  }           
+        RestApi.callWithoutAppKey  sessionToken Accaunt.createDeveloperAppKeys args
+        |> Result.Async.bind( 
+            function
+                | JsonAppKey appKey -> Ok appKey
+                | json -> 
+                    sprintf "there is no developer app key in response %A" 
+                        ( Json.formatWith JsonFormattingOptions.Pretty json) 
+                    |> Err
+            >> Async.return' ) 
+    RestApi.callWithoutAppKey sessionToken Accaunt.getDeveloperAppKeys Json.empty 
+    |> Result.Async.bind( function
+        | JsonAppKey y -> Async.return' ( Ok y )
+        | _ -> createNewDeveloperAppKey() )    
 
 
 let placeOrder auth (marketId,selectionId,side,price,size) =    
@@ -87,12 +91,12 @@ let placeOrder auth (marketId,selectionId,side,price,size) =
                             persistenceType = Some LAPSE } } ] }     
     |> RestApi.call auth Betting.placeOrders ( function
         | { PlaceExecutionReport.errorCode = Some errorCode } -> 
-            errorCode |> caseDescr |> Left
-        | { status = Some x } when x<> SUCCESS -> x |> caseDescr |> Left
+            errorCode |> caseDescr |> Err
+        | { status = Some x } when x<> SUCCESS -> x |> caseDescr |> Err
         | { instructionReports = [] } -> ``no instruction report``
 
-        | { instructionReports = { errorCode = Some errorCode }::_ } -> errorCode |> caseDescr |> Left
-        | { instructionReports = { status = x }::_ } when x<>Some SUCCESS -> x |> caseDescr |> Left
+        | { instructionReports = { errorCode = Some errorCode }::_ } -> errorCode |> caseDescr |> Err
+        | { instructionReports = { status = x }::_ } when x<>Some SUCCESS -> x |> caseDescr |> Err
         | { instructionReports = { betId = None }::_ } -> ``missing id``
         | { status = Some SUCCESS ; errorCode = None 
             instructionReports = {  status = Some SUCCESS; betId = Some betId 
@@ -101,22 +105,22 @@ let placeOrder auth (marketId,selectionId,side,price,size) =
             {   BetId  = betId
                 AveragePriceMatched = averagePriceMatched
                 SizeMatched = sizeMatched } 
-            |> Right
+            |> Ok
                 
         | _ -> ``bad format``)
     
      
 
-let cancelOrder auth (marketId,betId,sizeReduction) : Async< Either<string, decimal option> > =
+let cancelOrder auth (marketId,betId,sizeReduction) : Async< Result<decimal option, string> > =
     let instruction = { betId = betId; sizeReduction = sizeReduction }
     {   CancelationRequest.marketId = { marketId = marketId }
         instructions = [ instruction ] }         
     |> RestApi.call auth Betting.cancelOrders (function
-        | { CancelExecutionReport.errorCode = Some errorCode } -> errorCode |> caseDescr |> Left
-        | { status = Some x } when x<>SUCCESS -> x |> caseDescr |> Left
+        | { CancelExecutionReport.errorCode = Some errorCode } -> errorCode |> caseDescr |> Err
+        | { status = Some x } when x<>SUCCESS -> x |> caseDescr |> Err
         | { instructionReports = [] } -> ``no instruction report``
         | { instructionReports = { sizeCancelled = sizeCancelled }::_ } -> 
-            Right sizeCancelled )
+            Ok sizeCancelled )
     
         
 let replaceOrder auth (marketId,betId : int64,newPrice) =
@@ -124,8 +128,8 @@ let replaceOrder auth (marketId,betId : int64,newPrice) =
     {   ReplaceRequest.marketId = { marketId = marketId }
         instructions = [ { betId = betId; newPrice = newPrice } ] } 
     |> RestApi.call auth Betting.replaceOrders ( function
-        | { ReplaceExecutionReport.errorCode = Some x } ->  x |> caseDescr |> Left
-        | { status = Some x } when x<>SUCCESS ->  x |> caseDescr |> Left                
+        | { ReplaceExecutionReport.errorCode = Some x } ->  x |> caseDescr |> Err
+        | { status = Some x } when x<>SUCCESS ->  x |> caseDescr |> Err                
         | { instructionReports = [] } ->  ``no instruction report``
         | { instructionReports = {  placeInstructionReport = Some { betId = Some betId 
                                                                     errorCode = None
@@ -134,13 +138,13 @@ let replaceOrder auth (marketId,betId : int64,newPrice) =
                                                                     status = Some SUCCESS} }::_ } ->
                 {   BetId  = betId
                     AveragePriceMatched = averagePriceMatched
-                    SizeMatched = sizeMatched } |> Right
+                    SizeMatched = sizeMatched } |> Ok
         | _ -> ``bad format`` )
 
 
-let (<<*>) x f  = Async.mapLeft f x
-//let (>>==*) x f = Async.bindRight f x
-let (>>==) x f = Async.bindEither f x
+let (<<*>) x f  = Result.Async.Err.map f x
+//let (>>==*) x f = Async.bindOk f x
+let (>>==) x f = Result.Async.bind f x
 
 let placeCentBet acc ((marketId,selectionId,betType,price,size : decimal) as betInfo)  = 
     let size = System.Math.Round(size, 2)
@@ -165,7 +169,7 @@ let placeBet acc ((marketId,selectionId,betType,price,size) as betInfo)  =
 let getAccauntFunds auth = 
     RestApi.call auth Accaunt.getAccountFunds  
         ( fun {availableToBetBalance = availableToBetBalance} -> 
-            Right availableToBetBalance ) ()
+            Ok availableToBetBalance ) ()
 
 
 
@@ -174,7 +178,7 @@ let getCurentBets auth =
         RestApi.callForType<CurrentOrderSummaryReport> auth Betting.listCurrentOrders () 
         >>== function 
             | {moreAvailable=true; currentOrders=currentOrders} -> loop ( acc @ currentOrders  )
-            | {moreAvailable=false; currentOrders=currentOrders} -> async { return Right (acc @ currentOrders)  }
+            | {moreAvailable=false; currentOrders=currentOrders} -> async { return Ok (acc @ currentOrders)  }
     loop []    
 
 

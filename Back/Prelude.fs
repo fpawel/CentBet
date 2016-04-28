@@ -121,16 +121,16 @@ let (|HttpExcpetion|_|)  =
         | _ -> None
     loop
 
-let catchInetErrors<'T> (work : Async< Either<string,'T>>) =  async {    
+let catchInetErrors<'T> (work : Async< Result<'T,string>>) =  async {    
     try 
         return! work
     with 
     | :? System.Net.ProtocolViolationException as exn ->            
-        return Left <| sprintf "protocol violation - %A" exn 
+        return Err <| sprintf "protocol violation - %A" exn 
     | RootException( HttpExcpetion (message) ) -> 
-        return Left <| sprintf "http error - %s" message                
+        return Err <| sprintf "http error - %s" message                
     | RootException exn ->            
-        return Left  <| sprintf  "unhandled exection when reading web - %A" exn    } 
+        return Err  <| sprintf  "unhandled exection when reading web - %A" exn    } 
 
 let decimalToInt32Safety d = 
     if d <= 2147483647m  && d >= -2147483648m then

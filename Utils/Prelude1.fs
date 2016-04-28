@@ -3,74 +3,98 @@ module Prelude1
 
 open System
 
-type Either<'a,'b> = Choice<'a,'b>
-let (|Left|Right|) = function
-    | Choice1Of2 a -> Left a
-    | Choice2Of2 b -> Right b
+type Result<'T, 'E> = 
+    | Ok of 'T
+    | Err of 'E
 
-let Left = Choice1Of2
-let Right = Choice2Of2    
+module Result =
+    let isErr = function
+      | Err _ -> true
+      | _      -> false
 
-[<AutoOpen>]
-module Either =
+    let isOk = function
+      | Ok _ -> true
+      | _      -> false
+
+    let map f = function
+      | Ok x -> Ok( f x )
+      | Err e -> Err e  
+
+    let mapErr f = function
+      | Ok x -> Ok x
+      | Err e -> Err ( f e  )
+
+    let inline bind f = function
+      | Ok x ->  f x
+      | Err e -> Err e
+
+    module Err = 
+
+        let bind f = function
+          | Ok x ->  Ok x
+          | Err e -> f e
+
+        let some = function
+          | Ok _ ->  None
+          | Err e -> Some e
+
+    module Async = 
+
+        let bind f x = async{
+            let! x' = x
+            match x' with
+            | Err x -> return Err x
+            | Ok x -> return! f x }
+
+        let map f x = async{
+            let! x' = x
+            match x' with
+            | Err x -> return Err x
+            | Ok x -> return Ok ( f x) }
+
+        module Err = 
+            let map f x = async{
+                let! x' = x
+                match x' with
+                | Err x -> return Err ( f x )
+                | Ok x -> return Ok x }
+            let bind f x = async{
+                let! x' = x
+                match x' with
+                | Err x -> return! f x 
+                | Ok x -> return Ok x }
+
+        type Builder() =
+            
+            member x.Bind(v,f) = bind f v
     
-    let isLeft = function
-        | Left _ -> true
-        | _      -> false
+            member x.Return v = async { return Ok v }
+            member x.ReturnFrom o = o
 
-    let isRight = function
-        | Right _ -> true
-        | _      -> false
+            member b.Combine( v, f) = 
+                bind f v
 
-    let right (Right x) = x
-    let left (Left x) = x
+            member b.Delay(f ) =  
+                f
 
-    let rightSome = function
-        | Right x -> Some x
-        | _      -> None
+            member x.Run(f) = 
+                bind f (async{ return Ok ()})
 
-    let leftSome = function
-        | Left x -> Some x
-        | _      -> None
+        let async = Builder()
 
-    let mapRight f = function
-        | Left x -> Left x
-        | Right x -> Right (f x)
+    module Unwrap = 
+        
+        let ok = function
+          | Ok x -> x
+          | Err e -> failwithf "unwraping Err %A as Ok" e
+        
+        let err = function
+          | Ok x -> failwithf "unwraping Ok %A as Err" x
+          | Err e -> e
 
-    let mapLeft f = function
-        | Left x -> Left (f x)
-        | Right x -> Right x
-
-    let map2 fe f = function
-        | Left x -> Left (fe x)
-        | Right x -> Right (f x)
-
-    let bindRight f = function
-        | Left x -> Left x
-        | Right x -> f x
-
-    type AsyncBuilder() =
-        let bind f v' = async{        
-            let! v = v'
-            match v with
-            | Left x -> return Left x
-            | Right x -> return! f x }
-
-        member x.Bind(v,f) = bind f  v
     
-        member x.Return v = async { return Right v }
-        member x.ReturnFrom o = o
 
-        member b.Combine( v, f) = 
-            bind f v
 
-        member b.Delay(f ) =  
-            f
-
-        member x.Run(f) = 
-            bind f (async{ return Right ()})
-
-let asyncEiter = Either.AsyncBuilder()
 
 module Option = 
     
@@ -78,10 +102,34 @@ module Option =
         match x with
         | Some x' -> x'
         | None -> def
+
     let getBy f x =
         match x with
         | Some x' -> x'
         | None -> f()
+
+    module Async = 
+       
+        let inline map f x = async{
+            let! x' = x
+            return 
+                match x' with
+                | None -> None
+                | Some x'' -> Some (f x'') }
+
+        let inline bind f x = async{
+            let! x' = x
+            match x' with
+            | None -> return None
+            | Some x'' -> 
+                return! f x'' }
+
+        let bindNone f x = async{
+            let! x' = x
+            match x' with
+            | Some x -> return Some x 
+            | _ -> return f x }
+        
 
 module Async =
     let inline map f x = async{
@@ -92,39 +140,7 @@ module Async =
         let! x = x
         return! f x }
 
-    let inline mapOption f x = async{
-        let! x' = x
-        return 
-            match x' with
-            | None -> None
-            | Some x'' -> Some (f x'') }
-
-    let inline bindOption f x = async{
-        let! x' = x
-        match x' with
-        | None -> return None
-        | Some x'' -> 
-            return! f x'' }
-
-    let bindEither f x = async{
-        let! x' = x
-        match x' with
-        | Left x -> return Left x
-        | Right x -> return! f x }
-
-    let bindRight f x = async{
-        let! x' = x
-        match x' with
-        | Left x -> return Left x
-        | Right x -> return f x }
-
-    let mapLeft f x = async{
-        let! x' = x
-        match x' with
-        | Left x -> return Left ( f x)
-        | x -> return x }
-
-    let id<'a> (x:'a) = async{ return x } 
+    let return'<'a> (x:'a) = async{ return x } 
     
     
 

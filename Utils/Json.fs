@@ -453,8 +453,8 @@ type Json with
 
     static member parse s =
         match run Parsing.jsonP s with
-        | Success (json, _, _) -> Right json
-        | Failure (e, _, _) -> Left e    
+        | Success (json, _, _) -> Result.Ok json
+        | Failure (e, _, _) -> Err e    
 
     static member format json =
             StringBuilder ()

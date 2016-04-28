@@ -93,7 +93,7 @@ module Events =
             List.map fst missingIds
             |> ApiNG.Services.listEvents auth 
         match newEvents with
-        | Right newEvents when newEvents.Length = missingIds.Length ->            
+        | Ok newEvents when newEvents.Length = missingIds.Length ->            
             let newEvents = 
                 newEvents |> List.choose( fun e -> 
                     missingIds |> List.tryFind( fst >> ( (=)  e.event.id ) )
@@ -101,9 +101,9 @@ module Events =
                 |> Map.ofList
             state.Set <| Map.union existedEvents newEvents
             return Logging.Info, sprintf "readed new %d" newEvents.Count
-        | Right newEvents  ->
+        | Ok newEvents  ->
             return Logging.Error, sprintf "responsed size %d mismatch, waiting %d" newEvents.Length missingIds.Length 
-        | Left x -> return Logging.Error, x }
+        | Err x -> return Logging.Error, x }
 
     let get ids = 
         let rdds, msng = getExisted ids
@@ -127,11 +127,11 @@ module MarketsCatalogue =
         
     let private readAndUpd auth ((eventId,_) as gameId) =  async{
         let! r = ApiNG.Services.listMarketCatalogue auth eventId
-        r |> rightSome |> Option.iter( fun x -> 
-            match state.Value with
-            | None ->  Map.add gameId x Map.empty
-            | Some y ->  Map.add gameId x y
-            |> state.Set )        
+        match r, state.Value with
+        | Ok x, None -> Some ( Map.add gameId x Map.empty )
+        | Ok x, Some y -> Some( Map.add gameId x y )
+        | _ -> None
+        |> Option.iter state.Set 
         return r }
 
     let update auth = async{
@@ -144,7 +144,7 @@ module MarketsCatalogue =
 
         for gameId in gamesWithoutMarkets do
             let! x = readAndUpd auth gameId
-            errors := match x with Left x -> x::!errors | _ -> !errors            
+            errors := match x with Err x -> x::!errors | _ -> !errors            
         return 
             if List.isEmpty !errors then Logging.Info, "ok"  else
             Logging.Error, (!errors).[0] }
@@ -181,10 +181,10 @@ module TotalMatched =
                 set gameId []
                 let! r = ApiNG.Services.listMarketCatalogue auth eventId
                 match r with
-                | Left x -> 
+                | Err x -> 
                     traceStatus.Set Logging.Error "%s" x
                     return []
-                | Right marketCatalogue ->
+                | Ok marketCatalogue ->
                     traceStatus.Set Logging.Info "ok"
                     let totalMatched =
                         marketCatalogue 
@@ -233,10 +233,10 @@ module MarketBook =
             | Some auth ->
                 let! r = ApiNG.Services.listMarketBook auth missedIds
                 match r with
-                | Left x -> 
+                | Err x -> 
                     traceStatus.Set Logging.Error "%s" x
                     return Map.empty
-                | Right r ->
+                | Ok r ->
                     traceStatus.Set Logging.Info "ok"
                     let readed =
                         r |> List.map( fun x -> x.marketId.marketId, x )

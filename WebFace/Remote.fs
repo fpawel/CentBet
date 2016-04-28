@@ -22,8 +22,8 @@ let resultOf<'a> (x : _) = async{
     let! x = x
     return 
         match x with
-        | Left x -> Failure x
-        | Right (x : 'a) -> Success <| sprintf "%A" x }
+        | Err x -> Failure x
+        | Ok (x : 'a) -> Success <| sprintf "%A" x }
 
 
 
@@ -51,13 +51,13 @@ module Helpers =
     let format1 f x = async{ 
         let! x = x
         match x with
-        | Left x -> return Failure x
-        | Right x -> return Success <| f x }
+        | Err x -> return Failure x
+        | Ok x -> return Success <| f x }
 
     let map1<'a> (x : 'a) =
         sprintf "%A" x
         |> Success
-        |> Async.id
+        |> Async.return'
 
     
 
@@ -69,8 +69,8 @@ module Helpers =
         "-login-betfair", 2, fun [user;pass] -> async{
             let! x  = Betfair.Login.login user pass 
             match x with
-            | Left x -> return Failure x
-            | Right auth -> 
+            | Err x -> return Failure x
+            | Ok auth -> 
                 Coupon.adminBetafirAuth.Set <| Some auth
                 return Success <| sprintf "%A" auth }
 
@@ -92,7 +92,7 @@ module Helpers =
 let getCouponPage (games,npage,pagelen) = Betfair.Football.Coupon.getCouponPage (games,npage,pagelen)
 
 [<Rpc>]
-let getGame gameId = Async.id <| Betfair.Football.Coupon.getGame gameId
+let getGame gameId = Async.return' <| Betfair.Football.Coupon.getGame gameId
   
 [<Rpc>]
 let perform (request : string )= 
@@ -115,7 +115,7 @@ let hasServerBetfairsSession() = async{
     }
     
 [<Rpc>]
-let getEventsCatalogue ids = Async.id <| Events.get ids 
+let getEventsCatalogue ids = Async.return' <| Events.get ids 
 
 [<Rpc>]
 let getMarketsCatalogue gameId = 
@@ -123,7 +123,7 @@ let getMarketsCatalogue gameId =
         List.map( fun x ->             
             let runners = x.runners |> List.map( fun rnr -> rnr.runnerName, rnr.selectionId)
             x.marketId.marketId, x.marketName, runners, Option.bind decimalToInt32Safety x.totalMatched ) ) 
-    |> Async.id
+    |> Async.return'
     
 
 [<Rpc>]
