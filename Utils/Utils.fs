@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Prelude1
+module Utils
 
 open System
 
@@ -24,9 +24,28 @@ module Result =
       | Ok x -> Ok x
       | Err e -> Err ( f e  )
 
-    let inline bind f = function
+    let bind f = function
       | Ok x ->  f x
       | Err e -> Err e
+
+
+    type Builder() =
+            
+        member x.Bind(v,f) = bind f v
+    
+        member x.Return v = Ok v
+        member x.ReturnFrom o = o
+
+        member b.Combine( v, f) = 
+            bind f v
+
+        member b.Delay(f ) =  
+            f
+
+        member x.Run(f) = 
+            bind f (Ok ())
+
+    let result = Builder()
 
     module Err = 
 
@@ -46,11 +65,18 @@ module Result =
             | Err x -> return Err x
             | Ok x -> return! f x }
 
+        let bind1 f x = async{
+            let! x' = x
+            match x' with
+            | Err x -> return Err x
+            | Ok x -> return f x }
+
         let map f x = async{
             let! x' = x
             match x' with
             | Err x -> return Err x
             | Ok x -> return Ok ( f x) }
+
 
         module Err = 
             let map f x = async{
@@ -142,7 +168,16 @@ module Async =
 
     let return'<'a> (x:'a) = async{ return x } 
     
-    
+module List = 
+    let take<'a> : int -> 'a list -> 'a list = 
+        let rec take' acc n = function
+            | _ when n=0 -> acc
+            | [] -> acc
+            | x::rest -> take' (x::acc) (n-1) rest
+        take' []
+        
+             
+        
 
 type Decimal with
     static member Pow (value,base') =  

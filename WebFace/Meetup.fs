@@ -36,7 +36,7 @@ let renderTotalMatched viewColumnGpbVisible (x : Meetup) = Doc.EmbedView <| View
         totalMatchs |> List.map snd |> Seq.fold (+) 0
     return
         if totalMatchs=0 then td [] else
-            tdAttr [attr.``class`` "game-gpb"] [text <| sprintf "%d" totalMatchs ]
+            td [text <| sprintf "%d" totalMatchs ]
         |> doc }
 
 let renderCountry viewColumnCountryVisible countryView  = 
@@ -47,55 +47,48 @@ let renderCountry viewColumnCountryVisible countryView  =
     return        
         match country with
         | None -> td []
-        | Some country -> tdAttr [ attr.``class`` "game-country" ] [ text country ]
+        | Some country -> 
+            tdAttr [  
+                attr.style "color : #009900;" ] [ 
+                text country ]
         |> doc }
     
 
-let renderGameStat x = Doc.EmbedView <| View.Do{
-    let! playMinute = x.playMinute.View
-    let! summary = x.summary.View                
-    return 
-        match playMinute with
-        | Some _ | _ when summary <> "" -> 
-            doc <| tdAttr [ attr.``class`` "game-status"] [ text summary ]  
-        | _ -> doc <| td [] }
-
-let renderKef back sel v = 
-    tdAttr  [   
-        sprintf "kef %s %s" sel (if back then  "back" else "lay")
-        |> attr.``class`` ][
-        View.FromVar v |> View.Map formatDecimalOption |> textView   ] 
+let renderKef v = 
+    View.FromVar v 
+    |> View.Map ( function 
+        | None -> Doc.Empty
+        | Some v -> formatDecimal v |> text  ) 
+    |> Doc.EmbedView
     
+
+type MeetupRowTemplate = Templating.Template<"Templates/meetup-row.html">
 
 let renderMeetup (viewColumnGpbVisible, viewColumnCountryVisible) (x : Meetup) = 
-    let tx x = td[ x ]
-    let tx0 x = td[ Doc.TextNode x ]
+    
+    let renderMarketsLink text' =         
+        aAttr [ 
+            attr.href "#"
+            attr.style "display: block; text-decoration: none;"
+            on.click ( fun _ _ -> 
+                State.varMode.Value <- PageModeGameDetail x ) ] [
+            text text']
 
-    let span' ``class`` x = 
-        spanAttr [ attr.``class`` ``class`` ] [x]
+    MeetupRowTemplate.Doc
+        (   order = [x.order.View |> View.Map ( fun (page,n) -> sprintf "%d.%d" page n) |> textView],
+            home = [ renderMarketsLink x.game.home ],
+            away = [ renderMarketsLink x.game.away ],
+            score = [ textView x.summary.View ],
+            status = [ textView x.status.View ],
+            winback = [renderKef x.winBack],
+            winlay = [renderKef x.winLay],
+            drawback = [renderKef x.drawBack],
+            drawlay = [renderKef x.drawLay],
+            loseback = [renderKef x.loseBack],
+            loselay = [renderKef x.loseLay],
+            totalMatched = [renderTotalMatched viewColumnGpbVisible x],
+            country = [ renderCountry viewColumnCountryVisible x.country.View] )
+
+
 
     
-    let bck' = renderKef true 
-    let lay' = renderKef false 
-
-    let showGameDetailOnClick = 
-        on.click ( fun _ _ -> 
-            State.varMode.Value <- PageModeGameDetail x )
-
-    let renderMarketsLink text' =         
-        doc <| aAttr [ attr.href "#"; showGameDetailOnClick ] [text text']
-
-    [   doc <| td[ x.order.View |> View.Map ( fun (page,n) -> 
-            sprintf "%d.%d" page n) |> textView ]
-        doc <| tdAttr [ attr.``class`` "home-team" ] [ renderMarketsLink x.game.home ]        
-        renderGameStat x
-        doc <| tdAttr [ attr.``class`` "away-team" ] [ renderMarketsLink x.game.away]
-        doc <| tdAttr [ attr.``class`` "game-status"] [ textView x.status.View ] 
-        doc <| bck' "win" x.winBack
-        doc <| lay' "win" x.winLay
-        doc <| bck' "draw" x.drawBack
-        doc <| lay' "draw" x.drawLay
-        doc <| bck' "lose" x.loseBack
-        doc <| lay' "lose" x.loseLay 
-        renderTotalMatched viewColumnGpbVisible x
-        renderCountry viewColumnCountryVisible x.country.View ] |> tr 

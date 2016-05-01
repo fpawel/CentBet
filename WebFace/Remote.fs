@@ -15,15 +15,10 @@ let isValidPassword = md5hash >> (=) "57545929BA6115DCAA317EEF8065F63D"
 
 [<NamedUnionCases "result">]
 type Result<'T> =
-    | [<CompiledName "success">] Success of 'T
-    | [<CompiledName "failure">] Failure of string
+    | [<CompiledName "ok">] Ok of 'T
+    | [<CompiledName "err">] Err of string
 
-let resultOf<'a> (x : _) = async{
-    let! x = x
-    return 
-        match x with
-        | Err x -> Failure x
-        | Ok (x : 'a) -> Success <| sprintf "%A" x }
+
 
 
 
@@ -40,39 +35,30 @@ let ``access denied`` = "access denied"
 let authorizeAdmin password (ctx : Web.IContext)   =  async {
     if isValidPassword password then
         do! ctx.UserSession.LoginUser("admin")
-        return Success "ok"
+        return Ok "ok"
     else
-        return Failure "access denied" }
+        return Err "access denied" }
 
 
 [<AutoOpen>]
 module Helpers =
 
-    let format1 f x = async{ 
-        let! x = x
-        match x with
-        | Err x -> return Failure x
-        | Ok x -> return Success <| f x }
-
     let map1<'a> (x : 'a) =
         sprintf "%A" x
-        |> Success
+        |> Ok
         |> Async.return'
 
-    
+    let fromUtilsResult<'a> (f : 'a -> string) = function
+        | Utils.Ok x -> Ok (f x)
+        | Utils.Err (x:string) -> Err x
 
-    let fobj1<'a> = ( format1 ( fun (y, x : 'a) -> y, sprintf "%A" x ) )
-
-    
-    
     let consoleCommands = [ 
-        "-login-betfair", 2, fun [user;pass] -> async{
-            let! x  = Betfair.Login.login user pass 
-            match x with
-            | Err x -> return Failure x
-            | Ok auth -> 
-                Coupon.adminBetafirAuth.Set <| Some auth
-                return Success <| sprintf "%A" auth }
+        "-login-betfair", 2, fun [user;pass] -> 
+            Betfair.Login.login user pass                 
+            |> Result.Async.map ( fun auth -> 
+                Some auth |> Coupon.adminBetafirAuth.Set 
+                auth )
+            |> Async.map(  fromUtilsResult (sprintf "%A") )
 
         "-atoms-names", 0, fun [] -> 
             Concurency.Status.getNames() 
@@ -86,7 +72,7 @@ module Helpers =
         if admin then 
             return! work
         else
-            return Failure ``access denied`` }
+            return Err ``access denied`` }
 
 [<Rpc>]
 let getCouponPage (games,npage,pagelen) = Betfair.Football.Coupon.getCouponPage (games,npage,pagelen)
@@ -107,7 +93,7 @@ let perform (request : string )=
             return r         
         | Cmd (n,f)::args when args.Length = n -> 
             return! webprotected ctx <| f args 
-        | _ -> return  Failure ``bad request`` }
+        | _ -> return  Err ``bad request`` }
 
 [<Rpc>]
 let hasServerBetfairsSession() = async{

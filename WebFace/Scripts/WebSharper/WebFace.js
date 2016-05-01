@@ -775,36 +775,29 @@
      }),
      "render\u0421oupon":Runtime.Field(function()
      {
-      var ats,arg20,ats1,arg201,arg202,x,f,mapping,arg00,x3,etable,ats2,_builder_,x4,_arg00_;
+      var ats,arg20,ats1,arg201,arg202,arg00,arg10,_arg00_,etable,ats2,_builder_,x1,_arg00_1;
       ats=List.ofArray([AttrProxy.Create("class","w3-responsive")]);
-      ats1=List.ofArray([AttrProxy.Create("class","w3-table w3-bordered w3-striped w3-hoverable")]);
+      ats1=List.ofArray([AttrProxy.Create("class","football-games-list w3-table w3-bordered w3-striped w3-hoverable")]);
       arg201=List.ofArray([Doc.Element("tr",List.ofArray([AttrModule.Class("coupon-header-row w3-teal")]),Meetup.renderGamesHeaderRow(State.varColumnGpbVisible().get_View()))]);
-      x=State.meetups().get_View();
-      f=Coupon.renderMeetup();
-      mapping=function(x1)
-      {
-       var x2;
-       x2=f(x1);
-       return Coupon.doc(x2);
-      };
-      arg00=function(x1)
+      arg00=function(x)
       {
        var arg001;
-       arg001=Seq.map(mapping,x1);
+       arg001=Seq.map(Coupon.renderMeetup(),x);
        return Doc.Concat(arg001);
       };
-      x3=View.Map(arg00,x);
-      arg202=List.ofArray([Doc.EmbedView(x3)]);
+      arg10=State.meetups().get_View();
+      _arg00_=View.Map(arg00,arg10);
+      arg202=List.ofArray([Doc.EmbedView(_arg00_)]);
       arg20=List.ofArray([Doc.Element("table",ats1,List.ofArray([Doc.Element("thead",[],arg201),Doc.Element("tbody",[],arg202)]))]);
       etable=Doc.Element("div",ats,arg20);
       ats2=List.ofArray([AttrProxy.Create("class","w3-container")]);
       _builder_=View.get_Do();
-      x4=State.varCurrentPageNumber().get_View();
-      _arg00_=View1.Bind(function(_arg1)
+      x1=State.varCurrentPageNumber().get_View();
+      _arg00_1=View1.Bind(function(_arg1)
       {
        return View1.Bind(function(_arg2)
        {
-        var x1,_,arg203,t;
+        var x,_,arg203,t;
         if(_arg1===_arg2)
          {
           _=etable;
@@ -815,11 +808,11 @@
           arg203=List.ofArray([Doc.TextNode(t)]);
           _=Doc.Element("h1",[],arg203);
          }
-        x1=_;
-        return View1.Const(Coupon.doc(x1));
+        x=_;
+        return View1.Const(Coupon.doc(x));
        },State.varTargetPageNumber().get_View());
-      },x4);
-      return Doc.Element("div",ats2,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.EmbedView(_arg00_),SettingsDialog.elt()]));
+      },x1);
+      return Doc.Element("div",ats2,List.ofArray([Doc.Element("div",List.ofArray([AttrProxy.Create("class","w3-center")]),List.ofArray([Doc.Element("ul",List.ofArray([AttrProxy.Create("class","w3-pagination w3-border w3-round")]),List.ofArray([Coupon.renderPagination()]))])),Doc.EmbedView(_arg00_1),SettingsDialog.elt()]));
      })
     },
     Football:{
@@ -866,7 +859,7 @@
        return Runtime.New(MarketBook,{
         marketId:m.marketId,
         marketName:m.marketName,
-        visible:Var.Create(false),
+        expanded:Var.Create(false),
         runners:List.map(mapping,list)
        });
       },
@@ -906,45 +899,39 @@
      Helpers:{
       renderGameInfo:function(meetup)
       {
-       var ats,ats1,ats2,x,def,arg00,x3,ats3,x4,arg001,_arg00_,ats4;
-       ats=List.ofArray([GameDetail.op_SpliceUntyped("w3-indigo")]);
-       ats1=List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]);
-       ats2=List.ofArray([GameDetail.op_SpliceUntyped("w3-col s4"),AttrProxy.Create("style","text-align: right; margin : 10px;")]);
-       x=meetup.country.get_View();
-       def=Doc.get_Empty();
-       arg00=function(x1)
+       var arg00,arg10,_arg00_,country,x1,arg001,_arg00_1,totalMatched,ats,arg20,navback,navback1,home,score,away,country1,status,gpb,attrs,attrs1,attrs2,attrs3;
+       arg00=function(x)
        {
-        var x2;
-        x2=Option.map(function(t)
-        {
-         return Doc.TextNode(t);
-        },x1);
-        return Option1.getWith(def,x2);
+        var t;
+        t=Option1.getWith("",x);
+        return Doc.TextNode(t);
        };
-       x3=View.Map(arg00,x);
-       ats3=List.ofArray([GameDetail.op_SpliceUntyped("w3-col s2"),AttrProxy.Create("style","color : #b4e500; margin : 0 10px;")]);
-       x4=meetup.totalMatched.get_View();
+       arg10=meetup.country.get_View();
+       _arg00_=View.Map(arg00,arg10);
+       country=Doc.EmbedView(_arg00_);
+       x1=meetup.totalMatched.get_View();
        arg001=function(totalMatchs)
        {
-        var mapping,folder,source,totalMatchs1;
+        var mapping,folder,source,totalMatchs1,t;
         mapping=function(tuple)
         {
          return tuple[1];
         };
-        folder=function(x1)
+        folder=function(x)
         {
          return function(y)
          {
-          return x1+y;
+          return x+y;
          };
         };
         source=List.map(mapping,totalMatchs);
         totalMatchs1=Seq.fold(folder,0,source);
-        return totalMatchs1===0?Doc.get_Empty():Doc.TextNode(Global.String(totalMatchs1)+" GPB");
+        t=totalMatchs1===0?"":Global.String(totalMatchs1)+" GPB";
+        return Doc.TextNode(t);
        };
-       _arg00_=View.Map(arg001,x4);
-       ats4=List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]);
-       return Doc.Element("div",ats,List.ofArray([Doc.Element("div",ats1,List.ofArray([Doc.Element("a",List.ofArray([AttrProxy.Create("style","text-align: left; margin-left : 5px;"),GameDetail.op_SpliceUntyped("w3-col s6"),AttrProxy.Create("href","#"),AttrModule.Handler("click",function()
+       _arg00_1=View.Map(arg001,x1);
+       totalMatched=Doc.EmbedView(_arg00_1);
+       ats=List.ofArray([AttrProxy.Create("href","#"),AttrModule.Handler("click",function()
        {
         return function()
         {
@@ -952,67 +939,115 @@
           $:0
          });
         };
-       })]),List.ofArray([Doc.TextNode("\u041d\u0430\u0437\u0430\u0434 \u043a \u0441\u043f\u0438\u0441\u043a\u0443 \u043c\u0430\u0442\u0447\u0435\u0439")])),Doc.Element("div",ats2,List.ofArray([Doc.EmbedView(x3)])),Doc.Element("div",ats3,List.ofArray([Doc.EmbedView(_arg00_)]))])),Doc.Element("div",ats4,List.ofArray([Doc.Element("h1",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s5"),AttrProxy.Create("style","text-align: right;")]),List.ofArray([Doc.TextNode(meetup.game.home)])),Doc.Element("h1",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s2"),AttrProxy.Create("style","text-align: center; color : #b4e500;")]),List.ofArray([Doc.TextView(meetup.summary.get_View())])),Doc.Element("h1",List.ofArray([GameDetail.op_SpliceUntyped("w3-col s5"),AttrProxy.Create("style","text-align: left;")]),List.ofArray([Doc.TextNode(meetup.game.away)]))])),Doc.Element("div",List.ofArray([AttrProxy.Create("style","width : 100%;")]),List.ofArray([Doc.Element("h2",List.ofArray([AttrProxy.Create("style","text-align: center;")]),List.ofArray([Doc.TextView(meetup.status.get_View())]))]))]));
+       })]);
+       arg20=List.ofArray([Doc.TextNode("\u041d\u0430\u0437\u0430\u0434 \u043a \u0441\u043f\u0438\u0441\u043a\u0443 \u043c\u0430\u0442\u0447\u0435\u0439")]);
+       navback=Doc.Element("a",ats,arg20);
+       navback1=List.ofArray([navback]);
+       home=meetup.game.home;
+       score=List.ofArray([Doc.TextView(meetup.summary.get_View())]);
+       away=meetup.game.away;
+       country1=List.ofArray([country]);
+       status=List.ofArray([Doc.TextView(meetup.status.get_View())]);
+       gpb=List.ofArray([totalMatched]);
+       attrs=[AttrProxy.Create("class","w3-indigo")];
+       attrs1=[];
+       attrs2=[];
+       attrs3=[];
+       return Doc.Concat([Doc.Element("div",attrs,[Doc.TextNode("\n    "),Doc.Element("div",[AttrProxy.Create("style","text-align: left; padding-left : 5px;")],[Doc.TextNode("\n        "),Doc.Concat(navback1),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("table",attrs1,[Doc.TextNode("\n        "),Doc.Element("tr",attrs2,[Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: right;")],[Doc.TextNode("\n                    "),Doc.TextNode(home),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center; color : #b4e500;")],[Doc.TextNode("\n                    "),Doc.Concat(score),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: left;")],[Doc.TextNode("\n                    "),Doc.TextNode(away),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n        "),Doc.Element("tr",attrs3,[Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: left; padding-left:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(country1),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center;")],[Doc.TextNode("\n                    "),Doc.Concat(status),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: right; padding-right:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(gpb),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n    ")]),Doc.TextNode("\n")])]);
+      },
+      renderKef:function(side,price,size)
+      {
+       var _builder_,_,arg00,cls,x,_arg00_;
+       _builder_=View.get_Do();
+       _=side.$==1?"lay":"back";
+       arg00="price "+PrintfHelpers.toSafe(_);
+       cls=AttrProxy.Create("class",arg00);
+       x=price.get_View();
+       _arg00_=View1.Bind(function(_arg1)
+       {
+        var mapping,x1,arg201,def,price2,x2;
+        mapping=function(price1)
+        {
+         var arg20,t;
+         t=Utils.formatDecimal(price1);
+         arg20=List.ofArray([Doc.TextNode(t)]);
+         return Doc.Element("td",List.ofArray([cls]),List.ofArray([Doc.Element("b",[],arg20)]));
+        };
+        x1=Option.map(mapping,_arg1);
+        arg201=Runtime.New(T,{
+         $:0
+        });
+        def=Doc.Element("td",[],arg201);
+        price2=Option1.getWith(def,x1);
+        x2=size.get_View();
+        return View1.Bind(function(_arg2)
+        {
+         var mapping1,x3,arg203,def1,size2;
+         mapping1=function(size1)
+         {
+          var arg20,arg202,t;
+          t=PrintfHelpers.toSafe(Utils.formatDecimal(size1))+" $";
+          arg202=List.ofArray([Doc.TextNode(t)]);
+          arg20=List.ofArray([Doc.Element("i",[],arg202)]);
+          return Doc.Element("td",[],arg20);
+         };
+         x3=Option.map(mapping1,_arg2);
+         arg203=Runtime.New(T,{
+          $:0
+         });
+         def1=Doc.Element("td",[],arg203);
+         size2=Option1.getWith(def1,x3);
+         return View1.Const(Doc.Concat(List.ofArray([size2,price2])));
+        },x2);
+       },x);
+       return Doc.EmbedView(_arg00_);
       },
       renderMarket:function(market)
       {
-       var arg20,arg201,arg00,arg10,_arg00_;
-       arg00=function(visible)
+       var x,arg00,_arg00_;
+       x=market.expanded.get_View();
+       arg00=function(expanded)
        {
-        return Helpers1.renderMarketTable(market,visible);
+        var title,elt,_,ats,arg20,mapping,list,arg001,arg201;
+        title=Helpers1.renderTitle(expanded,market);
+        if(!expanded)
+         {
+          _=title;
+         }
+        else
+         {
+          ats=List.ofArray([GameDetail.op_SpliceUntyped("my-table-striped")]);
+          arg20=List.ofArray([Doc.Element("td",List.ofArray([AttrProxy.Create("colspan","5")]),List.ofArray([title]))]);
+          mapping=function(x1)
+          {
+           var x2;
+           x2=Helpers1.renderRunner(x1);
+           return GameDetail.doc(x2);
+          };
+          list=market.runners;
+          arg001=List.map(mapping,list);
+          _=Doc.Element("table",ats,List.ofArray([Doc.Element("tr",[],arg20),Doc.Concat(arg001)]));
+         }
+        elt=_;
+        arg201=List.ofArray([elt]);
+        return Doc.Element("li",[],arg201);
        };
-       arg10=market.visible.get_View();
-       _arg00_=View.Map(arg00,arg10);
-       arg201=List.ofArray([Doc.EmbedView(_arg00_)]);
-       arg20=List.ofArray([Doc.Element("table",[],arg201)]);
-       return Doc.Element("li",[],arg20);
-      },
-      renderMarketTable:function(market,visible)
-      {
-       var arg00;
-       arg00=Seq.toList(Seq.delay(function()
-       {
-        var x;
-        x=Helpers1.renderRunnersLinkRow(market,visible);
-        return Seq.append([GameDetail.doc(x)],Seq.delay(function()
-        {
-         var _,mapping,list;
-         if(visible)
-          {
-           mapping=function(x1)
-           {
-            var x2;
-            x2=Helpers1.renderRunner(x1);
-            return GameDetail.doc(x2);
-           };
-           list=market.runners;
-           _=List.map(mapping,list);
-          }
-         else
-          {
-           _=Seq.empty();
-          }
-         return _;
-        }));
-       }));
-       return Doc.Concat(arg00);
+       _arg00_=View.Map(arg00,x);
+       return Doc.EmbedView(_arg00_);
       },
       renderMarkets:function(meetup)
       {
-       var a1,mapping,renderMarkets,x2,matchValue,_,_1,_2,_3,xs1,xs2,xs3,ats,x3,xs11,xs21,x4,markets,x5;
+       var a1,op_IntegerAddressOf,x,matchValue,_,_1,_2,_3,xs1,xs2,xs3,ats,x1,xs11,xs21,x2,markets,x3;
        a1=AttrProxy.Create("style","border-right : 1px solid #ddd;");
-       mapping=function(x)
+       op_IntegerAddressOf=function(list)
        {
-        var x1;
-        x1=Helpers1.renderMarket(x);
-        return GameDetail.doc(x1);
+        return List.map(function(market)
+        {
+         return Helpers1.renderMarket(market);
+        },list);
        };
-       renderMarkets=function(list)
-       {
-        return List.map(mapping,list);
-       };
-       x2=meetup.marketsBook;
-       matchValue=(Helpers1.window(3))(x2);
+       x=meetup.marketsBook;
+       matchValue=(Helpers1.window(3))(x);
        if(matchValue.$==1)
         {
          if(matchValue.$1.$==1)
@@ -1025,8 +1060,8 @@
                xs2=matchValue.$1.$0;
                xs3=matchValue.$1.$1.$0;
                ats=List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]);
-               x3=Doc.Element("div",ats,List.ofArray([Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),renderMarkets(xs1)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),renderMarkets(xs2)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),renderMarkets(xs3))]));
-               _3=GameDetail.doc(x3);
+               x1=Doc.Element("div",ats,List.ofArray([Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),op_IntegerAddressOf(xs1)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),op_IntegerAddressOf(xs2)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),op_IntegerAddressOf(xs3))]));
+               _3=GameDetail.doc(x1);
               }
              else
               {
@@ -1038,16 +1073,16 @@
             {
              xs11=matchValue.$0;
              xs21=matchValue.$1.$0;
-             x4=Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]),List.ofArray([Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s6")]),renderMarkets(xs11)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s6")]),renderMarkets(xs21))]));
-             _2=GameDetail.doc(x4);
+             x2=Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]),List.ofArray([Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s6")]),op_IntegerAddressOf(xs11)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s6")]),op_IntegerAddressOf(xs21))]));
+             _2=GameDetail.doc(x2);
             }
            _1=_2;
           }
          else
           {
            markets=matchValue.$0;
-           x5=Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul")]),renderMarkets(markets));
-           _1=GameDetail.doc(x5);
+           x3=Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul")]),op_IntegerAddressOf(markets));
+           _1=GameDetail.doc(x3);
           }
          _=_1;
         }
@@ -1057,61 +1092,32 @@
         }
        return _;
       },
-      renderPrice:function(back,ends,v)
-      {
-       var ats,x,mapping,def,arg00,x3;
-       ats=List.ofArray([GameDetail.op_SpliceUntyped("price "+PrintfHelpers.toSafe(back?"back":"lay"))]);
-       x=v.get_View();
-       mapping=function(x1)
-       {
-        var x2,t;
-        x2=Utils.formatDecimal(x1);
-        t=PrintfHelpers.toSafe(x2)+PrintfHelpers.toSafe(ends);
-        return Doc.TextNode(t);
-       };
-       def=Doc.get_Empty();
-       arg00=function(x1)
-       {
-        var x2;
-        x2=Option.map(mapping,x1);
-        return Option1.getWith(def,x2);
-       };
-       x3=View.Map(arg00,x);
-       return Doc.Element("td",ats,List.ofArray([Doc.EmbedView(x3)]));
-      },
       renderRunner:function(r)
       {
        var arg20,arg201;
        arg201=List.ofArray([Doc.TextNode(r.runnerName)]);
-       arg20=List.ofArray([Doc.Element("td",[],arg201),Helpers1.renderPrice(true,"",r.backPrice),Helpers1.renderPrice(true,"$",r.backSize),Helpers1.renderPrice(false,"",r.layPrice),Helpers1.renderPrice(false,"$",r.laySize)]);
+       arg20=List.ofArray([Doc.Element("td",[],arg201),Helpers1.renderKef({
+        $:0
+       },r.backPrice,r.backSize),Helpers1.renderKef({
+        $:1
+       },r.layPrice,r.laySize)]);
        return Doc.Element("tr",[],arg20);
       },
-      renderRunnersLink:function(market,visible)
+      renderTitle:function(expanded,market)
       {
+       var patternInput,cls1,chv1;
+       patternInput=expanded?["up","expanded"]:["down",""];
+       cls1=patternInput[1];
+       chv1=patternInput[0];
        return Doc.Element("a",List.ofArray([AttrProxy.Create("href","#"),AttrModule.Handler("click",function()
        {
         return function()
         {
-         return Var1.Set(market.visible,!Var1.Get(market.visible));
+         return Var1.Set(market.expanded,!Var1.Get(market.expanded));
         };
-       }),GameDetail.op_SpliceUntyped(visible?"w3-teal":"w3-dark-grey"),AttrProxy.Create("style","padding-left : 5px; padding-bottom : 5px; padding-top : 5px;")]),List.ofArray([Doc.TextNode(market.marketName)]));
-      },
-      renderRunnersLinkRow:function(market,visible)
-      {
-       var runnersLink,td,_,arg20,arg201;
-       runnersLink=Helpers1.renderRunnersLink(market,visible);
-       if(visible)
-        {
-         _=Doc.Element("td",List.ofArray([AttrProxy.Create("colspan","5")]),List.ofArray([runnersLink]));
-        }
-       else
-        {
-         arg20=List.ofArray([runnersLink]);
-         _=Doc.Element("td",[],arg20);
-        }
-       td=_;
-       arg201=List.ofArray([td]);
-       return Doc.Element("tr",[],arg201);
+       }),GameDetail.op_SpliceUntyped("runners-title "+PrintfHelpers.toSafe(cls1))]),List.ofArray([Doc.Element("i",List.ofArray([GameDetail.op_SpliceUntyped("fa fa-chevron-"+PrintfHelpers.toSafe(chv1))]),Runtime.New(T,{
+        $:0
+       })),Doc.TextNode(market.marketName)]));
       },
       window:function(n)
       {
@@ -1158,9 +1164,8 @@
      },
      renderExploreMarkets:function(meetup)
      {
-      var arg00,x;
-      x=Helpers1.renderGameInfo(meetup);
-      arg00=List.ofArray([GameDetail.doc(x),Helpers1.renderMarkets(meetup)]);
+      var arg00;
+      arg00=List.ofArray([Helpers1.renderGameInfo(meetup),Helpers1.renderMarkets(meetup)]);
       return Doc.Concat(arg00);
      },
      varError:Runtime.Field(function()
@@ -1185,7 +1190,7 @@
         if(_arg2.$==1)
          {
           country=_arg2.$0;
-          _=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-country")]),List.ofArray([Doc.TextNode(country)]));
+          _=Doc.Element("td",List.ofArray([AttrProxy.Create("style","color : #009900;")]),List.ofArray([Doc.TextNode(country)]));
          }
         else
          {
@@ -1198,66 +1203,6 @@
         return View1.Const(Meetup.doc(x));
        },countryView);
       },viewColumnCountryVisible);
-      return Doc.EmbedView(_arg00_);
-     },
-     renderGameStat:function(x)
-     {
-      var _builder_,x1,_arg00_;
-      _builder_=View.get_Do();
-      x1=x.playMinute.get_View();
-      _arg00_=View1.Bind(function(_arg1)
-      {
-       var x2;
-       x2=x.summary.get_View();
-       return View1.Bind(function(_arg2)
-       {
-        var _,_1,x3,_2,x4,arg20,x5,_3,x6,arg201,x7;
-        if(_arg1.$==1)
-         {
-          if(_arg2!=="")
-           {
-            x3=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
-            _1=Meetup.doc(x3);
-           }
-          else
-           {
-            if(_arg2!=="")
-             {
-              x4=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
-              _2=Meetup.doc(x4);
-             }
-            else
-             {
-              arg20=Runtime.New(T,{
-               $:0
-              });
-              x5=Doc.Element("td",[],arg20);
-              _2=Meetup.doc(x5);
-             }
-            _1=_2;
-           }
-          _=_1;
-         }
-        else
-         {
-          if(_arg2!=="")
-           {
-            x6=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextNode(_arg2)]));
-            _3=Meetup.doc(x6);
-           }
-          else
-           {
-            arg201=Runtime.New(T,{
-             $:0
-            });
-            x7=Doc.Element("td",[],arg201);
-            _3=Meetup.doc(x7);
-           }
-          _=_3;
-         }
-        return View1.Const(_);
-       },x2);
-      },x1);
       return Doc.EmbedView(_arg00_);
      },
      renderGamesHeaderRow:function(viewColumnGpbVisible)
@@ -1309,51 +1254,43 @@
        }));
       }));
      },
-     renderKef:function(back,sel,v)
+     renderKef:function(v)
      {
-      var _,arg00,arg001,arg10,v1;
-      _=back?"back":"lay";
-      arg00="kef "+PrintfHelpers.toSafe(sel)+" "+PrintfHelpers.toSafe(_);
-      arg001=function(_arg1)
+      var arg00,arg10,_arg00_;
+      arg00=function(_arg1)
       {
-       return Utils.formatDecimalOption(_arg1);
+       var _,v1,t;
+       if(_arg1.$==1)
+        {
+         v1=_arg1.$0;
+         t=Utils.formatDecimal(v1);
+         _=Doc.TextNode(t);
+        }
+       else
+        {
+         _=Doc.get_Empty();
+        }
+       return _;
       };
       arg10=v.get_View();
-      v1=View.Map(arg001,arg10);
-      return Doc.Element("td",List.ofArray([AttrProxy.Create("class",arg00)]),List.ofArray([Doc.TextView(v1)]));
+      _arg00_=View.Map(arg00,arg10);
+      return Doc.EmbedView(_arg00_);
      },
      renderMeetup:function(viewColumnGpbVisible,viewColumnCountryVisible,x)
      {
-      var _bck_,_lay_,showGameDetailOnClick,renderMarketsLink,ch,arg20,arg00,arg10,v1,x2,x3,x4,x5,x6,x7,x8,x9,xa,xb;
-      _bck_=function(sel)
-      {
-       return function(v)
-       {
-        return Meetup.renderKef(true,sel,v);
-       };
-      };
-      _lay_=function(sel)
-      {
-       return function(v)
-       {
-        return Meetup.renderKef(false,sel,v);
-       };
-      };
-      showGameDetailOnClick=AttrModule.Handler("click",function()
-      {
-       return function()
-       {
-        return Var1.Set(State.varMode(),{
-         $:1,
-         $0:x
-        });
-       };
-      });
+      var renderMarketsLink,order,arg00,arg10,v,home,score,away,status,winback,winlay,drawback,drawlay,loseback,loselay,totalMatched,country,attrs;
       renderMarketsLink=function(_text_)
       {
-       var x1;
-       x1=Doc.Element("a",List.ofArray([AttrProxy.Create("href","#"),showGameDetailOnClick]),List.ofArray([Doc.TextNode(_text_)]));
-       return Meetup.doc(x1);
+       return Doc.Element("a",List.ofArray([AttrProxy.Create("href","#"),AttrProxy.Create("style","display: block; text-decoration: none;"),AttrModule.Handler("click",function()
+       {
+        return function()
+        {
+         return Var1.Set(State.varMode(),{
+          $:1,
+          $0:x
+         });
+        };
+       })]),List.ofArray([Doc.TextNode(_text_)]));
       };
       arg00=function(tupledArg)
       {
@@ -1363,20 +1300,22 @@
        return Global.String(page)+"."+Global.String(n);
       };
       arg10=x.order.get_View();
-      v1=View.Map(arg00,arg10);
-      arg20=List.ofArray([Doc.TextView(v1)]);
-      x2=Doc.Element("td",[],arg20);
-      x3=Doc.Element("td",List.ofArray([AttrProxy.Create("class","home-team")]),List.ofArray([renderMarketsLink(x.game.home)]));
-      x4=Doc.Element("td",List.ofArray([AttrProxy.Create("class","away-team")]),List.ofArray([renderMarketsLink(x.game.away)]));
-      x5=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-status")]),List.ofArray([Doc.TextView(x.status.get_View())]));
-      x6=(_bck_("win"))(x.winBack);
-      x7=(_lay_("win"))(x.winLay);
-      x8=(_bck_("draw"))(x.drawBack);
-      x9=(_lay_("draw"))(x.drawLay);
-      xa=(_bck_("lose"))(x.loseBack);
-      xb=(_lay_("lose"))(x.loseLay);
-      ch=List.ofArray([Meetup.doc(x2),Meetup.doc(x3),Meetup.renderGameStat(x),Meetup.doc(x4),Meetup.doc(x5),Meetup.doc(x6),Meetup.doc(x7),Meetup.doc(x8),Meetup.doc(x9),Meetup.doc(xa),Meetup.doc(xb),Meetup.renderTotalMatched(viewColumnGpbVisible,x),Meetup.renderCountry(viewColumnCountryVisible,x.country.get_View())]);
-      return Doc.Element("tr",[],ch);
+      v=View.Map(arg00,arg10);
+      order=List.ofArray([Doc.TextView(v)]);
+      home=List.ofArray([renderMarketsLink(x.game.home)]);
+      score=List.ofArray([Doc.TextView(x.summary.get_View())]);
+      away=List.ofArray([renderMarketsLink(x.game.away)]);
+      status=List.ofArray([Doc.TextView(x.status.get_View())]);
+      winback=List.ofArray([Meetup.renderKef(x.winBack)]);
+      winlay=List.ofArray([Meetup.renderKef(x.winLay)]);
+      drawback=List.ofArray([Meetup.renderKef(x.drawBack)]);
+      drawlay=List.ofArray([Meetup.renderKef(x.drawLay)]);
+      loseback=List.ofArray([Meetup.renderKef(x.loseBack)]);
+      loselay=List.ofArray([Meetup.renderKef(x.loseLay)]);
+      totalMatched=List.ofArray([Meetup.renderTotalMatched(viewColumnGpbVisible,x)]);
+      country=List.ofArray([Meetup.renderCountry(viewColumnCountryVisible,x.country.get_View())]);
+      attrs=[];
+      return Doc.Concat([Doc.Element("tr",attrs,[Doc.TextNode("\n    "),Doc.Element("td",[],[Doc.TextNode("\n        "),Doc.Concat(order),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("td",[AttrProxy.Create("style","color : RoyalBlue;")],[Doc.TextNode("\n        "),Doc.Concat(home),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("td",[AttrProxy.Create("style","color : #009900;")],[Doc.TextNode("\n        "),Doc.Concat(score),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("td",[AttrProxy.Create("style","color : SteelBlue;")],[Doc.TextNode("\n        "),Doc.Concat(away),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("style","color : #009900;")],[Doc.TextNode("\n        "),Doc.Concat(status),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("class","kef win back")],[Doc.TextNode("\n        "),Doc.Concat(winback),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("class","kef win lay")],[Doc.TextNode("\n        "),Doc.Concat(winlay),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("class","kef draw back")],[Doc.TextNode("\n        "),Doc.Concat(drawback),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("class","kef draw lay")],[Doc.TextNode("\n        "),Doc.Concat(drawlay),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("class","kef lose back")],[Doc.TextNode("\n        "),Doc.Concat(loseback),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Element("td",[AttrProxy.Create("class","kef lose lay")],[Doc.TextNode("\n        "),Doc.Concat(loselay),Doc.TextNode("\n    ")]),Doc.TextNode("\n\n    "),Doc.Concat(totalMatched),Doc.TextNode("\n\n    "),Doc.Concat(country),Doc.TextNode("\n\n    ")])]);
      },
      renderTotalMatched:function(viewColumnGpbVisible,x)
      {
@@ -1394,7 +1333,7 @@
          x1=x.totalMatched.get_View();
          _=View1.Bind(function(_arg2)
          {
-          var mapping,folder,source,totalMatchs,x3,_1,arg20,t;
+          var mapping,folder,source,totalMatchs,x3,_1,arg20,arg201,t;
           mapping=function(tuple)
           {
            return tuple[1];
@@ -1418,7 +1357,8 @@
           else
            {
             t=Global.String(totalMatchs);
-            _1=Doc.Element("td",List.ofArray([AttrProxy.Create("class","game-gpb")]),List.ofArray([Doc.TextNode(t)]));
+            arg201=List.ofArray([Doc.TextNode(t)]);
+            _1=Doc.Element("td",[],arg201);
            }
           x3=_1;
           return View1.Const(Meetup.doc(x3));
@@ -1664,7 +1604,7 @@
      })
     },
     Utils:{
-     Err:function(arg0)
+     Left:function(arg0)
      {
       return{
        $:0,
@@ -1777,13 +1717,6 @@
        return window.localStorage;
       })
      },
-     Ok:function(arg0)
-     {
-      return{
-       $:1,
-       $0:arg0
-      };
-     },
      Option:{
       getWith:function(def,x)
       {
@@ -1799,6 +1732,13 @@
         }
        return _;
       }
+     },
+     Right:function(arg0)
+     {
+      return{
+       $:1,
+       $0:arg0
+      };
      },
      createModal:function(viewVisible,close)
      {
@@ -1950,7 +1890,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\fpawel\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",8,18));
+              _5=Operators.Raise(MatchFailureException.New("E:\\binf\\Documents\\Visual Studio 2015\\Projects\\CentBet\\WebFace\\ClientUtils.fs",8,18));
              }
             _4=_5;
            }
@@ -1969,7 +1909,7 @@
      {
       return!Unchecked.Equals(Var1.Get(x),value)?Var1.Set(x,value):null;
      },
-     "|Err|Ok|":function(_arg1)
+     "|Left|Right|":function(_arg1)
      {
       var _,b,a;
       if(_arg1.$==1)
