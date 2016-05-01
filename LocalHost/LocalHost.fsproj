@@ -127,6 +127,21 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <ProjectReference Include="..\Back\Back.fsproj">
+      <Name>Back</Name>
+      <Project>{64258481-a0e1-48ab-9e96-b3b85dfe565b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.fsproj">
+      <Name>Utils</Name>
+      <Project>{5601d65c-d037-4b72-a104-709d129bc908}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\WebFace\WebFace.fsproj">
+      <Name>WebFace</Name>
+      <Project>{ecbf3f0a-d5a1-434b-99d1-6e9622d869c0}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="WebSharper.Collections">
       <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Collections.dll</HintPath>
       <Private>True</Private>
@@ -195,23 +210,6 @@
       <HintPath>..\packages\WebSharper\lib\net40\WebSharper.Web.dll</HintPath>
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Back\Back.fsproj">
-      <Name>Back</Name>
-      <Project>{64258481-a0e1-48ab-9e96-b3b85dfe565b}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Utils\Utils.fsproj">
-      <Name>Utils</Name>
-      <Project>{5601d65c-d037-4b72-a104-709d129bc908}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\WebFace\WebFace.fsproj">
-      <Name>WebFace</Name>
-      <Project>{ecbf3f0a-d5a1-434b-99d1-6e9622d869c0}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="..\packages\WebSharper\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper\build\WebSharper.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
