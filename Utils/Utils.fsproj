@@ -53,7 +53,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="Prelude1.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="Json.fs" />
     <Compile Include="JsonSerialization.fs" />
     <None Include="Json.Serialization.Testing.fsx" />

@@ -86,11 +86,11 @@ let renderMeetup = Meetup.renderMeetup (varColumnGpbVisible.View, varColumnCount
 let renderСoupon = 
     let etable = 
         divAttr [ attr.``class`` "w3-responsive" ][
-            tableAttr[ attr.``class`` "w3-table w3-bordered w3-striped w3-hoverable" ] [   
+            tableAttr[ attr.``class`` "football-games-list w3-table w3-bordered w3-striped w3-hoverable" ] [   
                 thead[ trAttr [ Attr.Class "coupon-header-row w3-teal" ] 
                               (Meetup.renderGamesHeaderRow varColumnGpbVisible.View)  ]
                 tbody [
-                    meetups.View |> View.Map( Seq.map (renderMeetup  >> doc)  >> Doc.Concat )
+                    meetups.View |> View.Map( Seq.map renderMeetup  >> Doc.Concat )
                     |> Doc.EmbedView ] ] ] 
 
     divAttr [attr.``class`` "w3-container"][

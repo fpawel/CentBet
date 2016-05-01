@@ -51,7 +51,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="Prelude.fs" />
+    <Compile Include="Utils.fs" />
     <Compile Include="Concurency.fs" />
     <Compile Include="RestApi.fs" />
     <Compile Include="ApiNg.fs" />

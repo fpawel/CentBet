@@ -62,7 +62,7 @@ module CouponId =
     let status = Status ("COUPON-ID")
     let state = todayRef()
 
-    let private get() = async{
+    let getCouponId = async{
         match state.Value with
         | Some x -> return Ok x
         | _ ->
@@ -74,10 +74,10 @@ module CouponId =
                 state.Set x  
             return x }
 
-    let do' f = async {
-        let! couponId = get() 
+    let bind (f : _)  = async {
+        let! couponId = getCouponId 
         match couponId with 
-        | Err x -> return Logging.Error, sprintf "can't get coupon id : %s" x
+        | Err x -> return Err <| sprintf "can't get coupon id : %s" x
         | Ok couponId -> return! f couponId }
 
 module Coupon = 
@@ -87,27 +87,25 @@ module Coupon =
     let foreplay = atom []    
     let nextPageId = atom None
     
-    let ``no next id``   = Logging.Warn, "no next id"
-    let ``ok`` = Logging.Info, "Ok"
+    let updateInplay = 
+        CouponId.bind ( fun couponId -> 
+            readGamesList couponId false 1
+            |> Result.Async.map( fun ((games, nextPageId') as x) -> 
+                inplay.Set games
+                nextPageId.Set nextPageId' 
+                "ok") )
         
-    let updateInplay = CouponId.do' <| fun couponId -> async {
-        let! gs = readGamesList couponId false 1
-        match gs with
-        | Ok ((games, nextPageId') as x) ->                 
-            inplay.Set games
-            nextPageId.Set nextPageId'
-            return ``ok``
-        | Err error -> return Logging.Error, error }
 
-    let updateForeplay = CouponId.do' <| fun couponId -> async {
-        match nextPageId.Value with 
-        | None -> return ``no next id``
-        | Some nextPage ->
-            let! games = readGamesList couponId true nextPage 
-            match games with
-            | Ok (today2,n) -> 
-                foreplay.Set today2  
-                return ``ok``
-            | Err error -> return Logging.Error, error  }
+    let updateForeplay =  
+        CouponId.bind ( fun couponId -> async {
+            match nextPageId.Value with 
+            | None -> return Err "no next id"
+            | Some nextPage ->
+                return!
+                    readGamesList couponId true nextPage 
+                    |> Result.Async.map(  fst >> foreplay.Set >> fun _ -> "ok") } )
+
+    
+        
         
         

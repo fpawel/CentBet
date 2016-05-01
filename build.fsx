@@ -7,10 +7,7 @@ open Fake
 let buildDir  = "./build/"
 
 // Filesets
-let appReferences  =
-    !! "/**/*.csproj"
-      ++ "/**/*.fsproj"
-      -- "/LocalTest1/*.fsproj"
+let appReferences  = !!  "/**/*.fsproj"
 
 // version info
 let version = "0.1"  // or retrieve from CI server

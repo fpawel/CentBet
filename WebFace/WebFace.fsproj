@@ -114,6 +114,7 @@
     <Error Condition="!Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />
     <Error Condition="!Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.6.10.230\build\WebSharper.targets'))" />
   </Target>
+  <Import Project="..\packages\WebSharper.3.6.10.230\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.3.6.10.230\build\WebSharper.targets')" />
   <ItemGroup>
     <Content Include="Images/matchheader_sprite_1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -122,6 +123,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Templates/coupon.html" />
+	<Content Include="Templates/meetup-row.html" />
+    <Content Include="Templates/game-header.html" />
     <Content Include="Templates/console.html" />
     <Compile Include="Remote.fs" />
     <Compile Include="Api.fs" />

@@ -7,7 +7,6 @@
 *.userosscache
 *.sln.docstates
 password.txt
-localhost.fsx
 
 #paket
 .paket/paket.exe

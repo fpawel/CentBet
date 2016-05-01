@@ -55,13 +55,13 @@ type RunnerBook =
 type MarketBook = 
     {   marketId : int 
         marketName : string
-        visible : VarBool
+        expanded : VarBool
         runners : RunnerBook list}
     static member id x = x.marketId
     static member New (m:Market) = 
         {   marketId  = m.marketId 
             marketName  = m.marketName
-            visible  = Var.Create false
+            expanded  = Var.Create false
             runners = m.runners |> List.map RunnerBook.New }
         
 
@@ -81,11 +81,12 @@ type Meetup =
         totalMatched : Var< (int * int) list>
         country : Var<string option>
         mutable hash : int }
-    static member id x = x.game.gameId
-    
+    static member id x = x.game.gameId    
 
    
 type PageMode = 
     | PageModeCoupon
     | PageModeGameDetail of Meetup
+
+type Side = Back | Lay
 

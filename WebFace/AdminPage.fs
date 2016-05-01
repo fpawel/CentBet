@@ -95,8 +95,8 @@ let send (inputText : string) = async{
     try
         let! r = CentBet.Remote.perform inputText
         match r with
-        | Success x -> addRecord RResponseOk x
-        | Failure x -> addRecord RResponseError x
+        | Ok x -> addRecord RResponseOk x
+        | Err x -> addRecord RResponseError x
     with e ->
         addRecord RResponseError e.Message  
         }

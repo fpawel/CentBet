@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Купон</title>
     <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css" />
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css" />
+    
+
     <style>       
 *{
     margin:0;
@@ -29,7 +32,7 @@ html, body {
     color : SteelBlue;
 }
 
-td.home-team a, td.away-team a, ul.w3-ul li a {
+ul.w3-ul li a {
     display: block;
     text-decoration: none;
 }
@@ -38,35 +41,25 @@ ul.w3-ul li {
     border-bottom : none;
 }
 
-.game-status {
-    color : #009900 ;
-}
-
-.game-gpb {
-    color : #009900 ;
-}
-
-.game-country {
-    color : #009900 ;
-}
-
 .kef {
     text-align : center;    
 }
 
-.back {
+table.football-games-list td.back {
     color : DarkBlue ;
 }
 
-.lay {
+table.football-games-list td.lay {
     color : #009900 ;    
 }
 
-tr:hover td.back {
+table.football-games-list tr:hover td.back {
     color:  blue;
 }
 
-
+table.football-games-list tr:hover td.lay {
+    color:  red;
+}
 
 .kef.win.back, .kef.draw.back, .kef.lose.back, .kef.lose.lay   {
     border-style: solid;
@@ -85,6 +78,10 @@ tr:hover .kef.win.back, tr:hover .kef.draw.back, tr:hover .kef.lose.back, tr:hov
     border-color: white;
 }
 
+.price{
+    cursor:pointer;    
+}
+
 .price.back {
     background : #72bbef;
 }
@@ -93,13 +90,47 @@ tr:hover .kef.win.back, tr:hover .kef.draw.back, tr:hover .kef.lose.back, tr:hov
     background : #faa9ba;
 }
 
-tr:hover td.price.back {
+td:hover.price.back {
     background: #4F9BD0;
 }
 
-tr:hover td.price.lay {
+td:hover.price.lay {
     background: #DF8397;
 }
+
+table.my-table-striped tr:hover{
+    background: #f1f1f1;
+}
+table.my-table-striped tr td{
+    border-style: solid;
+    border-color: lightgrey;
+    border-width: 0 0 1px 0;
+}
+
+a.runners-title{
+    padding-left : 5px; 
+    padding-bottom : 5px; 
+    padding-top : 5px;
+    color : #FFF;
+    background : #616161;
+}
+a:hover.runners-title{
+    background : #000;
+}
+
+a.runners-title.expanded{
+    background : #009688;
+}
+a:hover.runners-title.expanded{
+    background : #4CAF50;
+}
+
+a.runners-title i{
+    padding-left : 3px; 
+    padding-right : 3px;
+}
+
+
     </style>
     
 </head>

@@ -19,17 +19,19 @@ module private Helpers =
             let status = Status(name)
             status.Set Logging.Info "loop started" 
             while true do     
-                let! (level,text) = work
+                let! result = work
+                let level,text = Logging.Level.fromResult string result
                 status.Set level "%s" text
+
                 do! Async.Sleep <| match level with
                                    | Logging.Error -> sleepErrorInterval
                                    | _ -> sleepInterval
             status.Set Logging.Error "loop terminated" }
 
-    let start'auth' status sleepInterval sleepErrorInterval work = 
+    let bindAuth status sleepInterval sleepErrorInterval (work : _ -> Async< Result<string,string> > ) = 
         start' status sleepInterval sleepErrorInterval <| async{
             match adminBetafirAuth.Value with
-            | None ->  return Logging.Warn, "waiting for auth betfair"
+            | None ->  return Err "waiting for auth betfair"
             | Some auth -> return! work auth }
 
 let getTodayGames() = Coupon.inplay.Value @ Coupon.foreplay.Value
@@ -88,7 +90,7 @@ module Events =
             allGames 
             |> List.map(fun ({gameId = gameId},_) -> gameId )
             |> getExisted
-        if missingIds.IsEmpty then return Logging.Info, "nothing to read" else
+        if missingIds.IsEmpty then return Ok "nothing to read" else
         let! newEvents = 
             List.map fst missingIds
             |> ApiNG.Services.listEvents auth 
@@ -100,10 +102,10 @@ module Events =
                     |> Option.map( fun gameId -> gameId, e) )
                 |> Map.ofList
             state.Set <| Map.union existedEvents newEvents
-            return Logging.Info, sprintf "readed new %d" newEvents.Count
+            return Ok <| sprintf "readed new %d" newEvents.Count
         | Ok newEvents  ->
-            return Logging.Error, sprintf "responsed size %d mismatch, waiting %d" newEvents.Length missingIds.Length 
-        | Err x -> return Logging.Error, x }
+            return Err <| sprintf "responsed size %d mismatch, waiting %d" newEvents.Length missingIds.Length 
+        | Err x -> return Err x }
 
     let get ids = 
         let rdds, msng = getExisted ids
@@ -146,8 +148,7 @@ module MarketsCatalogue =
             let! x = readAndUpd auth gameId
             errors := match x with Err x -> x::!errors | _ -> !errors            
         return 
-            if List.isEmpty !errors then Logging.Info, "ok"  else
-            Logging.Error, (!errors).[0] }
+            if List.isEmpty !errors then Ok "ok"  else Err (!errors).[0] }
 
 module TotalMatched =        
     
@@ -248,6 +249,44 @@ module MarketBook =
                     |> ignore
                     return Map.union existed readed  }
 
+module LocalHostTesting =
+
+    let loginBetfair (user,pass) =
+        Betfair.Login.login user pass                 
+        |> Result.Async.map ( fun auth -> 
+            Some auth |> adminBetafirAuth.Set 
+            auth )
+
+    let get10games = Result.Async.async{
+    
+        let! _ = Coupon.updateInplay
+        Logging.info "get10games - inplay updated" 
+
+        let games = 
+            (Coupon.inplay.Value @ Coupon.foreplay.Value)                        
+            |> List.take 10        
+            |> List.rev
+    
+        Coupon.foreplay.Set []
+        Coupon.inplay.Set games 
+        return () }
+
+    let updateGamesInfo auth = Result.Async.async{
+        let! _ = Events.update auth
+        Logging.info "iter1 - events updated" 
+        let! _ = MarketsCatalogue.update auth
+        Logging.info "marketcatalogue - forplay updated" 
+        return () }
+
+    let run1 usps = Result.Async.async{
+        let! auth = loginBetfair usps
+        let! _ = get10games
+        let! _ = updateGamesInfo auth
+        return () }
+        
+        
+        
+
 let start = 
     let isstarted = ref false
     let lock' = obj()
@@ -256,8 +295,8 @@ let start =
             if !isstarted then () else
             start' "INPLAY" 0 0 Coupon.updateInplay
             start' "FOREPLAY" 0 0 Coupon.updateForeplay
-            start'auth' "EVENTS" 0 0 Events.update
-            start'auth' "MARKET-CATALOGUE" 0 0 MarketsCatalogue.update
+            bindAuth "EVENTS" 0 0 Events.update
+            bindAuth "MARKET-CATALOGUE" 0 0 MarketsCatalogue.update
             isstarted := true
         
 
@@ -310,13 +349,3 @@ let getGame gameId =
     |> List.tryFind( function {gameId = gameId'},_ when gameId' = gameId -> true | _ -> false)
     |> Option.map snd 
     |> Option.map ( fun x -> x, x.GetHash() ) 
-
-
-
-
-
-    
-
-
-
-

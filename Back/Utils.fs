@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module Prelude
+module Utils
 
 open System
 open System.Net
@@ -93,6 +93,10 @@ module Logging =
              | Warn -> Trace.TraceWarning
              | Error 
              | Fatal -> Trace.TraceError) (sprintf "%A %A %s" DateTime.Now l s)
+
+        static member fromResult<'T, 'E> f = function
+            | Ok (x : 'T)-> Info, f x
+            | Err (e : 'E) -> Error, e
 
     [<AutoOpen>]
     module private Helpers = 
