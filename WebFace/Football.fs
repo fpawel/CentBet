@@ -38,31 +38,29 @@ type Event =
 type RunnerBook = 
     {   selectionId : int 
         runnerName : string
-        backPrice : VarDecOpt
-        backSize : VarDecOpt
-        layPrice : VarDecOpt
-        laySize : VarDecOpt }
+        back : Var< (decimal*decimal) list >
+        lay : Var< (decimal*decimal) list > }
     static member New (r:Runner) = 
-        let x() : VarDecOpt= Var.Create None
+        
         {   selectionId = r.selectionId
             runnerName = r.runnerName
-            backPrice = x()
-            backSize = x()
-            layPrice = x()
-            laySize = x() }
+            back = Var.Create []
+            lay = Var.Create [] }
         
 
 type MarketBook = 
     {   marketId : int 
         marketName : string
         expanded : VarBool
-        runners : RunnerBook list}
+        runners : RunnerBook list
+        pricesReaded : VarBool}
     static member id x = x.marketId
     static member New (m:Market) = 
         {   marketId  = m.marketId 
             marketName  = m.marketName
             expanded  = Var.Create false
-            runners = m.runners |> List.map RunnerBook.New }
+            runners = m.runners |> List.map RunnerBook.New 
+            pricesReaded = Var.Create false}
         
 
 type Meetup =
@@ -88,5 +86,10 @@ type PageMode =
     | PageModeCoupon
     | PageModeGameDetail of Meetup
 
-type Side = Back | Lay
+type Side = 
+    | Back 
+    | Lay
+    static member what = function 
+        | Back -> "back"
+        | Lay -> "lay"
 

@@ -106,9 +106,9 @@ let callUntyped auth service requestArgsJson =
                 | ApiError (exceptionname, errorCode, errorDetails) ->                     
                     Err <| sprintf "%A, exceptionname - %A, errorCode - %A " errorDetails exceptionname errorCode
                 | P "result" json -> Ok json
-                | _ -> Err "missing property \"result\" in response" )            
+                | _ -> Err <| sprintf "missing property \"result\", request %A response %A" (Json.stringify requestJson) (Json.stringify responseJson) )
             |> Result.mapErr (fun error -> 
-                sprintf "rest api error - %s, service %s" (ApiService.what service) error ) }
+                sprintf "rest api error, service %A, %s" (ApiService.what service) error  ) }
 
 
     

@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,PrintfHelpers,console,Storage1,Json,Provider,Id,ListModel,Work,State,GameDetail,Coupon,PageLen,SettingsDialog,Helpers,Utils,Meetup,View1,Operators,Football,Market,MarketBook,RunnerBook,Option1,Helpers1,LocalStorage,ServerBetfairsSession,Event,Meetup1,Date,JSON,window,Slice,MatchFailureException,Work1,Collections,MapModule;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,UI,Next,Doc,List,CentBet,Client,Admin,T,AttrModule,AttrProxy,Key,Var,Concurrency,Var1,Option,Seq,View,RecordType,Strings,Seq1,Remoting,AjaxRemotingProvider,Unchecked,PrintfHelpers,console,Storage1,Json,Provider,Id,ListModel,Work,State,GameDetail,Coupon,PageLen,SettingsDialog,Helpers,Utils,Meetup,View1,Operators,Football,Market,MarketBook,RunnerBook,Side,Helpers1,Option1,LocalStorage,ServerBetfairsSession,Event,Meetup1,Date,JSON,window,Slice,MatchFailureException,Work1,Collections,MapModule,Enumerator;
  Runtime.Define(Global,{
   CentBet:{
    Client:{
@@ -860,7 +860,8 @@
         marketId:m.marketId,
         marketName:m.marketName,
         expanded:Var.Create(false),
-        runners:List.map(mapping,list)
+        runners:List.map(mapping,list),
+        pricesReaded:Var.Create(false)
        });
       },
       id:function(x)
@@ -877,26 +878,60 @@
      RunnerBook:Runtime.Class({},{
       New:function(r)
       {
-       var x;
-       x=function()
-       {
-        return Var.Create({
-         $:0
-        });
-       };
        return Runtime.New(RunnerBook,{
         selectionId:r.selectionId,
         runnerName:r.runnerName,
-        backPrice:x(null),
-        backSize:x(null),
-        layPrice:x(null),
-        laySize:x(null)
+        back:Var.Create(Runtime.New(T,{
+         $:0
+        })),
+        lay:Var.Create(Runtime.New(T,{
+         $:0
+        }))
        });
+      }
+     }),
+     Side:Runtime.Class({},{
+      get_what:function()
+      {
+       return function(_arg1)
+       {
+        return _arg1.$==1?"lay":"back";
+       };
       }
      })
     },
     GameDetail:{
      Helpers:{
+      kefClass:function(side)
+      {
+       return"runner-kef runner-"+PrintfHelpers.toSafe((Side.get_what())(side));
+      },
+      renderAvailPricesTooltip:Runtime.Field(function()
+      {
+       var mapping,ats;
+       mapping=function(tupledArg)
+       {
+        var price,size,list,t,ch,x1;
+        price=tupledArg[0];
+        size=tupledArg[1];
+        t=Utils.formatDecimal(price);
+        list=List.ofArray([Doc.Element("td",List.ofArray([GameDetail.op_SpliceUntyped("runner-tooltip-price")]),List.ofArray([Doc.TextNode(t)])),Doc.Element("td",List.ofArray([GameDetail.op_SpliceUntyped("runner-tooltip-size")]),List.ofArray([(Helpers1.renderSize())(size)]))]);
+        ch=List.map(function(x)
+        {
+         return GameDetail.doc(x);
+        },list);
+        x1=Doc.Element("tr",[],ch);
+        return GameDetail.doc(x1);
+       };
+       ats=List.ofArray([GameDetail.op_SpliceUntyped("tooltip-content runner-avail-prices-container")]);
+       return function(x)
+       {
+        var ch,x1;
+        ch=Seq.map(mapping,x);
+        x1=Doc.Element("table",ats,ch);
+        return GameDetail.doc(x1);
+       };
+      }),
       renderGameInfo:function(meetup)
       {
        var arg00,arg10,_arg00_,country,x1,arg001,_arg00_1,totalMatched,ats,arg20,navback,navback1,home,score,away,country1,status,gpb,attrs,attrs1,attrs2,attrs3;
@@ -955,50 +990,47 @@
        attrs3=[];
        return Doc.Concat([Doc.Element("div",attrs,[Doc.TextNode("\n    "),Doc.Element("div",[AttrProxy.Create("style","text-align: left; padding-left : 5px;")],[Doc.TextNode("\n        "),Doc.Concat(navback1),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("table",attrs1,[Doc.TextNode("\n        "),Doc.Element("tr",attrs2,[Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: right;")],[Doc.TextNode("\n                    "),Doc.TextNode(home),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center; color : #b4e500;")],[Doc.TextNode("\n                    "),Doc.Concat(score),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: left;")],[Doc.TextNode("\n                    "),Doc.TextNode(away),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n        "),Doc.Element("tr",attrs3,[Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: left; padding-left:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(country1),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center;")],[Doc.TextNode("\n                    "),Doc.Concat(status),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: right; padding-right:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(gpb),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n    ")]),Doc.TextNode("\n")])]);
       },
-      renderKef:function(side,price,size)
+      renderKef:function(side,r)
       {
-       var _builder_,_,arg00,cls,x,_arg00_;
+       var _builder_,varPrices,x,_arg00_;
        _builder_=View.get_Do();
-       _=side.$==1?"lay":"back";
-       arg00="price "+PrintfHelpers.toSafe(_);
-       cls=AttrProxy.Create("class",arg00);
-       x=price.get_View();
+       varPrices=Unchecked.Equals(side,Runtime.New(Side,{
+        $:0
+       }))?r.back:r.lay;
+       x=varPrices.get_View();
        _arg00_=View1.Bind(function(_arg1)
        {
-        var mapping,x1,arg201,def,price2,x2;
-        mapping=function(price1)
-        {
-         var arg20,t;
-         t=Utils.formatDecimal(price1);
-         arg20=List.ofArray([Doc.TextNode(t)]);
-         return Doc.Element("td",List.ofArray([cls]),List.ofArray([Doc.Element("b",[],arg20)]));
-        };
-        x1=Option.map(mapping,_arg1);
-        arg201=Runtime.New(T,{
-         $:0
-        });
-        def=Doc.Element("td",[],arg201);
-        price2=Option1.getWith(def,x1);
-        x2=size.get_View();
-        return View1.Bind(function(_arg2)
-        {
-         var mapping1,x3,arg203,def1,size2;
-         mapping1=function(size1)
+        var _,_1,price,size,availPrices,price1,size1,eltAvailPrices,eltsBtn;
+        if(_arg1.$==1)
          {
-          var arg20,arg202,t;
-          t=PrintfHelpers.toSafe(Utils.formatDecimal(size1))+" $";
-          arg202=List.ofArray([Doc.TextNode(t)]);
-          arg20=List.ofArray([Doc.Element("i",[],arg202)]);
-          return Doc.Element("td",[],arg20);
-         };
-         x3=Option.map(mapping1,_arg2);
-         arg203=Runtime.New(T,{
-          $:0
-         });
-         def1=Doc.Element("td",[],arg203);
-         size2=Option1.getWith(def1,x3);
-         return View1.Const(Doc.Concat(List.ofArray([size2,price2])));
-        },x2);
+          if(_arg1.$1.$==0)
+           {
+            price=_arg1.$0[0];
+            size=_arg1.$0[1];
+            _1=Doc.Element("td",List.ofArray([GameDetail.op_SpliceUntyped(Helpers1.kefClass(side))]),Helpers1.renderPriceSizeButton(price,size));
+           }
+          else
+           {
+            availPrices=_arg1.$1;
+            price1=_arg1.$0[0];
+            size1=_arg1.$0[1];
+            eltAvailPrices=(Helpers1.renderAvailPricesTooltip())(availPrices);
+            eltsBtn=Helpers1.renderPriceSizeButton(price1,size1);
+            _1=Doc.Element("td",List.ofArray([GameDetail.op_SpliceUntyped(Helpers1.kefClass(side))]),List.ofArray([Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("tooltip"),AttrModule.Style("width","100%")]),Runtime.New(T,{
+             $:1,
+             $0:eltAvailPrices,
+             $1:eltsBtn
+            }))]));
+           }
+          _=_1;
+         }
+        else
+         {
+          _=Doc.Element("td",List.ofArray([GameDetail.op_SpliceUntyped("runner-kef")]),Runtime.New(T,{
+           $:0
+          }));
+         }
+        return View1.Const(_);
        },x);
        return Doc.EmbedView(_arg00_);
       },
@@ -1016,8 +1048,8 @@
          }
         else
          {
-          ats=List.ofArray([GameDetail.op_SpliceUntyped("my-table-striped")]);
-          arg20=List.ofArray([Doc.Element("td",List.ofArray([AttrProxy.Create("colspan","5")]),List.ofArray([title]))]);
+          ats=List.ofArray([GameDetail.op_SpliceUntyped("table-horiz-lines")]);
+          arg20=List.ofArray([Doc.Element("td",List.ofArray([AttrProxy.Create("colspan","3")]),List.ofArray([title]))]);
           mapping=function(x1)
           {
            var x2;
@@ -1037,7 +1069,7 @@
       },
       renderMarkets:function(meetup)
       {
-       var a1,op_IntegerAddressOf,x,matchValue,_,_1,_2,_3,xs1,xs2,xs3,ats,x1,xs11,xs21,x2,markets,x3;
+       var a1,op_IntegerAddressOf,predicate,projection,source,source1,x,markets,_,_1,_2,_3,xs1,xs2,xs3,ats,x1,xs11,xs21,x2,markets1,x3;
        a1=AttrProxy.Create("style","border-right : 1px solid #ddd;");
        op_IntegerAddressOf=function(list)
        {
@@ -1046,19 +1078,29 @@
          return Helpers1.renderMarket(market);
         },list);
        };
-       x=meetup.marketsBook;
-       matchValue=(Helpers1.window(3))(x);
-       if(matchValue.$==1)
+       predicate=function(m)
+       {
+        return m.marketName!=="\u0410\u0437\u0438\u0430\u0442\u0441\u043a\u0438\u0439 \u0433\u0430\u043d\u0434\u0438\u043a\u0430\u043f";
+       };
+       projection=function(m)
+       {
+        return[m.marketName!=="\u0421\u0442\u0430\u0432\u043a\u0438",m.marketName];
+       };
+       source=meetup.marketsBook;
+       source1=Seq.filter(predicate,source);
+       x=Seq.sortBy(projection,source1);
+       markets=(Helpers1.window(3))(x);
+       if(markets.$==1)
         {
-         if(matchValue.$1.$==1)
+         if(markets.$1.$==1)
           {
-           if(matchValue.$1.$1.$==1)
+           if(markets.$1.$1.$==1)
             {
-             if(matchValue.$1.$1.$1.$==0)
+             if(markets.$1.$1.$1.$==0)
               {
-               xs1=matchValue.$0;
-               xs2=matchValue.$1.$0;
-               xs3=matchValue.$1.$1.$0;
+               xs1=markets.$0;
+               xs2=markets.$1.$0;
+               xs3=markets.$1.$1.$0;
                ats=List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]);
                x1=Doc.Element("div",ats,List.ofArray([Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),op_IntegerAddressOf(xs1)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),op_IntegerAddressOf(xs2)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s4")]),op_IntegerAddressOf(xs3))]));
                _3=GameDetail.doc(x1);
@@ -1071,8 +1113,8 @@
             }
            else
             {
-             xs11=matchValue.$0;
-             xs21=matchValue.$1.$0;
+             xs11=markets.$0;
+             xs21=markets.$1.$0;
              x2=Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped("w3-row")]),List.ofArray([Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s6")]),op_IntegerAddressOf(xs11)),Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul w3-col s6")]),op_IntegerAddressOf(xs21))]));
              _2=GameDetail.doc(x2);
             }
@@ -1080,8 +1122,8 @@
           }
          else
           {
-           markets=matchValue.$0;
-           x3=Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul")]),op_IntegerAddressOf(markets));
+           markets1=markets.$0;
+           x3=Doc.Element("ul",List.ofArray([GameDetail.op_SpliceUntyped("w3-ul")]),op_IntegerAddressOf(markets1));
            _1=GameDetail.doc(x3);
           }
          _=_1;
@@ -1092,17 +1134,41 @@
         }
        return _;
       },
+      renderPriceSizeButton:function(price,size)
+      {
+       var mapping,list,t;
+       mapping=function(tupledArg)
+       {
+        var cls,elt,x;
+        cls=tupledArg[0];
+        elt=tupledArg[1];
+        x=Doc.Element("div",List.ofArray([GameDetail.op_SpliceUntyped(cls)]),List.ofArray([elt]));
+        return GameDetail.doc(x);
+       };
+       t=Utils.formatDecimal(price);
+       list=List.ofArray([["runner-kef-price",Doc.TextNode(t)],["runner-kef-size",(Helpers1.renderSize())(size)]]);
+       return List.map(mapping,list);
+      },
       renderRunner:function(r)
       {
-       var arg20,arg201;
-       arg201=List.ofArray([Doc.TextNode(r.runnerName)]);
-       arg20=List.ofArray([Doc.Element("td",[],arg201),Helpers1.renderKef({
+       var arg20;
+       arg20=List.ofArray([Doc.Element("td",List.ofArray([GameDetail.op_SpliceUntyped("runner-name")]),List.ofArray([Doc.TextNode(r.runnerName)])),Helpers1.renderKef(Runtime.New(Side,{
         $:0
-       },r.backPrice,r.backSize),Helpers1.renderKef({
+       }),r),Helpers1.renderKef(Runtime.New(Side,{
         $:1
-       },r.layPrice,r.laySize)]);
+       }),r)]);
        return Doc.Element("tr",[],arg20);
       },
+      renderSize:Runtime.Field(function()
+      {
+       return function(x)
+       {
+        var x1,t;
+        x1=Utils.round(x);
+        t=PrintfHelpers.toSafe(Utils.formatDecimal(x1))+"$";
+        return Doc.TextNode(t);
+       };
+      }),
       renderTitle:function(expanded,market)
       {
        var patternInput,cls1,chv1;
@@ -1837,6 +1903,11 @@
        });
       };
      }),
+     round:function($x)
+     {
+      var $0=this,$this=this;
+      return Global.Math.round($x);
+     },
      titleAndCloseButton:function(title,close)
      {
       var op_SpliceUntyped,ats;
@@ -1890,7 +1961,7 @@
              }
             else
              {
-              _5=Operators.Raise(MatchFailureException.New("E:\\binf\\Documents\\Visual Studio 2015\\Projects\\CentBet\\WebFace\\ClientUtils.fs",8,18));
+              _5=Operators.Raise(MatchFailureException.New("C:\\Users\\fpawel\\Documents\\Visual Studio 2015\\Projects\\Betfair\\CentBet\\WebFace\\ClientUtils.fs",8,18));
              }
             _4=_5;
            }
@@ -2253,49 +2324,58 @@
           a=_1;
           return Concurrency.Combine(a,Concurrency.Delay(function()
           {
-           var markets,mapping,source,marketsIds,x1;
-           markets=mtp.marketsBook;
+           var predicate,source,markets,mapping,source1,marketsIds,x1;
+           predicate=function(m)
+           {
+            return Var1.Get(m.expanded);
+           };
+           source=mtp.marketsBook;
+           markets=Seq.filter(predicate,source);
            mapping=function(arg001)
            {
             return MarketBook.id(arg001);
            };
-           source=Seq.map(mapping,markets);
-           marketsIds=Seq.toList(source);
+           source1=Seq.map(mapping,markets);
+           marketsIds=Seq.toList(source1);
            x1=AjaxRemotingProvider.Async("WebFace:7",[marketsIds]);
            return Concurrency.Bind(x1,function(_arg2)
            {
-            var action;
-            action=function(market)
+            return Concurrency.For(markets,function(_arg3)
             {
-             var x2,action1;
-             x2=market.runners;
-             action1=function(runner)
+             var x2,action;
+             Utils.updateVarValue(_arg3.pricesReaded,true);
+             x2=MapModule.TryFind(_arg3.marketId,_arg2);
+             action=function(readedRunnerPrices)
              {
-              var op_EqualsEqualsGreater,key,x4,action2;
-              op_EqualsEqualsGreater=function(v,x3)
+              var inputSequence,enumerator,_2,runner,action1,option;
+              inputSequence=_arg3.runners;
+              enumerator=Enumerator.Get(inputSequence);
+              try
               {
-               return Utils.updateVarValue(v,MapModule.TryFind(runner.selectionId,x3));
-              };
-              key=market.marketId;
-              x4=MapModule.TryFind(key,_arg2);
-              action2=function(tupledArg1)
+               while(enumerator.MoveNext())
+                {
+                 runner=enumerator.get_Current();
+                 action1=function(tupledArg1)
+                 {
+                  var back,lay;
+                  back=tupledArg1[0];
+                  lay=tupledArg1[1];
+                  Utils.updateVarValue(runner.back,back);
+                  return Utils.updateVarValue(runner.lay,lay);
+                 };
+                 option=MapModule.TryFind(runner.selectionId,readedRunnerPrices);
+                 Option.iter(action1,option);
+                }
+              }
+              finally
               {
-               var priceBack,sizeBack,priceLay,sizeLay;
-               priceBack=tupledArg1[0];
-               sizeBack=tupledArg1[1];
-               priceLay=tupledArg1[2];
-               sizeLay=tupledArg1[3];
-               op_EqualsEqualsGreater(runner.backPrice,priceBack);
-               op_EqualsEqualsGreater(runner.backSize,sizeBack);
-               op_EqualsEqualsGreater(runner.layPrice,priceLay);
-               return op_EqualsEqualsGreater(runner.laySize,sizeLay);
-              };
-              return Option.iter(action2,x4);
+               enumerator.Dispose!=undefined?enumerator.Dispose():null;
+              }
+              return _2;
              };
-             return Seq.iter(action1,x2);
-            };
-            Seq.iter(action,markets);
-            return Concurrency.Return(null);
+             Option.iter(action,x2);
+             return Concurrency.Return(null);
+            });
            });
           }));
          });
@@ -2671,8 +2751,9 @@
   Market=Runtime.Safe(Football.Market);
   MarketBook=Runtime.Safe(Football.MarketBook);
   RunnerBook=Runtime.Safe(Football.RunnerBook);
-  Option1=Runtime.Safe(Utils.Option);
+  Side=Runtime.Safe(Football.Side);
   Helpers1=Runtime.Safe(GameDetail.Helpers);
+  Option1=Runtime.Safe(Utils.Option);
   LocalStorage=Runtime.Safe(Utils.LocalStorage);
   ServerBetfairsSession=Runtime.Safe(State.ServerBetfairsSession);
   Event=Runtime.Safe(Football.Event);
@@ -2684,7 +2765,8 @@
   MatchFailureException=Runtime.Safe(Global.WebSharper.MatchFailureException);
   Work1=Runtime.Safe(Work.Work);
   Collections=Runtime.Safe(Global.WebSharper.Collections);
-  return MapModule=Runtime.Safe(Collections.MapModule);
+  MapModule=Runtime.Safe(Collections.MapModule);
+  return Enumerator=Runtime.Safe(Global.WebSharper.Enumerator);
  });
  Runtime.OnLoad(function()
  {
@@ -2713,6 +2795,8 @@
   PageLen["var"]();
   PageLen.localStorageKey();
   GameDetail.varError();
+  Helpers1.renderSize();
+  Helpers1.renderAvailPricesTooltip();
   Coupon["render\u0421oupon"]();
   Coupon.renderPagination();
   Coupon.renderMeetup();

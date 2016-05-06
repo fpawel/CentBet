@@ -121,32 +121,11 @@ module private Helpers1 =
     type R = ApiNG.Runner
     type S = ApiNG.Side
     type W = Price | Size
-    let get (s,w) x = 
-        R.exchangePrice s x
-        |> Option.bind (match w with Price -> fst | Size -> snd)
-
-    let mk k = 
-        List.choose( fun r -> 
-            get k r
-            |> Option.map( fun v -> r.selectionId,v) )
-        >> Map.ofList 
-
+    
 [<Rpc>]
 let getMarketsBook marketsIds = 
     Football.Coupon.MarketBook.get marketsIds
-    |> Async.map( Map.map(fun _ x -> 
-        let (~%%) k  = mk k x.runners
-        %% (S.BACK,Price), %% (S.BACK, Size), %% (S.LAY,Price), %% (S.LAY, Size) ) )
-        
-
-
-
-    
-
-
-
-
-
-
-
-
+    |> Async.map( Map.map(fun _ x ->
+        x.runners 
+        |> List.map( fun r -> r.selectionId, (R.exchangePrices S.BACK r, R.exchangePrices S.LAY r) )
+        |> Map.ofList ) )        

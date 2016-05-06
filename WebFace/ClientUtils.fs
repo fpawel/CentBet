@@ -18,13 +18,12 @@ let formatDecimalOption = function
     | None -> ""
     | Some x -> formatDecimal x
 
+[<Direct "Math.round($x)">]
+let round (x: decimal) : decimal = failwith "n/a"
+
+
 [<Direct "dateTimeToString($s)">]
 let dateTimeToString (s: int64) : string = failwith "n/a"
-
-//let mkids<'T,'a when 'a:comparison> (x : 'T list)  (getid : 'T -> 'a)  =
-//    let m = x |> List.map(fun g -> (getid g), g) |> Map.ofList
-//    let s = x |> List.map( getid ) |> Set.ofList
-//    s,m
 
 let getDatePart (x:JavaScript.Date) = 
     let y = Date(x.GetTime())
@@ -117,9 +116,6 @@ let createModal viewVisible close =
     let (~%%) = attr.``class``
     do
         initializeModalVar close
-
-    
-    
 
     let renderModalContent attrs content =
         doc <| divAttr[ 

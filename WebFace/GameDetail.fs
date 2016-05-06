@@ -21,7 +21,7 @@ let private (~%%) = attr.``class``
 module private Helpers =
 
     type GameHeaderTemplate = Templating.Template<"Templates/game-header.html">
-
+    
     let renderGameInfo meetup = 
         let country = 
             meetup.country.View 
@@ -48,40 +48,54 @@ module private Helpers =
                 status = [Doc.TextView meetup.status.View], 
                 gpb = [totalMatched] )
 
-    let renderKef side price size  = Doc.EmbedView <| View.Do{
-        let cls = 
-            match side with
-            | Back -> "back"
-            | Lay -> "lay"
-            |> sprintf "price %s"
-            |> attr.``class``
+    let renderSize = round >> formatDecimal  >> sprintf "%s$" >> text
 
-        let! price = View.FromVar price
-        let price =
-            price 
-            |> Option.map( fun price -> 
-                tdAttr [cls] [
-                    b [ price |> formatDecimal |>  text ] ] )
-            |> Option.getWith (td[])
+    let renderPriceSizeButton price size = 
+        [   "runner-kef-price", text <| formatDecimal price 
+            "runner-kef-size",  renderSize size ]
+        |> List.map( fun (cls, elt) ->
+            doc <| divAttr [ %% cls] [elt] )
+
+    let kefClass side = sprintf "runner-kef runner-%s" (Side.what side)
+
+    let renderAvailPricesTooltip = 
+        Seq.map( fun (price,size) -> 
+            [   tdAttr [ %% "runner-tooltip-price" ] [ text <| formatDecimal price  ]
+                tdAttr [ %% "runner-tooltip-size" ] [ renderSize size  ] ]
+            |> List.map doc |> tr |> doc )            
+        >> tableAttr [ %% "tooltip-content runner-avail-prices-container" ]
+        >> doc
             
-        let! size = View.FromVar size
-        let size =
-            size 
-            |> Option.map( fun size -> 
-                td[ i [ size |> formatDecimal |> sprintf "%s $" |>  text ] ] )
-            |> Option.getWith (td[])
-        return Doc.Concat [size; price] }
-   
-
+        
+    let renderKef side (r:RunnerBook) = Doc.EmbedView <| View.Do{
+        let varPrices = if side = Back then r.back else r.lay
+        let! prices = varPrices.View
+        return
+            match prices with
+            | (price, size) :: [] -> 
+                tdAttr
+                    [ %% kefClass side ]
+                    (renderPriceSizeButton price size)
+            | (price, size) :: availPrices -> 
+                let eltAvailPrices = renderAvailPricesTooltip availPrices
+                let eltsBtn = renderPriceSizeButton price size
+                tdAttr
+                    [ %% kefClass side ]
+                    [ divAttr 
+                        [ %% "tooltip"; Attr.Style "width" "100%" ] 
+                        (eltAvailPrices :: eltsBtn) ]
+                    
+            | _ -> tdAttr [ %% "runner-kef"] [] }
 
     let renderRunner (r:RunnerBook) = 
-        tr[
-            td[ text r.runnerName ]
-            renderKef Back r.backPrice r.backSize
-            renderKef Lay  r.layPrice  r.laySize ] 
-       
+        tr[   
+            tdAttr[ %% "runner-name"][ text r.runnerName ]
+            renderKef Back r
+            renderKef Lay r ]
+
     let renderTitle expanded market = 
         let chv1,cls1 = if expanded then "up", "expanded" else "down",""
+
         aAttr [
             attr.href "#"
             on.click( fun _ _ ->  market.expanded.Value <- not market.expanded.Value ) 
@@ -94,10 +108,11 @@ module private Helpers =
         market.expanded.View |> View.Map( fun expanded ->
             let title = renderTitle expanded market
             let elt =
-                if not expanded then title else 
-                tableAttr [ %% "my-table-striped" ] [ 
-                    tr[ tdAttr[ attr.colspan "5" ][ title] ]
-                    market.runners |> List.map  (renderRunner >> doc) |> Doc.Concat ] 
+                if not expanded then title   else 
+                tableAttr [
+                    %% "table-horiz-lines" ] [ 
+                    tr[ tdAttr [ attr.colspan "3" ] [title] ]                     
+                    market.runners |> List.map  (renderRunner >> doc)  |> Doc.Concat  ] 
             li [elt] )
         |> Doc.EmbedView
         
@@ -112,7 +127,14 @@ module private Helpers =
         let a1 = attr.style "border-right : 1px solid #ddd;"
         //let a2 = attr.style "border-radius: 0 0 10px 10px;"
         let (~&&) = List.map renderMarket  
-        match meetup.marketsBook |> window 3 with        
+
+        let markets = 
+            meetup.marketsBook
+            |> Seq.filter(fun m -> m.marketName <> "Азиатский гандикап")            
+            |> Seq.sortBy(fun m -> m.marketName <> "Ставки", m.marketName)
+            |> window 3
+
+        match markets with        
         | [ markets ] -> doc <| ulAttr [ %% "w3-ul" ] (&& markets)
         | [ xs1; xs2 ] -> 
             divAttr [%% "w3-row"] [    
@@ -126,9 +148,6 @@ module private Helpers =
                 ulAttr [ %% "w3-ul w3-col s4" ] (&& xs3)  ] 
             |> doc
         | _ -> Doc.Empty
-        
-    
-    
 
 let renderExploreMarkets meetup =     
     [   renderGameInfo meetup        

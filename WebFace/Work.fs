@@ -156,21 +156,21 @@ let processGameDetail = async{
         match x with
         | None -> () // ошибка
         | Some (i,h) -> updateGameInfo(mtp, i, h)
-        let markets = mtp.marketsBook 
+        let markets = mtp.marketsBook |> Seq.filter( fun m -> m.expanded.Value)
         let! readedMarketBook = 
-            markets 
+            markets             
             |> Seq.map MarketBook.id 
             |> Seq.toList
             |> CentBet.Remote.getMarketsBook 
-        markets |> Seq.iter( fun market ->             
-            market.runners |> List.iter( fun runner ->                 
-                let (==>) (v : VarDecOpt) x = updateVarValue v (Map.tryFind runner.selectionId x)
-                readedMarketBook |> Map.tryFind market.marketId 
-                |> Option.iter( fun (priceBack, sizeBack, priceLay, sizeLay) ->                  
-                    runner.backPrice ==> priceBack
-                    runner.backSize ==> sizeBack
-                    runner.layPrice ==> priceLay
-                    runner.laySize ==> sizeLay ) ) ) }
+        for market in markets do 
+            updateVarValue market.pricesReaded true
+            Map.tryFind market.marketId readedMarketBook  
+            |> Option.iter(fun readedRunnerPrices ->
+                for runner in market.runners do
+                    Map.tryFind runner.selectionId readedRunnerPrices
+                    |> Option.iter(fun (back,lay) ->
+                        updateVarValue runner.back back
+                        updateVarValue runner.lay lay ) ) } 
 
 type Work = 
     {   what : string

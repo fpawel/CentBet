@@ -468,8 +468,14 @@ and Runner =
 
     static member exchangePrice side x = 
         x.ex 
-        |> Option.bind( ExchangePrices.get0 side  )
-        |> Option.map( fun (p : PriceSize) -> p.price, p.size)
+        |> Option.bind( ExchangePrices.price0 side  )
+        |> Option.bind( PriceSize.bind )
+
+    static member exchangePrices side x = 
+        x.ex 
+        |> Option.map( ExchangePrices.prices side )
+        |> Option.getWith []
+        |> List.choose( PriceSize.bind )
         
     
 ///Information about the Betfair Starting Price. Only available in BSP markets
@@ -489,13 +495,17 @@ and ExchangePrices =
     {   availableToBack : PriceSize list
         availableToLay : PriceSize list
         tradedVolume : PriceSize list}
-    static member get0 side (x : ExchangePrices) = 
+
+    static member prices side (x : ExchangePrices) : PriceSize list = 
         match side with
         | BACK -> x.availableToBack
         | LAY -> x.availableToLay
-        |> function
-            | [] -> None
-            | y ::_ -> Some y
+        
+    
+    static member price0 side (x : ExchangePrices) = 
+        match ExchangePrices.prices side x with
+        | [] -> None
+        | y ::_ -> Some y
 
 ///Event
 and Event =
@@ -702,6 +712,9 @@ and MarketLineRangeInfo =
 and PriceSize =
     {   price : decimal option
         size : decimal option}
+    static member bind = function
+        | {PriceSize.price = Some price; size = Some size} -> Some (price, size) 
+        | _ -> None
 
 ///Summary of a cleared order.
 and ClearedOrderSummary =

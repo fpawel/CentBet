@@ -1,145 +1,237 @@
 ﻿<!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Купон</title>
     <link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css" />
     <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css" />
-    
-
-    <style>       
-*{
-    margin:0;
-    padding:0;
-}
-
-html, body {
-    height: 100%;
-    margin: 0;    
-}
 
 
-.w3-table td, .w3-table th, .w3-table-all td, .w3-table-all th {
-    padding : 3px;
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
 
-.home-team {
-    color : RoyalBlue;
-}
+         /*
+            Всплывающая подсказка
+        */
+        .tooltip {
+            position: relative;
+            display: inline-block;            
+        }
 
-.away-team {
-    color : SteelBlue;
-}
+        .tooltip .tooltip-content {
+            visibility: hidden;
+                
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            top: -5px;
+            left: 105%;
 
-ul.w3-ul li a {
-    display: block;
-    text-decoration: none;
-}
+            /*width: 120px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;*/
+        }
 
-ul.w3-ul li {
-    border-bottom : none;
-}
+        .tooltip:hover .tooltip-content {
+            visibility: visible;
+        }
+        
+        .w3-table td,
+        .w3-table th,
+        .w3-table-all td,
+        .w3-table-all th {
+            padding: 3px;
+        }
+        
+        .home-team {
+            color: RoyalBlue;
+        }
+        
+        .away-team {
+            color: SteelBlue;
+        }
+        
+        ul.w3-ul li a {
+            display: block;
+            text-decoration: none;
+        }
+        
+        ul.w3-ul li {
+            border-bottom: none;
+        }
+        
+        .kef {
+            text-align: center;
+        }
+        
+        table.football-games-list td.back {
+            color: DarkBlue;
+        }
+        
+        table.football-games-list td.lay {
+            color: #009900;
+        }
+        
+        table.football-games-list tr:hover td.back {
+            color: blue;
+        }
+        
+        table.football-games-list tr:hover td.lay {
+            color: red;
+        }
+        
+        .kef.win.back,
+        .kef.draw.back,
+        .kef.lose.back,
+        .kef.lose.lay {
+            border-style: solid;
+            border-color: lightgrey;
+        }
+        
+        .kef.lose.lay {
+            border-width: 0 1px 0 0;
+        }
+        
+        .kef.win.back,
+        .kef.draw.back,
+        .kef.lose.back {
+            border-width: 0 0 0 1px;
+        }
+        
+        tr:hover .kef.win.back,
+        tr:hover .kef.draw.back,
+        tr:hover .kef.lose.back,
+        tr:hover .kef.lose.lay {
+            border-color: white;
+        }
+        
+        /*    
+            таблица с горизонтальными линиями строк 
+        */
+        
+        table.table-horiz-lines tr:hover {
+            background: #f1f1f1;
+        }
+        
+        table.table-horiz-lines tr td {
+            border-style: solid;
+            border-color: lightgrey;
+            border-width: 0 0 1px 0;
+        }
 
-.kef {
-    text-align : center;    
-}
+        /*    
+            заголовок опций рынка 
+        */
+        
+        a.runners-title {
+            padding-left: 5px;
+            padding-bottom: 3px;
+            color: #FFF;
+            background: #616161;
+        }
+        
+        a:hover.runners-title {
+            background: #000;
+        }
+        
+        a.runners-title.expanded {
+            background: #009688;
+        }
+        
+        a:hover.runners-title.expanded {
+            background: #4CAF50;
+        }
+        
+        a.runners-title i {
+            padding-left: 3px;
+            padding-right: 3px;
+        }
 
-table.football-games-list td.back {
-    color : DarkBlue ;
-}
+        /* 
+            опция рынка
+        */
 
-table.football-games-list td.lay {
-    color : #009900 ;    
-}
+        .runner-name {
+            width: calc(100% - 80px);
+            padding-top: 3px;
+            padding-bottom: 3px;
+            padding-left: 8px;
+        }
 
-table.football-games-list tr:hover td.back {
-    color:  blue;
-}
+        .runner-kef {
+            width: 80px;
+            text-align: center;
+        }
 
-table.football-games-list tr:hover td.lay {
-    color:  red;
-}
+        .runner-kef-price {
+            font-weight : bolder;
+        }
 
-.kef.win.back, .kef.draw.back, .kef.lose.back, .kef.lose.lay   {
-    border-style: solid;
-    border-color: lightgrey;
-}
+        .runner-kef-size {
+            font-style : italic;
+            font-size : small;            
+        }
 
-.kef.lose.lay {
-    border-width: 0 1px 0 0;    
-}
+        td.runner-kef.runner-back {
+            background: #72bbef;
+            cursor: pointer;
+        }
+        
+        td.runner-kef.runner-lay {
+            background: #faa9ba;
+            cursor: pointer;
+        }
+        
+        td:hover.runner-kef.runner-back {
+            background: #4F9BD0;
+        }
+        
+        td:hover.runner-kef.runner-lay {
+            background: #DF8397;
+        }
 
-.kef.win.back, .kef.draw.back, .kef.lose.back   {
-    border-width: 0 0 0 1px;    
-}
+        .runner-avail-prices-container{
+            background-color: #3D3D3D;            
+        }
 
-tr:hover .kef.win.back, tr:hover .kef.draw.back, tr:hover .kef.lose.back, tr:hover .kef.lose.lay {
-    border-color: white;
-}
+        table.runner-avail-prices-container tr td {
+            border:none;
+        }
 
-.price{
-    cursor:pointer;    
-}
-
-.price.back {
-    background : #72bbef;
-}
-
-.price.lay {
-    background : #faa9ba;
-}
-
-td:hover.price.back {
-    background: #4F9BD0;
-}
-
-td:hover.price.lay {
-    background: #DF8397;
-}
-
-table.my-table-striped tr:hover{
-    background: #f1f1f1;
-}
-table.my-table-striped tr td{
-    border-style: solid;
-    border-color: lightgrey;
-    border-width: 0 0 1px 0;
-}
-
-a.runners-title{
-    padding-left : 5px; 
-    padding-bottom : 5px; 
-    padding-top : 5px;
-    color : #FFF;
-    background : #616161;
-}
-a:hover.runners-title{
-    background : #000;
-}
-
-a.runners-title.expanded{
-    background : #009688;
-}
-a:hover.runners-title.expanded{
-    background : #4CAF50;
-}
-
-a.runners-title i{
-    padding-left : 3px; 
-    padding-right : 3px;
-}
-
+        .runner-tooltip-price{
+            color : #FFE4C4;
+            padding: 5px;
+        }
+        .runner-tooltip-size{
+            color : #ABD1B8;
+            padding: 5px;
+        }
+       
 
     </style>
-    
+
 </head>
+
 <body>
     <div data-replace="body">
 
     </div>
-    
+
     <script data-replace="scripts"></script>
 </body>
-</html>
 
+</html>
