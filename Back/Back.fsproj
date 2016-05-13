@@ -57,6 +57,7 @@
     <Compile Include="ApiNg.fs" />
     <Compile Include="ApiNgServices.fs" />
     <Compile Include="LoginBerfair.fs" />
+    <Compile Include="AppConfig.fs" />
     <Compile Include="Football.fs" />
     <Compile Include="Football.Parsing.fs" />
     <Compile Include="Football.Service.fs" />
@@ -66,6 +67,8 @@
     <None Include="Script1.fsx" />
     <None Include="Script2.fsx" />
     <Content Include="packages.config" />
+    <None Include="crt-usrs-tbl.sql" />
+    <None Include="read-usrs.sql" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="HtmlAgilityPack">
@@ -77,6 +80,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <ProjectReference Include="..\Utils\Utils.fsproj">

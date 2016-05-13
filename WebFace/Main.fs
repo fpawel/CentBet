@@ -27,12 +27,19 @@ module Site =
 
     open Json
 
+    let betfairBrandImage =
+        let url = "http://corporate.betfair.com/~/media/Images/B/Betfair-Corporate/Images/logo/logo.png?h=30&la=en&w=183"
+        imgAttr 
+            [ attr.src url; attr.style "margin-bottom : -1px;" ] 
+            []
+        :> Doc 
+
     [<Website>]
     let Main =
-        
         Application.MultiPage (fun ctx -> function
             | Coupon -> 
-                Content.Page(Templating.Template<"Templates/coupon.html">.Doc( [ client <@ Coupon.Render() @> ] ))
+                let body = [ client <@ Coupon.Render() @> ]
+                Content.Page(Templating.Template<"Templates/coupon.html">.Doc( [ betfairBrandImage ], body))
             | Console -> 
                 Content.Page(Templating.Template<"Templates/console.html">.Doc( [ client <@ Admin.Render() @> ] ))
             | ApiCall -> 

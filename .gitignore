@@ -7,6 +7,7 @@
 *.userosscache
 *.sln.docstates
 password.txt
+constr.txt
 
 #paket
 .paket/paket.exe

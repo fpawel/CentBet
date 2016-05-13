@@ -169,8 +169,8 @@
      },
      renderRecord:Runtime.Field(function()
      {
-      var arg00;
-      arg00=function(r)
+      var _arg00_69_2;
+      _arg00_69_2=function(r)
       {
        var _,patternInput,fore,back,e;
        try
@@ -191,7 +191,7 @@
       return function(x)
       {
        var _arg00_;
-       _arg00_=View.Map(arg00,x);
+       _arg00_=View.Map(_arg00_69_2,x);
        return Doc.EmbedView(_arg00_);
       };
      }),
@@ -716,8 +716,8 @@
      }),
      renderPagination:Runtime.Field(function()
      {
-      var _builder_,x,_arg00_;
-      _builder_=View.get_Do();
+      var _builder_61_3,x,_arg00_;
+      _builder_61_3=View.get_Do();
       x=State.varPagesCount().get_View();
       _arg00_=View1.Bind(function(_arg1)
       {
@@ -775,7 +775,7 @@
      }),
      "render\u0421oupon":Runtime.Field(function()
      {
-      var ats,arg20,ats1,arg201,arg202,arg00,arg10,_arg00_,etable,ats2,_builder_,x1,_arg00_1;
+      var ats,arg20,ats1,arg201,arg202,arg00,arg10,_arg00_,_etable_87_3,ats2,_builder_99_2,x1,_arg00_1;
       ats=List.ofArray([AttrProxy.Create("class","w3-responsive")]);
       ats1=List.ofArray([AttrProxy.Create("class","football-games-list w3-table w3-bordered w3-striped w3-hoverable")]);
       arg201=List.ofArray([Doc.Element("tr",List.ofArray([AttrModule.Class("coupon-header-row w3-teal")]),Meetup.renderGamesHeaderRow(State.varColumnGpbVisible().get_View()))]);
@@ -789,9 +789,9 @@
       _arg00_=View.Map(arg00,arg10);
       arg202=List.ofArray([Doc.EmbedView(_arg00_)]);
       arg20=List.ofArray([Doc.Element("table",ats1,List.ofArray([Doc.Element("thead",[],arg201),Doc.Element("tbody",[],arg202)]))]);
-      etable=Doc.Element("div",ats,arg20);
+      _etable_87_3=Doc.Element("div",ats,arg20);
       ats2=List.ofArray([AttrProxy.Create("class","w3-container")]);
-      _builder_=View.get_Do();
+      _builder_99_2=View.get_Do();
       x1=State.varCurrentPageNumber().get_View();
       _arg00_1=View1.Bind(function(_arg1)
       {
@@ -800,7 +800,7 @@
         var x,_,arg203,t;
         if(_arg1===_arg2)
          {
-          _=etable;
+          _=_etable_87_3;
          }
         else
          {
@@ -934,7 +934,7 @@
       }),
       renderGameInfo:function(meetup)
       {
-       var arg00,arg10,_arg00_,country,x1,arg001,_arg00_1,totalMatched,ats,arg20,navback,navback1,home,score,away,country1,status,gpb,attrs,attrs1,attrs2,attrs3;
+       var arg00,arg10,_arg00_,country,x1,arg001,_arg00_1,totalMatched,ats,arg20,navback,navback1,home,score,away,country1,status,gpb,attrs,attrs1,attrs2,attrs3,attrs4;
        arg00=function(x)
        {
         var t;
@@ -988,7 +988,8 @@
        attrs1=[];
        attrs2=[];
        attrs3=[];
-       return Doc.Concat([Doc.Element("div",attrs,[Doc.TextNode("\n    "),Doc.Element("div",[AttrProxy.Create("style","text-align: left; padding-left : 5px;")],[Doc.TextNode("\n        "),Doc.Concat(navback1),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("table",attrs1,[Doc.TextNode("\n        "),Doc.Element("tr",attrs2,[Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: right;")],[Doc.TextNode("\n                    "),Doc.TextNode(home),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center; color : #b4e500;")],[Doc.TextNode("\n                    "),Doc.Concat(score),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: left;")],[Doc.TextNode("\n                    "),Doc.TextNode(away),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n        "),Doc.Element("tr",attrs3,[Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: left; padding-left:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(country1),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center;")],[Doc.TextNode("\n                    "),Doc.Concat(status),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: right; padding-right:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(gpb),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n    ")]),Doc.TextNode("\n")])]);
+       attrs4=[];
+       return Doc.Concat([Doc.Element("div",attrs,[Doc.TextNode("\n    "),Doc.Element("div",[AttrProxy.Create("style","text-align: left; padding-left : 5px;")],[Doc.TextNode("\n        "),Doc.Concat(navback1),Doc.TextNode("\n    ")]),Doc.TextNode("\n    \n    "),Doc.Element("table",attrs1,[Doc.TextNode("\n        "),Doc.Element("tr",attrs2,[Doc.TextNode("\n            "),Doc.Element("td",[AttrProxy.Create("style","width : 40%")],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: right;")],[Doc.TextNode("\n                    "),Doc.TextNode(home),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[AttrProxy.Create("style","width : 20%")],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center; color : #b4e500;")],[Doc.TextNode("\n                    "),Doc.Concat(score),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[AttrProxy.Create("style","width : 40%")],[Doc.TextNode("\n                "),Doc.Element("h1",[AttrProxy.Create("style","text-align: left;")],[Doc.TextNode("\n                    "),Doc.TextNode(away),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n    ")]),Doc.TextNode("\n    "),Doc.Element("table",attrs3,[Doc.TextNode("\n        "),Doc.Element("tr",attrs4,[Doc.TextNode("\n            "),Doc.Element("td",[AttrProxy.Create("style","width : 40%")],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: left; padding-left:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(country1),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[AttrProxy.Create("style","width : 20%")],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: center;")],[Doc.TextNode("\n                    "),Doc.Concat(status),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n            "),Doc.Element("td",[AttrProxy.Create("style","width : 40%")],[Doc.TextNode("\n                "),Doc.Element("h3",[AttrProxy.Create("style","text-align: right; padding-right:5px;")],[Doc.TextNode("\n                    "),Doc.Concat(gpb),Doc.TextNode("\n                ")]),Doc.TextNode("\n            ")]),Doc.TextNode("\n        ")]),Doc.TextNode("\n    ")]),Doc.TextNode("\n")])]);
       },
       renderKef:function(side,r)
       {
@@ -1506,8 +1507,8 @@
      },
      events:Runtime.Field(function()
      {
-      var dt,x,_,arg00,arg10,enc,e,clo1,arg002,arg101,clo11;
-      dt=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
+      var _dt_26_1,_x_27_7,_,arg00,arg10,enc,e,clo1,arg002,arg101,clo11;
+      _dt_26_1=LocalStorage.checkTodayKey("CentBetEventsCatalogueCreated","CentBetEventsCatalogue");
       try
       {
        arg00=function(arg001)
@@ -1542,7 +1543,7 @@
        });
        _=ListModel.Create(arg002,arg101);
       }
-      x=_;
+      _x_27_7=_;
       clo11=function(_1)
       {
        return function(_2)
@@ -1555,8 +1556,8 @@
         };
        };
       };
-      ((clo11("CentBetEventsCatalogue"))(x.get_Length()))(dt);
-      return x;
+      ((clo11("CentBetEventsCatalogue"))(_x_27_7.get_Length()))(_dt_26_1);
+      return _x_27_7;
      }),
      isCouponMode:function()
      {
@@ -1566,15 +1567,15 @@
      },
      meetups:Runtime.Field(function()
      {
-      var arg00,arg10;
-      arg00=function(arg001)
+      var _arg00_11_3,_arg10_11_3;
+      _arg00_11_3=function(arg00)
       {
-       return Meetup1.id(arg001);
+       return Meetup1.id(arg00);
       };
-      arg10=Runtime.New(T,{
+      _arg10_11_3=Runtime.New(T,{
        $:0
       });
-      return ListModel.Create(arg00,arg10);
+      return ListModel.Create(_arg00_11_3,_arg10_11_3);
      }),
      mtpevt:Runtime.Field(function()
      {
@@ -1871,11 +1872,11 @@
      },
      initializeModalVar:Runtime.Field(function()
      {
-      var hs,onclick;
-      hs=[Runtime.New(T,{
+      var _hs_105_1,_onclick_106_3;
+      _hs_105_1=[Runtime.New(T,{
        $:0
       })];
-      onclick=function(e)
+      _onclick_106_3=function(e)
       {
        var _,action,list;
        if(e.target.className==="w3-modal")
@@ -1884,7 +1885,7 @@
          {
           return h(null);
          };
-         list=hs[0];
+         list=_hs_105_1[0];
          _=Seq.iter(action,list);
         }
        else
@@ -1893,13 +1894,13 @@
         }
        return _;
       };
-      window.addEventListener("click",onclick,false);
+      window.addEventListener("click",_onclick_106_3,false);
       return function(h)
       {
-       hs[0]=Runtime.New(T,{
+       _hs_105_1[0]=Runtime.New(T,{
         $:1,
         $0:h,
-        $1:hs[0]
+        $1:_hs_105_1[0]
        });
       };
      }),

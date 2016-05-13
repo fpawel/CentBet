@@ -279,6 +279,7 @@ module LocalHostTesting =
         return () }
 
     let run1 usps = Result.Async.async{
+        AppConfig.dump()
         let! auth = loginBetfair usps
         let! _ = get10games
         let! _ = updateGamesInfo auth
@@ -293,6 +294,7 @@ let start =
     fun () -> 
         lock lock' <| fun () ->
             if !isstarted then () else
+            AppConfig.dump()
             start' "INPLAY" 0 0 Coupon.updateInplay
             start' "FOREPLAY" 0 0 Coupon.updateForeplay
             bindAuth "EVENTS" 0 0 Events.update
