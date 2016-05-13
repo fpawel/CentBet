@@ -11,7 +11,7 @@ do
 //    |> Async.map (printfn "%A")    
 //    |> Async.Start
     
-    Betfair.Football.Coupon.LocalHostTesting.run1 (AppConfig.betuser(), AppConfig.betpass())
+    Betfair.Football.Coupon.LocalHostTesting.run1 ()
     |> Async.map (printfn "%A")    
     |> Async.Start
     

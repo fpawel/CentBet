@@ -14,6 +14,21 @@ let adminBetafirAuth = atom None
 [<AutoOpen>]
 module private Helpers = 
     
+    let loginBetfairWithAppConfig() =
+        let betuser, betpass = AppConfig.betuser(), AppConfig.betpass()
+        Betfair.Login.login betuser betpass
+        |> Result.Async.map ( fun auth -> 
+            Some auth |> adminBetafirAuth.Set 
+            auth )
+        |> Result.Async.Err.map( fun error -> 
+            sprintf "can not login betfair with app config %A %A - %s" betuser betpass error)
+
+    let tryGetBetfairAuth() = async{
+        match adminBetafirAuth.Value with
+        | Some auth -> return Ok auth
+        | None -> return! loginBetfairWithAppConfig() }
+
+    
     let start' name sleepInterval sleepErrorInterval work = 
         Async.Start <| async{
             let status = Status(name)
@@ -29,10 +44,9 @@ module private Helpers =
             status.Set Logging.Error "loop terminated" }
 
     let bindAuth status sleepInterval sleepErrorInterval (work : _ -> Async< Result<string,string> > ) = 
-        start' status sleepInterval sleepErrorInterval <| async{
-            match adminBetafirAuth.Value with
-            | None ->  return Err "waiting for auth betfair"
-            | Some auth -> return! work auth }
+        start' 
+            status sleepInterval sleepErrorInterval 
+            (   tryGetBetfairAuth() |> Result.Async.bind work )
 
 let getTodayGames() = Coupon.inplay.Value @ Coupon.foreplay.Value
 
@@ -251,11 +265,7 @@ module MarketBook =
 
 module LocalHostTesting =
 
-    let loginBetfair (user,pass) =
-        Betfair.Login.login user pass                 
-        |> Result.Async.map ( fun auth -> 
-            Some auth |> adminBetafirAuth.Set 
-            auth )
+    
 
     let get10games = Result.Async.async{
     
@@ -278,12 +288,10 @@ module LocalHostTesting =
         Logging.info "marketcatalogue - forplay updated" 
         return () }
 
-    let run1 usps = Result.Async.async{
+    let run1 () = Result.Async.async{
         AppConfig.dump()
-        let! auth = loginBetfair usps
         let! _ = get10games
-        let! _ = updateGamesInfo auth
-        return () }
+        return! tryGetBetfairAuth() |> Result.Async.bind updateGamesInfo }
         
         
         

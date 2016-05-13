@@ -67,8 +67,6 @@
     <None Include="Script1.fsx" />
     <None Include="Script2.fsx" />
     <Content Include="packages.config" />
-    <None Include="crt-usrs-tbl.sql" />
-    <None Include="read-usrs.sql" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="HtmlAgilityPack">
